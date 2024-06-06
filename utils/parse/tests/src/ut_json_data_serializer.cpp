@@ -9,6 +9,7 @@
 #include "json_data_serializer.hpp"
 
 using namespace server;
+using namespace server_utl;
 
 TEST(ut_json_data_serializer, serialize_sanity) {
 	// GIVEN:

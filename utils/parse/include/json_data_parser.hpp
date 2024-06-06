@@ -9,20 +9,20 @@ namespace Json {
 	class Value;
 }
 
-namespace server {
-	class JsonDataParser: public Parser<Object(const std::string&)> {
+namespace server_utl {
+	class JsonDataParser: public server::Parser<server::Object(const std::string&)> {
 	public:
 		JsonDataParser() = default;
 		JsonDataParser(const JsonDataParser& other) = default;
 		JsonDataParser& operator=(const JsonDataParser& other) = default;
 		
-		virtual Object parse(const std::string& data) const override;
-		virtual Parser<Object(const std::string&)> *clone() const override;
+		virtual server::Object parse(const std::string& data) const override;
+		virtual server::Parser<server::Object(const std::string&)> *clone() const override;
 	private:
-		static Object parseObjectFromJsonValue(const Json::Value& root);
+		static server::Object parseObjectFromJsonValue(const Json::Value& root);
 	};
 
-	inline Parser<Object(const std::string&)> *JsonDataParser::clone() const {
+	inline server::Parser<server::Object(const std::string&)> *JsonDataParser::clone() const {
 		return new JsonDataParser(*this);
 	}
 }
