@@ -1,16 +1,11 @@
-add_library(gpio INTERFACE)
-target_include_directories(gpio INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+cmake_minimum_required(VERSION 3.12)
 
-add_library(gpi INTERFACE)
-target_include_directories(gpi INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(gpi INTERFACE gpio)
+project(cnc_control C CXX ASM)
 
-add_library(gpo INTERFACE)
-target_include_directories(gpo INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(gpo INTERFACE gpio)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(inventory INTERFACE)
-target_include_directories(inventory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
@@ -29,17 +24,10 @@ target_link_libraries(
     server_factory
     server_creator
     server_task
-
-    inventory
-    server_inventory
-    
     data_lib
-
-    gpio
-    gpi
-    gpo
 )
 
+add_subdirectory(external)
 add_subdirectory(engine)
 add_subdirectory(utils)
 add_subdirectory(parse)

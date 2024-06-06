@@ -7,7 +7,7 @@
 #include "creator.hpp"
 
 namespace server_utl {
-	template <typename Tproduct, typename... Args>
+	template <typename Signature>
 	class ServerCreator;
 
 	template <typename Tproduct, typename... Args>

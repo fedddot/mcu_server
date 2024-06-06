@@ -6,7 +6,6 @@
 #include "gtest/gtest.h"
 
 #include "data.hpp"
-#include "gpio.hpp"
 #include "server_creator.hpp"
 #include "server_parser.hpp"
 #include "server_serializer.hpp"
