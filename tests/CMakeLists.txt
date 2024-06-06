@@ -35,6 +35,9 @@ target_link_libraries(
 	server_parser
 	server_serializer
 
+	json_data_parser
+	json_data_serializer
+
 	gtest
 	gmock
 	-g

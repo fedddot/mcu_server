@@ -2,7 +2,6 @@
 #include <stdexcept>
 
 #include "data.hpp"
-#include "gpio.hpp"
 #include "json_data_parser.hpp"
 #include "json_data_serializer.hpp"
 #include "object.hpp"

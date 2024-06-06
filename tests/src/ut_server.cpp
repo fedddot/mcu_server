@@ -1,11 +1,17 @@
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "gtest/gtest.h"
 
 #include "data.hpp"
+#include "integer.hpp"
+#include "json_data_parser.hpp"
+#include "json_data_serializer.hpp"
+#include "object.hpp"
 #include "server_creator.hpp"
 #include "server_parser.hpp"
 #include "server_serializer.hpp"
@@ -14,7 +20,6 @@
 #include "server_task.hpp"
 
 using namespace server;
-// using namespace server_ut;
 using namespace server_utl;
 
 using InputData = std::string;
@@ -57,85 +62,50 @@ TEST(ut_server, ctor_dtor_sanity) {
 	instance_ptr = nullptr;	
 }
 
-// TEST(ut_server, run_task_sanity) {
-// 	// GIVEN
-// 	const std::vector<TestCase> test_cases {
-// 		TestCase(
-// 			"create valid gpi", 
-// 			"{\"task_id\": \"create_gpio\", \"gpio_id\": 0, \"gpio_dir\": 0}", 
-// 			0
-// 		),
-// 		TestCase(
-// 			"create valid gpo", 
-// 			"{\"task_id\": \"create_gpio\", \"gpio_id\": 1, \"gpio_dir\": 1}", 
-// 			0
-// 		),
-// 		TestCase(
-// 			"set created gpo to HIGH state", 
-// 			"{\"task_id\": \"set_gpio\", \"gpio_id\": 1, \"gpio_state\": 1}", 
-// 			0
-// 		),
-// 		TestCase(
-// 			"set created gpo to LOW state", 
-// 			"{\"task_id\": \"set_gpio\", \"gpio_id\": 1, \"gpio_state\": 0}", 
-// 			0
-// 		),
-// 		TestCase(
-// 			"delete gpio", 
-// 			"{\"task_id\": \"delete_gpio\", \"gpio_id\": 1}", 
-// 			0
-// 		),
-// 		TestCase(
-// 			"delete gpio", 
-// 			"{\"task_id\": \"delete_gpio\", \"gpio_id\": 0}", 
-// 			0
-// 		)
-// 	};
+TEST(ut_server, run_task_sanity) {
+	// GIVEN
+	ServerCreator<TestServer::ServerTask *(const Data& data)> factory(
+		[](const Data& data)-> TestServer::ServerTask * {
+			return new ServerTask<Data *>(
+				[&data]()-> Data * {
+					Object report;
+					report.add("result", Integer(Data::cast<Integer>(Data::cast<Object>(data).access("report_val"))));
+					return report.clone();
+				}
+			);
+		}
+	);
+	ServerParser<Data *(const InputData&)> raw_data_parser(
+		[](const InputData& data)-> Data * {
+			return JsonDataParser().parse(data).clone();
+		}
+	);
+	
+	ServerSerializer<InputData(const Data&)> raw_data_serializer(
+		[](const Data& data)-> InputData {
+			return JsonDataSerializer().serialize(Data::cast<Object>(data));
+		}
+	);
+	auto test_cases = std::vector<std::pair<int, InputData>> {
+		{0, "{\"report_val\":0}"},
+		{1, "{\"report_val\":1}"},
+		{2, "{\"report_val\":2}"}
+	};
 
-// 	// WHEN
-// 	TestCase::reset_instance();
+	// WHEN
+	TestServer instance(
+		raw_data_parser,
+		raw_data_serializer,
+		factory
+	);
 
-// 	// THEN
-// 	for (auto test_case: test_cases) {
-// 		test_case.run();
-// 	}
-// }
+	for (auto test_case: test_cases) {
+		// WHEN
+		ReportData report("");
 
-// TEST(ut_server, run_task_negative_wrong_cfg) {
-// 	// GIVEN
-// 	const std::vector<TestCase> test_cases {
-// 		TestCase(
-// 			"missing \"task_id\" field", 
-// 			"{\"gpio_id\": 0, \"gpio_dir\": 0}", 
-// 			-1
-// 		),
-// 		TestCase(
-// 			"wrong \"task_id\" field type", 
-// 			"{\"task_id\": 0, \"gpio_id\": 1, \"gpio_dir\": 1}", 
-// 			-1
-// 		),
-// 		TestCase(
-// 			"missing \"gpio_id\" field", 
-// 			"{\"task_id\": \"create_gpio\", \"gpio_dir\": 1}", 
-// 			-1
-// 		),
-// 		TestCase(
-// 			"missing \"gpio_dir\" field", 
-// 			"{\"task_id\": \"create_gpio\", \"gpio_id\": 1}", 
-// 			-1
-// 		),
-// 		TestCase(
-// 			"deleting not existing field", 
-// 			"{\"task_id\": \"delete_gpio\", \"gpio_id\": 1024}", 
-// 			-1
-// 		)
-// 	};
-
-// 	// WHEN
-// 	TestCase::reset_instance();
-
-// 	// THEN
-// 	for (auto test_case: test_cases) {
-// 		test_case.run();
-// 	}
-// }
+		// THEN
+		ASSERT_NO_THROW(report = instance.run(test_case.second));
+		std::unique_ptr<Data> report_parsed(raw_data_parser.parse(report));
+		ASSERT_EQ(test_case.first, Integer(Data::cast<Integer>(Data::cast<Object>(*report_parsed).access("result"))).get());
+	}
+}
