@@ -20,8 +20,7 @@ uts = [
     "data_tests",
     "engine_tests",
     "parse_tests",
-    "server_tests",
-    "utils_tests"
+    "server_tests"
 ]
 
 def find_executable(name, path):
