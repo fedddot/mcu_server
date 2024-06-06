@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "creator.hpp"
 #include "engine.hpp"
 
 #include "data.hpp"
@@ -16,10 +15,7 @@
 
 #include "parser.hpp"
 #include "serializer.hpp"
-#include "server_creator.hpp"
-#include "server_factory.hpp"
-#include "server_parser.hpp"
-#include "server_task.hpp"
+#include "creator.hpp"
 
 namespace server {
 	template <typename Tinput_data, typename Treport_data>
@@ -78,39 +74,6 @@ namespace server {
 		std::unique_ptr<Data> parsed_data(m_parser->parse(data));
 		std::unique_ptr<Data> engine_report(m_engine->run_task(*parsed_data));
 		return m_serializer->serialize(*engine_report);
-	}
-
-	template <typename Tinput_data, typename Tgpio_id>
-	inline Data *Server<Tinput_data, Tgpio_id>::create_gpio_task_action(const Data& data) {
-		auto gpio_id = Data::cast<Integer>(Data::cast<Object>(data).access("gpio_id")).get();
-		auto gpio_dir = static_cast<Gpio::Direction>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_dir")).get());
-		m_gpio_inventory->put(gpio_id, m_gpio_creator->create(gpio_id, gpio_dir));
-		Object report;
-		report.add("result", Integer(0));
-		return report.clone();
-	}
-
-	template <typename Tinput_data, typename Tgpio_id>
-	inline Data *Server<Tinput_data, Tgpio_id>::set_gpio_task_action(const Data& data) {
-		auto gpio_id = Data::cast<Integer>(Data::cast<Object>(data).access("gpio_id")).get();
-		auto gpio_state = static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get());
-		auto gpio_ptr = m_gpio_inventory->access(gpio_id);
-		if (Gpio::Direction::OUT != gpio_ptr->direction()) {
-			throw std::runtime_error("received GPIO is not an output");
-		}
-		Gpio::cast<Gpo>(*gpio_ptr).set_state(gpio_state);
-		Object report;
-		report.add("result", Integer(0));
-		return report.clone();
-	}
-
-	template <typename Tinput_data, typename Tgpio_id>
-	inline Data *Server<Tinput_data, Tgpio_id>::delete_gpio_task_action(const Data& data) {
-		auto gpio_id = Data::cast<Integer>(Data::cast<Object>(data).access("gpio_id")).get();
-		m_gpio_inventory->pull(gpio_id);
-		Object report;
-		report.add("result", Integer(0));
-		return report.clone();
 	}
 }
 

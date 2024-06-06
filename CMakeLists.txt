@@ -21,7 +21,6 @@ target_link_libraries(
     engine
     
     creator
-    server_factory
     server_creator
     server_task
     data_lib
