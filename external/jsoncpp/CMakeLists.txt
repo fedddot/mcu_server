@@ -1,0 +1,10 @@
+FetchContent_Declare(
+    jsoncpp
+    GIT_REPOSITORY  https://github.com/open-source-parsers/jsoncpp.git
+    GIT_TAG         1.9.5
+)
+FetchContent_GetProperties(jsoncpp)
+if(NOT jsoncpp_POPULATED)
+	FetchContent_Populate(jsoncpp)
+	add_subdirectory(${jsoncpp_SOURCE_DIR} ${jsoncpp_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()

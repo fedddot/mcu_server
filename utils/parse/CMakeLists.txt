@@ -1,14 +1,3 @@
-FetchContent_Declare(
-    jsoncpp
-    GIT_REPOSITORY  https://github.com/open-source-parsers/jsoncpp.git
-    GIT_TAG         1.9.5
-)
-FetchContent_GetProperties(jsoncpp)
-if(NOT jsoncpp_POPULATED)
-	FetchContent_Populate(jsoncpp)
-	add_subdirectory(${jsoncpp_SOURCE_DIR} ${jsoncpp_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
-
 add_library(json_data_parser INTERFACE)
 target_sources(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src/json_data_parser.cpp)
 target_include_directories(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
