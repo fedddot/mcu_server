@@ -50,11 +50,19 @@ namespace client {
 				}
 			)
 		);
-		m_connection->send_data(data);
-		if (std::cv_status::timeout == m_cond.wait_for(lock, std::chrono::milliseconds(m_server_response_timeout_ms))) {
-			lock.unlock();
-			throw std::runtime_error("timeout waiting for server response " + std::to_string(m_server_response_timeout_ms) + " ms exceeded");
+		try {
+			m_connection->send_data(data);
+			if (std::cv_status::timeout == m_cond.wait_for(lock, std::chrono::milliseconds(m_server_response_timeout_ms))) {
+				throw std::runtime_error("timeout waiting for server response " + std::to_string(m_server_response_timeout_ms) + " ms exceeded");
+			}
+			m_connection->unsubscribe(sub_id);
+		} catch (...) {
+			if (m_connection->is_subscribed(sub_id)) {
+				m_connection->unsubscribe(sub_id);
+			}
+			throw;
 		}
+
 		return m_report;
 	}
 }

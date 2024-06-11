@@ -11,6 +11,7 @@ namespace mcu_control {
 		virtual void send_data(const Tdata& data) const = 0;
 		virtual Tid subscribe(const Listener<const Tdata&>& listener) = 0;
 		virtual void unsubscribe(const Tid& listener_id) = 0;
+		virtual bool is_subscribed(const Tid& listener_id) const = 0;
 	};
 }
 #endif // CONNECTION_HPP

@@ -23,6 +23,7 @@ namespace mcu_control_utl {
 		void send_data(const Tdata& data) const override;
 		Tid subscribe(const mcu_control::Listener<const Tdata&>& listener) override;
 		void unsubscribe(const Tid& listener_id) override;
+		bool is_subscribed(const Tid& listener_id) const override;
 
 		void post_data(const Tdata& data);
 	private:
@@ -59,6 +60,11 @@ namespace mcu_control_utl {
 			throw std::invalid_argument("listener with received id is not registered");
 		}
 		m_listeners.erase(iter);
+	}
+
+	template <typename Tid, typename Tdata>
+	inline bool FunctionalConnection<Tid, Tdata>::is_subscribed(const Tid& listener_id) const {
+		return m_listeners.end() != m_listeners.find(listener_id);
 	}
 
 	template <typename Tid, typename Tdata>
