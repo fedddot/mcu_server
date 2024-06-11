@@ -5,7 +5,7 @@
 #include "data.hpp"
 #include "value.hpp"
 
-namespace server {
+namespace engine {
 	class String: public Value<std::string> {
 	public:
 		String(const std::string& str);

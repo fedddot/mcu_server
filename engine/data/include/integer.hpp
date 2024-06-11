@@ -4,7 +4,7 @@
 #include "data.hpp"
 #include "value.hpp"
 
-namespace server {
+namespace engine {
 	class Integer: public Value<int> {
 	public:
 		Integer(int val);

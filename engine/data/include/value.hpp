@@ -3,7 +3,7 @@
 
 #include "data.hpp"
 
-namespace server {
+namespace engine {
 	template <class T>
 	class Value: public Data {
 	public:
@@ -30,6 +30,6 @@ namespace server {
 	void Value<T>::set(const T& val) {
 		m_val = val;
 	}
-} // namespace server
+} // namespace engine
 
 #endif // VALUE_HPP
