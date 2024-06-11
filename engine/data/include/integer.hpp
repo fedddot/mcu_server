@@ -11,7 +11,7 @@ namespace engine {
 		Integer(const Integer& other) = default;
 		Integer& operator=(const Integer& other) = default;
 		Type type() const override;
-		virtual Data *clone() const override;
+		Data *clone() const override;
 	};
 
 	inline Integer::Integer(int val): Value<int>(val) {
