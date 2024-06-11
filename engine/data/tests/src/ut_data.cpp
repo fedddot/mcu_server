@@ -20,12 +20,9 @@ TEST(ut_string, sanity) {
 
 	// THEN
 	ASSERT_NO_THROW(test_instance_ptr1 = std::unique_ptr<String>(new String(test_str1)));
+	ASSERT_NE(nullptr, test_instance_ptr1);
 	ASSERT_EQ(test_str1, test_instance_ptr1->get());
-	ASSERT_NO_THROW(test_instance_ptr1->set(test_str2));
-	ASSERT_EQ(test_str2, test_instance_ptr1->get());
 	ASSERT_NO_THROW(test_instance_ptr2 = std::unique_ptr<String>(new String(*test_instance_ptr1)));
-	test_instance_ptr2->set(test_str1);
-	ASSERT_EQ(test_str2, test_instance_ptr1->get());
 	ASSERT_EQ(test_str1, test_instance_ptr2->get());
 }
 

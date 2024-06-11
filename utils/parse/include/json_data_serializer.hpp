@@ -10,19 +10,19 @@ namespace Json {
 }
 
 namespace server_utl {
-	class JsonDataSerializer: public server::Serializer<std::string(const server::Object&)> {
+	class JsonDataSerializer: public engine::Serializer<std::string(const engine::Object&)> {
 	public:
 		JsonDataSerializer() = default;
 		JsonDataSerializer(const JsonDataSerializer& other) = default;
 		JsonDataSerializer& operator=(const JsonDataSerializer& other) = default;
 
-		virtual std::string serialize(const server::Object& data) const override;
-		server::Serializer<std::string(const server::Object&)> *clone() const override;
+		virtual std::string serialize(const engine::Object& data) const override;
+		engine::Serializer<std::string(const engine::Object&)> *clone() const override;
 	private:
-		static Json::Value parseJsonValueFromObject(const server::Object& obj);
+		static Json::Value parseJsonValueFromObject(const engine::Object& obj);
 	};
 
-	inline server::Serializer<std::string(const server::Object&)> *JsonDataSerializer::clone() const {
+	inline engine::Serializer<std::string(const engine::Object&)> *JsonDataSerializer::clone() const {
 		return new JsonDataSerializer(*this);
 	}
 }
