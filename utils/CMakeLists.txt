@@ -1,1 +1,9 @@
+add_library(functional_connection INTERFACE)
+target_include_directories(functional_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(functional_connection INTERFACE connection listener)
+
+add_library(functional_listener INTERFACE)
+target_include_directories(functional_listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(functional_listener INTERFACE listener)
+
 add_subdirectory(parse)
