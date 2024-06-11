@@ -6,4 +6,20 @@ add_library(functional_listener INTERFACE)
 target_include_directories(functional_listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(functional_listener INTERFACE listener)
 
+add_library(functional_creator INTERFACE)
+target_include_directories(functional_creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(functional_creator INTERFACE creator)
+
+add_library(functional_parser INTERFACE)
+target_include_directories(functional_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(functional_parser INTERFACE parser)
+
+add_library(functional_serializer INTERFACE)
+target_include_directories(functional_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(functional_serializer INTERFACE serializer)
+
+add_library(functional_task INTERFACE)
+target_include_directories(functional_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(functional_task INTERFACE task)
+
 add_subdirectory(parse)

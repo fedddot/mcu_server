@@ -23,5 +23,4 @@ target_link_libraries(
 )
 
 add_subdirectory(data)
-add_subdirectory(utils)
 add_subdirectory(tests EXCLUDE_FROM_ALL)
