@@ -14,4 +14,5 @@ target_link_libraries(
     task
 )
 
+add_subdirectory(data)
 add_subdirectory(tests EXCLUDE_FROM_ALL)

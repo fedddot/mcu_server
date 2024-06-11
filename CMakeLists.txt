@@ -29,5 +29,5 @@ target_link_libraries(
 add_subdirectory(external)
 add_subdirectory(engine)
 add_subdirectory(utils)
-add_subdirectory(data)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)
