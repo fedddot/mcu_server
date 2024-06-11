@@ -16,6 +16,7 @@ target_link_libraries(connection INTERFACE listener)
 
 add_subdirectory(engine)
 add_subdirectory(server)
+add_subdirectory(client)
 add_subdirectory(external)
 add_subdirectory(utils)
 
