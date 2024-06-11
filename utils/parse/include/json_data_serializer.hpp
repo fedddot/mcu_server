@@ -9,7 +9,7 @@ namespace Json {
 	class Value;
 }
 
-namespace server_utl {
+namespace mcu_control_utl {
 	class JsonDataSerializer: public engine::Serializer<std::string(const engine::Object&)> {
 	public:
 		JsonDataSerializer() = default;

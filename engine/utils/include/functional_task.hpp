@@ -5,7 +5,7 @@
 
 #include "task.hpp"
 
-namespace engine_utl {
+namespace mcu_control_utl {
 
 	template <class Treport>
 	class FunctionalTask: public engine::Task<Treport> {

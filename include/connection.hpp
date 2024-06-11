@@ -3,7 +3,7 @@
 
 #include "listener.hpp"
 
-namespace server {
+namespace mcu_control {
 	template <typename Tid, typename Tdata>
 	class Connection {
 	public:

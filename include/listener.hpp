@@ -1,7 +1,7 @@
 #ifndef	LISTENER_HPP
 #define	LISTENER_HPP
 
-namespace server {
+namespace mcu_control {
 	template <typename... Args>
 	class Listener {
 	public:

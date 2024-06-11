@@ -6,7 +6,7 @@
 
 #include "serializer.hpp"
 
-namespace engine_utl {
+namespace mcu_control_utl {
 	template <typename Signature>
 	class FunctionalSerializer;
 	

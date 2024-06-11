@@ -17,7 +17,7 @@
 
 using namespace server;
 using namespace server_ut;
-using namespace server_utl;
+using namespace mcu_control_utl;
 
 ServerParser<Data *(const TestCase::RawData&)> server_ut::TestCase::s_raw_data_parser(
 	[](const RawData& data)-> Data * {

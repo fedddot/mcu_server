@@ -9,7 +9,7 @@
 #include "connection.hpp"
 #include "listener.hpp"
 
-namespace server_utl {
+namespace mcu_control_utl {
 	template <typename Tid, typename Tdata>
 	class FunctionalConnection: public server::Connection<Tid, Tdata> {
 	public:

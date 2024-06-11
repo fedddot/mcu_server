@@ -9,7 +9,7 @@ namespace Json {
 	class Value;
 }
 
-namespace server_utl {
+namespace mcu_control_utl {
 	class JsonDataParser: public engine::Parser<engine::Object(const std::string&)> {
 	public:
 		JsonDataParser() = default;

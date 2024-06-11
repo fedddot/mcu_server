@@ -6,7 +6,7 @@
 #include "object.hpp"
 
 using namespace engine;
-using namespace server_utl;
+using namespace mcu_control_utl;
 
 TEST(ut_json_data_parser, parse_sanity) {
 	// GIVEN:

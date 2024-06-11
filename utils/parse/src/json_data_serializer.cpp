@@ -12,7 +12,7 @@
 #include "json_data_serializer.hpp"
 
 using namespace engine;
-using namespace server_utl;
+using namespace mcu_control_utl;
 
 std::string JsonDataSerializer::serialize(const Object& data) const {
 	Json::StreamWriterBuilder wbuilder;

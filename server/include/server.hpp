@@ -47,7 +47,7 @@ namespace server {
 			throw std::runtime_error("server is already running");
 		}
 		m_subscriber_id = m_connection->subscribe(
-			server_utl::FunctionalListener<const Traw_data&>(
+			mcu_control_utl::FunctionalListener<const Traw_data&>(
 				[this](const Traw_data& data) {
 					auto report = m_engine.run_task(data);
 					m_connection->send_data(report);

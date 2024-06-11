@@ -6,7 +6,7 @@
 
 #include "listener.hpp"
 
-namespace server_utl {
+namespace mcu_control_utl {
 	template <typename... Args>
 	class FunctionalListener: public server::Listener<Args...> {
 	public:
