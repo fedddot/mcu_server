@@ -8,7 +8,7 @@
 
 namespace mcu_control_utl {
 	template <typename... Args>
-	class FunctionalListener: public server::Listener<Args...> {
+	class FunctionalListener: public mcu_control::Listener<Args...> {
 	public:
 		using OnEventFunction = std::function<void(Args...)>;
 		
@@ -17,7 +17,7 @@ namespace mcu_control_utl {
 		FunctionalListener& operator=(const FunctionalListener& other) = default;
 				
 		void on_event(Args... args) override;
-		server::Listener<Args...> *clone() const override;
+		mcu_control::Listener<Args...> *clone() const override;
 	private:
 		OnEventFunction m_on_event_function;
 	};
@@ -35,7 +35,7 @@ namespace mcu_control_utl {
 	}
 
 	template <typename... Args>
-	inline server::Listener<Args...> *FunctionalListener<Args...>::clone() const {
+	inline mcu_control::Listener<Args...> *FunctionalListener<Args...>::clone() const {
 		return new FunctionalListener(*this);
 	}
 }

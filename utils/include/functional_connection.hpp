@@ -11,7 +11,7 @@
 
 namespace mcu_control_utl {
 	template <typename Tid, typename Tdata>
-	class FunctionalConnection: public server::Connection<Tid, Tdata> {
+	class FunctionalConnection: public mcu_control::Connection<Tid, Tdata> {
 	public:
 		using SendAction = std::function<void(const Tdata&)>;
 		using IdGenerator = std::function<Tid()>;
@@ -21,14 +21,14 @@ namespace mcu_control_utl {
 		FunctionalConnection& operator=(const FunctionalConnection& other) = delete;
 
 		void send_data(const Tdata& data) const override;
-		Tid subscribe(const server::Listener<const Tdata&>& listener) override;
+		Tid subscribe(const mcu_control::Listener<const Tdata&>& listener) override;
 		void unsubscribe(const Tid& listener_id) override;
 
 		void post_data(const Tdata& data);
 	private:
 		SendAction m_send_action;
 		IdGenerator m_id_generator;
-		using ListenerUniquePtr = std::unique_ptr<server::Listener<const Tdata&>>;
+		using ListenerUniquePtr = std::unique_ptr<mcu_control::Listener<const Tdata&>>;
 		std::map<Tid, ListenerUniquePtr> m_listeners;
 	};
 
@@ -43,7 +43,7 @@ namespace mcu_control_utl {
 	}
 
 	template <typename Tid, typename Tdata>
-	inline Tid FunctionalConnection<Tid, Tdata>::subscribe(const server::Listener<const Tdata&>& listener) {
+	inline Tid FunctionalConnection<Tid, Tdata>::subscribe(const mcu_control::Listener<const Tdata&>& listener) {
 		auto id = m_id_generator();
 		if (m_listeners.end() != m_listeners.find(id)) {
 			throw std::invalid_argument("listener with received id is already registered");

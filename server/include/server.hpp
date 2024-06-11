@@ -16,7 +16,7 @@ namespace server {
 		using FailureReportCreator = typename Engine::EngineFailureReportCreator;
 		using RawDataParser = typename Engine::EngineRawDataParser;
 		using ReportSerializer = typename Engine::EngineReportSerializer;
-		using ClientConnection = Connection<Tsubscriber_id, Traw_data>;
+		using ClientConnection = mcu_control::Connection<Tsubscriber_id, Traw_data>;
 		
 		Server(const TaskFactory& factory, const FailureReportCreator& failure_report_creator, const RawDataParser& raw_data_parser, const ReportSerializer& report_serializer, ClientConnection *connection);
 		Server(const Server& other) = delete;
