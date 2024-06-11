@@ -19,12 +19,9 @@ target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     server
     INTERFACE
-    engine
-
-    listener
-    functional_listener
-    
     connection
+    engine
+    functional_listener
 )
 
 add_subdirectory(external)
