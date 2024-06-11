@@ -1,7 +1,7 @@
 #ifndef	SERIALIZER_HPP
 #define	SERIALIZER_HPP
 
-namespace server {
+namespace engine {
 	template <typename Signature>
 	class Serializer;
 	

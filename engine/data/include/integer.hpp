@@ -2,19 +2,21 @@
 #define	INTEGER_HPP
 
 #include "data.hpp"
-#include "value.hpp"
 
-namespace server {
-	class Integer: public Value<int> {
+namespace engine {
+	class Integer: public Data {
 	public:
 		Integer(int val);
 		Integer(const Integer& other) = default;
 		Integer& operator=(const Integer& other) = default;
 		Type type() const override;
-		virtual Data *clone() const override;
+		Data *clone() const override;
+		int get() const;
+	private:
+		int m_val;
 	};
 
-	inline Integer::Integer(int val): Value<int>(val) {
+	inline Integer::Integer(int val): m_val(val) {
 
 	}
 
@@ -24,6 +26,10 @@ namespace server {
 
 	inline Data *Integer::clone() const {
 		return new Integer(*this);
+	}
+
+	inline int Integer::get() const {
+		return m_val;
 	}
 }
 

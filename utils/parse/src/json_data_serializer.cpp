@@ -11,7 +11,7 @@
 
 #include "json_data_serializer.hpp"
 
-using namespace server;
+using namespace engine;
 using namespace server_utl;
 
 std::string JsonDataSerializer::serialize(const Object& data) const {

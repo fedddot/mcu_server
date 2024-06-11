@@ -10,19 +10,19 @@ namespace Json {
 }
 
 namespace server_utl {
-	class JsonDataParser: public server::Parser<server::Object(const std::string&)> {
+	class JsonDataParser: public engine::Parser<engine::Object(const std::string&)> {
 	public:
 		JsonDataParser() = default;
 		JsonDataParser(const JsonDataParser& other) = default;
 		JsonDataParser& operator=(const JsonDataParser& other) = default;
 		
-		virtual server::Object parse(const std::string& data) const override;
-		virtual server::Parser<server::Object(const std::string&)> *clone() const override;
+		virtual engine::Object parse(const std::string& data) const override;
+		virtual engine::Parser<engine::Object(const std::string&)> *clone() const override;
 	private:
-		static server::Object parseObjectFromJsonValue(const Json::Value& root);
+		static engine::Object parseObjectFromJsonValue(const Json::Value& root);
 	};
 
-	inline server::Parser<server::Object(const std::string&)> *JsonDataParser::clone() const {
+	inline engine::Parser<engine::Object(const std::string&)> *JsonDataParser::clone() const {
 		return new JsonDataParser(*this);
 	}
 }

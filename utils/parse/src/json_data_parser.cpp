@@ -10,7 +10,7 @@
 
 #include "json_data_parser.hpp"
 
-using namespace server;
+using namespace engine;
 using namespace server_utl;
 
 Object JsonDataParser::parse(const std::string& data) const {

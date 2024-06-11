@@ -7,27 +7,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(parser INTERFACE)
-target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(listener INTERFACE)
+target_include_directories(listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(serializer INTERFACE)
-target_include_directories(serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(connection INTERFACE)
+target_include_directories(connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(connection INTERFACE listener)
 
 add_library(server INTERFACE)
 target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     server
     INTERFACE
+    connection
     engine
-    
-    creator
-    server_creator
-    server_task
-    data_lib
+    functional_listener
 )
 
 add_subdirectory(external)
 add_subdirectory(engine)
 add_subdirectory(utils)
-add_subdirectory(data)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)

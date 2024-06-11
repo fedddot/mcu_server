@@ -5,11 +5,11 @@ import subprocess
 if len(sys.argv) < 2:
     raise Exception("invalid arguments received")
 
-cnc_path = sys.argv[1]
-build_path = os.path.join(cnc_path, "build")
+root_path = sys.argv[1]
+build_path = os.path.join(root_path, "build")
 
-if not os.path.isdir(cnc_path): 
-    raise Exception("invalid cnc directory path")
+if not os.path.isdir(root_path): 
+    raise Exception("invalid root directory path")
 
 if not os.path.isdir(build_path): 
     os.makedirs(build_path)

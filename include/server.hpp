@@ -1,78 +1,74 @@
 #ifndef	SERVER_HPP
 #define	SERVER_HPP
 
-#include <exception>
-#include <memory>
-#include <string>
+#include <stdexcept>
 
+#include "connection.hpp"
 #include "engine.hpp"
-
-#include "data.hpp"
-#include "object.hpp"
-#include "integer.hpp"
-#include "string.hpp"
-
-#include "parser.hpp"
-#include "serializer.hpp"
-#include "server_creator.hpp"
+#include "functional_listener.hpp"
 
 namespace server {
-	template <typename Tinput_data, typename Treport_data>
+	template <typename Traw_data, typename Tsubscriber_id>
 	class Server {
 	public:
-		using ServerEngine = engine::Engine<Data, Data *>;
-		using ServerTask = typename ServerEngine::EngineTask;
-		using ServerTaskFactory = typename ServerEngine::EngineTaskFactory;
-
-		using RawDataParser = Parser<Data *(const Tinput_data&)>;
-		using RawDataSerializer = Serializer<Treport_data(const Data&)>;
+		using Engine = engine::Engine<Traw_data, Traw_data>;
+		using TaskFactory = typename Engine::EngineTaskFactory;
+		using FailureReportCreator = typename Engine::EngineFailureReportCreator;
+		using RawDataParser = typename Engine::EngineRawDataParser;
+		using ReportSerializer = typename Engine::EngineReportSerializer;
+		using ClientConnection = Connection<Tsubscriber_id, Traw_data>;
 		
-		Server(const RawDataParser& parser, const RawDataSerializer& serializer, const ServerTaskFactory& factory);
+		Server(const TaskFactory& factory, const FailureReportCreator& failure_report_creator, const RawDataParser& raw_data_parser, const ReportSerializer& report_serializer, ClientConnection *connection);
+		Server(const Server& other) = delete;
+		Server& operator=(const Server& other) = delete;
 	
-		Tinput_data run(const Tinput_data& data);
+		void run();
+		bool is_running() const;
+		void stop();
 	private:
-		std::unique_ptr<RawDataParser> m_parser;
-		std::unique_ptr<RawDataSerializer> m_serializer;
+		Engine m_engine;
 
-		using ServerFailureReportCreator = typename ServerEngine::EngineFailureReportCreator;
-		using ServerTaskId = std::string;
-		
-		std::unique_ptr<ServerFailureReportCreator> m_failure_reporter;
-		
-		// tasks engine		
-		std::unique_ptr<ServerEngine> m_engine;
+		ClientConnection *m_connection;
+		Tsubscriber_id m_subscriber_id;
 
-		// tasks actions
-		Data *create_gpio_task_action(const Data& data);
-		Data *delete_gpio_task_action(const Data& data);
-		Data *set_gpio_task_action(const Data& data);
+		bool m_is_running;
 	};
 
-	template <typename Tinput_data, typename Tgpio_id>
-	inline Server<Tinput_data, Tgpio_id>::Server(const RawDataParser& parser, const RawDataSerializer& serializer, const ServerTaskFactory& factory): m_parser(parser.clone()), m_serializer(serializer.clone()) {
+	template <typename Traw_data, typename Tsubscriber_id>
+	inline Server<Traw_data, Tsubscriber_id>::Server(const TaskFactory& factory, const FailureReportCreator& failure_report_creator, const RawDataParser& raw_data_parser, const ReportSerializer& report_serializer, ClientConnection *connection): m_engine(factory, failure_report_creator, raw_data_parser, report_serializer), m_connection(connection), m_is_running(false) {
+		if (!m_connection) {
+			throw std::invalid_argument("invalid connection ptr received");
+		}
+	}
 
-		m_failure_reporter = std::unique_ptr<ServerFailureReportCreator>(
-			new server_utl::ServerCreator<Data *(const std::exception& e)>(
-				[](const std::exception& e)-> Data * {
-					Object report;
-					report.add("result", Integer(-1));
-					report.add("what", String(std::string(e.what())));
-					return report.clone();
+	template <typename Traw_data, typename Tsubscriber_id>
+	inline void Server<Traw_data, Tsubscriber_id>::run() {
+		if (m_is_running) {
+			throw std::runtime_error("server is already running");
+		}
+		m_subscriber_id = m_connection->subscribe(
+			server_utl::FunctionalListener<const Traw_data&>(
+				[this](const Traw_data& data) {
+					auto report = m_engine.run_task(data);
+					m_connection->send_data(report);
 				}
 			)
 		);
-
-		m_engine = std::make_unique<ServerEngine>(
-			factory, 
-			*m_failure_reporter
-		);
+		m_is_running = true;
 	}
 
-	template <typename Tinput_data, typename Tgpio_id>
-	inline Tinput_data Server<Tinput_data, Tgpio_id>::run(const Tinput_data& data) {
-		std::unique_ptr<Data> parsed_data(m_parser->parse(data));
-		std::unique_ptr<Data> engine_report(m_engine->run_task(*parsed_data));
-		return m_serializer->serialize(*engine_report);
+	template <typename Traw_data, typename Tsubscriber_id>
+	inline bool Server<Traw_data, Tsubscriber_id>::is_running() const {
+		return m_is_running;
+	}
+
+	template <typename Traw_data, typename Tsubscriber_id>
+	inline void Server<Traw_data, Tsubscriber_id>::stop() {
+		if (!m_is_running) {
+			throw std::runtime_error("server is already not running");
+		}
+		m_connection->unsubscribe(m_subscriber_id);
+		m_is_running = false;
 	}
 }
 

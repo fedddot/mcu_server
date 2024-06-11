@@ -1,7 +1,7 @@
 #ifndef	PARSER_HPP
 #define	PARSER_HPP
 
-namespace server {
+namespace engine {
 	template <typename Signature>
 	class Parser;
 	
