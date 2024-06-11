@@ -63,7 +63,7 @@ namespace server_utl {
 
 	template <typename Tid, typename Tdata>
 	inline void FunctionalConnection<Tid, Tdata>::post_data(const Tdata& data) {
-		for (auto item: m_listeners) {
+		for (auto& item: m_listeners) {
 			item.second->on_event(data);
 		}
 	}
