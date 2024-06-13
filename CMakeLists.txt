@@ -13,7 +13,6 @@ target_include_directories(listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 add_library(connection INTERFACE)
 target_include_directories(connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_subdirectory(engine)
 add_subdirectory(server)
 add_subdirectory(client)
 add_subdirectory(external)
