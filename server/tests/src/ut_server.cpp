@@ -1,9 +1,12 @@
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
+#include <thread>
+#include <vector>
 
 #include "data.hpp"
 #include "object.hpp"
@@ -26,20 +29,11 @@ using namespace mcu_control_utl;
 using namespace mcu_control_utl;
 
 using RawData = std::string;
-using SubscriberId = int;
+using TestTime = int;
 
-using TestServer = Server<RawData, SubscriberId>;
+using TestServer = Server<RawData, TestTime>;
 using EngineTask = typename TestServer::Engine::EngineTask;
 
-static FunctionalConnection<int, RawData> s_connection(
-	[](const RawData& data) {
-		std::cout << "sending data: " << data << std::endl;
-	},
-	[]()-> int {
-		static int s_last_id(0);
-		return s_last_id++;
-	}
-);
 
 TEST(ut_server, ctor_dtor_sanity) {
 	// GIVEN
@@ -70,6 +64,17 @@ TEST(ut_server, ctor_dtor_sanity) {
 			throw std::runtime_error("not needed");
 		}
 	);
+	FunctionalConnection<RawData, TestTime> connection(
+		[](const RawData& data) {
+			throw std::runtime_error("not needed");
+		},
+		[](const TestTime& delay)-> bool {
+			throw std::runtime_error("not needed");
+		},
+		[]()-> RawData {
+			throw std::runtime_error("not needed");
+		}
+	);
 
 	// WHEN
 	TestServer *instance_ptr(nullptr);
@@ -78,11 +83,12 @@ TEST(ut_server, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		(
 			instance_ptr = new TestServer(
+				&connection,
+				10,
 				task_creator,
 				fail_report_creator,
 				parser,
-				serializer,
-				&s_connection
+				serializer
 			)
 		)
 	);
@@ -91,12 +97,14 @@ TEST(ut_server, ctor_dtor_sanity) {
 	instance_ptr = nullptr;	
 }
 
+
+
 TEST(ut_server, run_stop_sanity_negative) {
 	// GIVEN
 	const int fail_code(-100);
 	const int success_code(0);
 
-	static FunctionalCreator<EngineTask *(const Data&)> task_creator(
+	FunctionalCreator<EngineTask *(const Data&)> task_creator(
 		[fail_code, success_code](const Data& data)-> EngineTask * {
 			auto cfg_obj = Data::cast<Object>(data);
 			auto cfg_code = Data::cast<Integer>(cfg_obj.access("cfg_code")).get();
@@ -141,27 +149,47 @@ TEST(ut_server, run_stop_sanity_negative) {
 		{"{\"cfg_code\": \"" + std::to_string(success_code) + "\"}", fail_code}
 	};
 
+	std::mutex data_mux;
+	std::vector<RawData> datas;
+
 	for (auto test_case: test_cases) {
 		// WHEN
-		FunctionalConnection<int, RawData> connection(
+		FunctionalConnection<RawData, TestTime> connection(
 			[parser, test_case](const RawData& data) {
 				std::cout << "received report: " << std::endl << data << std::endl;
 				auto parsed_result = Data::cast<Integer>(Data::cast<Object>(*std::unique_ptr<Data>(parser.parse(data))).access("result")).get();
 				ASSERT_EQ(parsed_result, test_case.second);
 			},
-			[]()-> int {
-				static int s_last_id(0);
-				return s_last_id++;
+			[&data_mux, &datas](const TestTime& delay)-> bool {
+				sleep(delay);
+				std::lock_guard lock(data_mux);
+				return !datas.empty();
+			},
+			[&data_mux, &datas]()-> RawData {
+				std::lock_guard lock(data_mux);
+				if (datas.empty()) {
+					throw std::runtime_error("data buff is empty");
+				}
+				RawData data(*datas.begin());
+				datas.erase(datas.begin());
+				return data;
 			}
 		);
-		TestServer instance(task_creator, fail_report_creator, parser, serializer, &connection);
-		RawData report("");
+		TestServer instance(&connection, 10, task_creator, fail_report_creator, parser, serializer);
 
+		RawData report("");
+		std::thread data_sending_thread(
+			[&data_mux, &datas, test_case, &instance](){
+				sleep(1);
+				datas.push_back(test_case.first);
+				sleep(2);
+				instance.stop();
+			}
+		);
 		// THEN
 		std::cout << "running TC with input:" << std::endl << test_case.first << std::endl;
+
 		ASSERT_NO_THROW(instance.run());
-		ASSERT_TRUE(instance.is_running());
-		ASSERT_NO_THROW(connection.post_data(test_case.first));
-		ASSERT_NO_THROW(instance.stop());
+
 	}
 }

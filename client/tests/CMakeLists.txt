@@ -8,9 +8,14 @@ target_link_libraries(
 	client_tests
 	PRIVATE
     client
+	server
+	data_lib
 
 	functional_connection
-	
+
+	json_data_parser
+	json_data_serializer
+
 	gtest
 	gmock
 	-g

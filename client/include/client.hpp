@@ -1,21 +1,15 @@
 #ifndef	CLIENT_HPP
 #define	CLIENT_HPP
 
-#include <chrono>
-#include <condition_variable>
-#include <mutex>
 #include <stdexcept>
-#include <string>
-
 #include "connection.hpp"
-#include "functional_listener.hpp"
 
 namespace client {
-	template <typename Traw_data, typename Tsubscriber_id>
+	template <typename Traw_data, typename Ttime>
 	class Client {
 	public:
-		using ServerConnection = mcu_control::Connection<Tsubscriber_id, Traw_data>;
-		Client(ServerConnection *connection, int server_response_timeout_ms);
+		using ServerConnection = mcu_control::Connection<Traw_data, Ttime>;
+		Client(ServerConnection *connection, const Ttime& server_response_timeout);
 		Client(const Client& other) = delete;
 		Client& operator=(const Client& other) = delete;
 		virtual ~Client() noexcept = default;
@@ -23,47 +17,23 @@ namespace client {
 		Traw_data run(const Traw_data& data) const;
 	private:
 		ServerConnection *m_connection;
-		int m_server_response_timeout_ms;
-
-		mutable std::mutex m_mux;
-		mutable std::condition_variable m_cond;
-		Traw_data m_report;
+		Ttime m_server_response_timeout;
 	};
 
-	template <typename Traw_data, typename Tsubscriber_id>
-	inline Client<Traw_data, Tsubscriber_id>::Client(ServerConnection *connection, int server_response_timeout_ms): m_connection(connection), m_server_response_timeout_ms(server_response_timeout_ms) {
+	template <typename Traw_data, typename Ttime>
+	inline Client<Traw_data, Ttime>::Client(ServerConnection *connection, const Ttime& server_response_timeout): m_connection(connection), m_server_response_timeout(server_response_timeout) {
 		if (!m_connection) {
 			throw std::invalid_argument("invalid connection ptr received");
 		}
 	}
 
-	template <typename Traw_data, typename Tsubscriber_id>
-	inline Traw_data Client<Traw_data, Tsubscriber_id>::run(const Traw_data& data) const {
-		std::unique_lock lock(m_mux);
-		auto sub_id = m_connection->subscribe(
-			mcu_control_utl::FunctionalListener<const Traw_data&>(
-				[this](const Traw_data& data) {
-					std::unique_lock lock(m_mux);
-					m_report = data;
-					m_cond.notify_all();
-					lock.unlock();
-				}
-			)
-		);
-		try {
-			m_connection->send_data(data);
-			if (std::cv_status::timeout == m_cond.wait_for(lock, std::chrono::milliseconds(m_server_response_timeout_ms))) {
-				throw std::runtime_error("timeout waiting for server response " + std::to_string(m_server_response_timeout_ms) + " ms exceeded");
-			}
-			m_connection->unsubscribe(sub_id);
-		} catch (...) {
-			if (m_connection->is_subscribed(sub_id)) {
-				m_connection->unsubscribe(sub_id);
-			}
-			throw;
+	template <typename Traw_data, typename Ttime>
+	inline Traw_data Client<Traw_data, Ttime>::run(const Traw_data& data) const {
+		m_connection->send_data(data);
+		if (!m_connection->poll_data(m_server_response_timeout)) {
+			throw std::runtime_error("timeout waiting for server response exceeded");
 		}
-
-		return m_report;
+		return m_connection->read_data();
 	}
 }
 

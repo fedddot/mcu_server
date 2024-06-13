@@ -2,76 +2,49 @@
 #define	FUNCTIONAL_CONNECTION_HPP
 
 #include <functional>
-#include <map>
-#include <memory>
-#include <stdexcept>
 
 #include "connection.hpp"
-#include "listener.hpp"
 
 namespace mcu_control_utl {
-	template <typename Tid, typename Tdata>
-	class FunctionalConnection: public mcu_control::Connection<Tid, Tdata> {
+	template <typename Tdata, typename Ttime>
+	class FunctionalConnection: public mcu_control::Connection<Tdata, Ttime> {
 	public:
 		using SendAction = std::function<void(const Tdata&)>;
-		using IdGenerator = std::function<Tid()>;
+		using PollAction = std::function<bool(const Ttime&)>;
+		using ReadAction = std::function<Tdata()>;
 
-		FunctionalConnection(const SendAction& send_action, const IdGenerator& id_generator);
+		FunctionalConnection(const SendAction& send_action, const PollAction& poll_action, const ReadAction& read_action);
 		FunctionalConnection(const FunctionalConnection& other) = delete;
 		FunctionalConnection& operator=(const FunctionalConnection& other) = delete;
 
 		void send_data(const Tdata& data) const override;
-		Tid subscribe(const mcu_control::Listener<const Tdata&>& listener) override;
-		void unsubscribe(const Tid& listener_id) override;
-		bool is_subscribed(const Tid& listener_id) const override;
+		bool poll_data(const Ttime& delay) const override;
+		Tdata read_data() const override;
 
-		void post_data(const Tdata& data);
 	private:
 		SendAction m_send_action;
-		IdGenerator m_id_generator;
-		using ListenerUniquePtr = std::unique_ptr<mcu_control::Listener<const Tdata&>>;
-		std::map<Tid, ListenerUniquePtr> m_listeners;
+		PollAction m_poll_action;
+		ReadAction m_read_action;
 	};
 
-	template <typename Tid, typename Tdata>
-	inline FunctionalConnection<Tid, Tdata>::FunctionalConnection(const SendAction& send_action, const IdGenerator& id_generator): m_send_action(send_action), m_id_generator(id_generator) {
+	template <typename Tdata, typename Ttime>
+	inline FunctionalConnection<Tdata, Ttime >::FunctionalConnection(const SendAction& send_action, const PollAction& poll_action, const ReadAction& read_action): m_send_action(send_action), m_poll_action(poll_action), m_read_action(read_action) {
 
 	}
 
-	template <typename Tid, typename Tdata>
-	inline void FunctionalConnection<Tid, Tdata>::send_data(const Tdata& data) const {
+	template <typename Tdata, typename Ttime>
+	inline void FunctionalConnection<Tdata, Ttime >::send_data(const Tdata& data) const {
 		m_send_action(data);
 	}
 
-	template <typename Tid, typename Tdata>
-	inline Tid FunctionalConnection<Tid, Tdata>::subscribe(const mcu_control::Listener<const Tdata&>& listener) {
-		auto id = m_id_generator();
-		if (m_listeners.end() != m_listeners.find(id)) {
-			throw std::invalid_argument("listener with received id is already registered");
-		}
-		m_listeners.insert({id, ListenerUniquePtr(listener.clone())});
-		return id;
+	template <typename Tdata, typename Ttime>
+	inline bool FunctionalConnection<Tdata, Ttime >::poll_data(const Ttime& delay) const {
+		return m_poll_action(delay);
 	}
 
-	template <typename Tid, typename Tdata>
-	inline void FunctionalConnection<Tid, Tdata>::unsubscribe(const Tid& listener_id) {
-		auto iter = m_listeners.find(listener_id);
-		if (m_listeners.end() == iter) {
-			throw std::invalid_argument("listener with received id is not registered");
-		}
-		m_listeners.erase(iter);
-	}
-
-	template <typename Tid, typename Tdata>
-	inline bool FunctionalConnection<Tid, Tdata>::is_subscribed(const Tid& listener_id) const {
-		return m_listeners.end() != m_listeners.find(listener_id);
-	}
-
-	template <typename Tid, typename Tdata>
-	inline void FunctionalConnection<Tid, Tdata>::post_data(const Tdata& data) {
-		for (auto& item: m_listeners) {
-			item.second->on_event(data);
-		}
+	template <typename Tdata, typename Ttime>
+	inline Tdata FunctionalConnection<Tdata, Ttime >::read_data() const {
+		return m_read_action();
 	}
 }
 #endif // FUNCTIONAL_CONNECTION_HPP
