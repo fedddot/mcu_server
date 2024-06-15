@@ -7,7 +7,7 @@
 #include "engine.hpp"
 
 namespace server {
-	template <typename Traw_data, typename Ttime>
+	template <typename Traw_data>
 	class Server {
 	public:
 		using Engine = engine::Engine<Traw_data, Traw_data>;
@@ -15,9 +15,9 @@ namespace server {
 		using FailureReportCreator = typename Engine::EngineFailureReportCreator;
 		using RawDataParser = typename Engine::EngineRawDataParser;
 		using ReportSerializer = typename Engine::EngineReportSerializer;
-		using ClientConnection = mcu_control::Connection<Traw_data, Ttime>;
+		using ClientConnection = mcu_control::Connection<Traw_data>;
 		
-		Server(ClientConnection *connection, const Ttime& polling_period, const TaskFactory& factory, const FailureReportCreator& failure_report_creator, const RawDataParser& raw_data_parser, const ReportSerializer& report_serializer);
+		Server(ClientConnection *connection, const FailureReportCreator& failure_report_creator, const RawDataParser& raw_data_parser, const ReportSerializer& report_serializer);
 		Server(const Server& other) = delete;
 		Server& operator=(const Server& other) = delete;
 	
@@ -28,20 +28,18 @@ namespace server {
 		Engine m_engine;
 
 		ClientConnection *m_connection;
-		Ttime m_polling_period;
-
 		bool m_is_running;
 	};
 
-	template <typename Traw_data, typename Ttime>
-	inline Server<Traw_data, Ttime>::Server(ClientConnection *connection, const Ttime& polling_period, const TaskFactory& factory, const FailureReportCreator& failure_report_creator, const RawDataParser& raw_data_parser, const ReportSerializer& report_serializer): m_connection(connection), m_polling_period(polling_period), m_engine(factory, failure_report_creator, raw_data_parser, report_serializer), m_is_running(false) {
+	template <typename Traw_data>
+	inline Server<Traw_data>::Server(ClientConnection *connection, const FailureReportCreator& failure_report_creator, const RawDataParser& raw_data_parser, const ReportSerializer& report_serializer): m_connection(connection), m_engine(factory, failure_report_creator, raw_data_parser, report_serializer), m_is_running(false) {
 		if (!m_connection) {
 			throw std::invalid_argument("invalid connection ptr received");
 		}
 	}
 
-	template <typename Traw_data, typename Ttime>
-	inline void Server<Traw_data, Ttime>::run() {
+	template <typename Traw_data>
+	inline void Server<Traw_data>::run() {
 		if (m_is_running) {
 			throw std::runtime_error("server is already running");
 		}
@@ -54,13 +52,13 @@ namespace server {
 		}
 	}
 
-	template <typename Traw_data, typename Ttime>
-	inline bool Server<Traw_data, Ttime>::is_running() const {
+	template <typename Traw_data>
+	inline bool Server<Traw_data>::is_running() const {
 		return m_is_running;
 	}
 
-	template <typename Traw_data, typename Ttime>
-	inline void Server<Traw_data, Ttime>::stop() {
+	template <typename Traw_data>
+	inline void Server<Traw_data>::stop() {
 		if (!m_is_running) {
 			throw std::runtime_error("server is already not running");
 		}
