@@ -12,6 +12,7 @@
 #include "inventory.hpp"
 #include "object.hpp"
 #include "parser.hpp"
+#include "server_tasks.hpp"
 #include "task.hpp"
 #include "task_factory.hpp"
 
@@ -22,19 +23,14 @@ namespace server {
 	template <typename Tgpio_id>
 	class ServerFactory: public engine::Creator<engine::Task<engine::Data *> *(const engine::Data&)> {
 	public:
-		enum class TaskId: int {
-			CREATE_GPIO,
-			DELETE_GPIO,
-			SET_GPIO_STATE,
-			READ_GPIO_STATE
-		};
 		using TaskIdParser = engine::Parser<TaskId(const engine::Data&)>;
 		
 		using GpioInventory = Inventory<Tgpio_id, Gpio>;
-		using GpioCreator = engine::Creator<Gpio *(const Tgpio_id&, const Gpio::Direction&)>;
-		using GpioIdParser = engine::Parser<Tgpio_id(const engine::Data&)>;
 		using GpioDirParser = engine::Parser<Gpio::Direction(const engine::Data&)>;
 		using GpioStateParser = engine::Parser<Gpio::State(const engine::Data&)>;
+		
+		using GpioCreator = engine::Creator<Gpio *(const Tgpio_id&, const Gpio::Direction&)>;
+		using GpioIdParser = engine::Parser<Tgpio_id(const engine::Data&)>;
 		
 		ServerFactory(const TaskIdParser& task_id_parser, GpioInventory *gpio_inventory, const GpioCreator& gpio_creator, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser);
 		ServerFactory(const ServerFactory& other) = default;
