@@ -12,6 +12,8 @@ namespace server_uts {
 
 		State state() const override;
 		void set_state(const State& state) override;
+
+		server::Gpio *clone() const override;
 	private:
 		State m_state;
 	};
@@ -26,6 +28,10 @@ namespace server_uts {
 
 	inline void TestGpo::set_state(const State& state) {
 		m_state = state;
+	}
+
+	inline server::Gpio *TestGpo::clone() const {
+		return new TestGpo(*this);
 	}
 }
 #endif // TEST_GPO_HPP

@@ -1,82 +1,71 @@
 #include <functional>
-#include <memory>
-#include <mutex>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
-#include <thread>
-#include <vector>
 
 #include "data.hpp"
+#include "gpio.hpp"
 #include "object.hpp"
 #include "integer.hpp"
-#include "string.hpp"
 
-#include "functional_connection.hpp"
 #include "functional_creator.hpp"
+
 #include "functional_parser.hpp"
 #include "json_data_parser.hpp"
 #include "functional_serializer.hpp"
 #include "json_data_serializer.hpp"
-#include "functional_task.hpp"
 
 #include "server.hpp"
+#include "server_tasks.hpp"
+#include "string.hpp"
+#include "test_gpi.hpp"
+#include "test_gpo.hpp"
 
 using namespace server;
+using namespace server_utl;
+using namespace server_uts;
 using namespace engine;
 using namespace engine_utl;
-using namespace mcu_control_utl;
-using namespace mcu_control_utl;
 
 using RawData = std::string;
-using TestTime = int;
+using GpioId = int;
 
-using TestServer = Server<RawData, TestTime>;
-using EngineTask = typename TestServer::Engine::EngineTask;
+using TestServer = Server<RawData, GpioId>;
 
+FunctionalParser<Data *(const RawData&)> s_raw_data_parser(
+	[](const RawData& data)-> Data * {
+		return JsonDataParser().parse(data).clone();
+	}
+);
+
+FunctionalSerializer<RawData(const Data&)> s_raw_data_serializer(
+	[](const Data& data)-> RawData {
+		return JsonDataSerializer().serialize(Data::cast<Object>(data));
+	}
+);
+
+FunctionalCreator<Gpio *(const GpioId&, const Gpio::Direction&)> s_gpio_creator(
+	[](const GpioId& id, const Gpio::Direction& dir)-> Gpio * {
+		switch (dir) {
+		case Gpio::Direction::IN:
+			return new TestGpi();
+		case Gpio::Direction::OUT:
+			return new TestGpo();
+		default:
+			throw std::invalid_argument("unsupported GPIO direction");
+		}
+	}
+);
+
+FunctionalParser<GpioId(const Data&)> s_gpio_id_parser(
+	[](const Data& data)-> GpioId {
+		return static_cast<GpioId>(engine::Data::cast<engine::Integer>(engine::Data::cast<engine::Object>(data).access("gpio_id")).get());
+	}
+);
 
 TEST(ut_server, ctor_dtor_sanity) {
-	// GIVEN
-	FunctionalCreator<EngineTask *(const Data&)> task_creator(
-		[](const Data& data)-> EngineTask * {
-			return new FunctionalTask<Data *>(
-				[](void)-> Data * {
-					throw std::runtime_error("not needed");
-				}
-			);
-		}
-	);
-	FunctionalCreator<Data *(const std::exception&)> fail_report_creator(
-		[](const std::exception& e)-> Data * {
-			(void)e;
-			throw std::runtime_error("not needed");
-		}
-	);
-	FunctionalParser<Data *(const RawData&)> parser(
-		[](const RawData& data) -> Data * {
-			(void)data;
-			throw std::runtime_error("not needed");
-		}
-	);
-	FunctionalSerializer<RawData(const Data&)> serializer(
-		[](const Data& data) -> RawData {
-			(void)data;
-			throw std::runtime_error("not needed");
-		}
-	);
-	FunctionalConnection<RawData, TestTime> connection(
-		[](const RawData& data) {
-			throw std::runtime_error("not needed");
-		},
-		[](const TestTime& delay)-> bool {
-			throw std::runtime_error("not needed");
-		},
-		[]()-> RawData {
-			throw std::runtime_error("not needed");
-		}
-	);
-
 	// WHEN
 	TestServer *instance_ptr(nullptr);
 
@@ -84,12 +73,10 @@ TEST(ut_server, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		(
 			instance_ptr = new TestServer(
-				&connection,
-				10,
-				task_creator,
-				fail_report_creator,
-				parser,
-				serializer
+				s_raw_data_parser,
+				s_raw_data_serializer,
+				s_gpio_creator,
+				s_gpio_id_parser
 			)
 		)
 	);
@@ -99,98 +86,53 @@ TEST(ut_server, ctor_dtor_sanity) {
 }
 
 
-
-TEST(ut_server, run_stop_sanity_negative) {
+TEST(ut_server, run_sanity) {
 	// GIVEN
-	const int fail_code(-100);
-	const int success_code(0);
+	Object create_gpio_task_data;
+	create_gpio_task_data.add("task_id", Integer(static_cast<int>(TaskId::CREATE_GPIO)));
+	create_gpio_task_data.add("gpio_dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
+	create_gpio_task_data.add("gpio_id", Integer(10));
 
-	FunctionalCreator<EngineTask *(const Data&)> task_creator(
-		[fail_code, success_code](const Data& data)-> EngineTask * {
-			auto cfg_obj = Data::cast<Object>(data);
-			auto cfg_code = Data::cast<Integer>(cfg_obj.access("cfg_code")).get();
-			return new FunctionalTask<Data *>(
-				[cfg_code, fail_code, success_code](void)-> Data * {
-					if (fail_code == cfg_code) {
-						throw std::runtime_error("fail code received");
-					}
-					Object report;
-					report.add("result", Integer(success_code));
-					return report.clone();
-				}
-			);
-		}
-	);
+	Object set_gpio_task_data;
+	set_gpio_task_data.add("task_id", Integer(static_cast<int>(TaskId::SET_GPIO_STATE)));
+	set_gpio_task_data.add("gpio_state", Integer(static_cast<int>(Gpio::State::HIGH)));
+	set_gpio_task_data.add("gpio_id", Integer(10));
 
-	FunctionalCreator<Data *(const std::exception&)> fail_report_creator(
-		[fail_code](const std::exception& e)-> Data * {
-			Object report;
-			report.add("result", Integer(fail_code));
-			report.add("what", String(std::string(e.what())));
-			return report.clone();
-		}
-	);
+	Object read_gpio_task_data;
+	read_gpio_task_data.add("task_id", Integer(static_cast<int>(TaskId::READ_GPIO_STATE)));
+	read_gpio_task_data.add("gpio_id", Integer(10));
 
-	FunctionalParser<Data *(const RawData&)> parser(
-		[](const RawData& data) -> Data * {
-			return JsonDataParser().parse(data).clone();
-		}
-	);
+	Object delete_gpio_task_data;
+	delete_gpio_task_data.add("task_id", Integer(static_cast<int>(TaskId::DELETE_GPIO)));
+	delete_gpio_task_data.add("gpio_id", Integer(10));
 
-	FunctionalSerializer<RawData(const Data&)> serializer(
-		[](const Data& data) -> RawData {
-			return JsonDataSerializer().serialize(Data::cast<Object>(data));
-		}
-	);
-
-	const std::map<RawData, int> test_cases {
-		{"{\"cfg_code\": " + std::to_string(fail_code) + "}", fail_code},
-		{"{\"cfg_code\": " + std::to_string(success_code) + "}", success_code},
-		{"{\"cfg_code_gaga\": " + std::to_string(success_code) + "}", fail_code},
-		{"{\"cfg_code\": \"" + std::to_string(success_code) + "\"}", fail_code}
+	const std::map<std::string, RawData> test_cases {
+		{"create_gpio",		s_raw_data_serializer.serialize(create_gpio_task_data)},
+		{"set_gpio",		s_raw_data_serializer.serialize(set_gpio_task_data)},
+		{"read_gpio",		s_raw_data_serializer.serialize(read_gpio_task_data)},
+		{"create_gpio",		s_raw_data_serializer.serialize(delete_gpio_task_data)},
 	};
 
-	std::mutex data_mux;
-	std::vector<RawData> datas;
+	// WHEN
+	TestServer instance(
+		s_raw_data_parser,
+		s_raw_data_serializer,
+		s_gpio_creator,
+		s_gpio_id_parser
+	);
 
 	for (auto test_case: test_cases) {
 		// WHEN
-		FunctionalConnection<RawData, TestTime> connection(
-			[parser, test_case](const RawData& data) {
-				std::cout << "received report: " << std::endl << data << std::endl;
-				auto parsed_result = Data::cast<Integer>(Data::cast<Object>(*std::unique_ptr<Data>(parser.parse(data))).access("result")).get();
-				ASSERT_EQ(parsed_result, test_case.second);
-			},
-			[&data_mux, &datas](const TestTime& delay)-> bool {
-				sleep(delay);
-				std::lock_guard lock(data_mux);
-				return !datas.empty();
-			},
-			[&data_mux, &datas]()-> RawData {
-				std::lock_guard lock(data_mux);
-				if (datas.empty()) {
-					throw std::runtime_error("data buff is empty");
-				}
-				RawData data(*datas.begin());
-				datas.erase(datas.begin());
-				return data;
-			}
-		);
-		TestServer instance(&connection, 10, task_creator, fail_report_creator, parser, serializer);
+		RawData result("");
 
-		RawData report("");
-		std::thread data_sending_thread(
-			[&data_mux, &datas, test_case, &instance](){
-				sleep(1);
-				datas.push_back(test_case.first);
-				sleep(2);
-				instance.stop();
-			}
-		);
 		// THEN
-		std::cout << "running TC with input:" << std::endl << test_case.first << std::endl;
-
-		ASSERT_NO_THROW(instance.run());
-
+		std::cout << "TC: " << test_case.first << std::endl;
+		std::cout << "task data:" << std::endl << test_case.second << std::endl;
+		
+		ASSERT_NO_THROW(result = instance.run(test_case.second));
+		
+		std::cout << "task report:" << std::endl << result << std::endl;
+		
+		ASSERT_EQ(0, Data::cast<Integer>(JsonDataParser().parse(result).access("result")).get());
 	}
 }

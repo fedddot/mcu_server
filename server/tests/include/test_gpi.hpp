@@ -2,6 +2,7 @@
 #define	TEST_GPI_HPP
 
 #include "gpi.hpp"
+#include "gpio.hpp"
 
 namespace server_uts {
 	class TestGpi: public server::Gpi {
@@ -12,6 +13,7 @@ namespace server_uts {
 
 		State state() const override;
 		void update_test_state(const State& state);
+		server::Gpio *clone() const override;
 	private:
 		State m_state;
 	};
@@ -26,6 +28,10 @@ namespace server_uts {
 
 	inline void TestGpi::update_test_state(const State& state) {
 		m_state = state;
+	}
+
+	inline server::Gpio *TestGpi::clone() const {
+		return new TestGpi(*this);
 	}
 }
 #endif // TEST_GPI_HPP
