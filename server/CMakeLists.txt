@@ -14,7 +14,7 @@ target_include_directories(inventory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include
 
 add_library(server_factory INTERFACE)
 target_include_directories(server_factory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(server_factory INTERFACE creator parser data_lib task inventory gpio task_factory)
+target_link_libraries(server_factory INTERFACE creator parser data_lib task inventory gpio task_factory functional_creator functional_task)
 
 add_library(server INTERFACE)
 target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)

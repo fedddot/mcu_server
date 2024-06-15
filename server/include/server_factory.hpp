@@ -3,8 +3,14 @@
 
 #include "creator.hpp"
 #include "data.hpp"
+#include "functional_creator.hpp"
+#include "functional_task.hpp"
+#include "gpi.hpp"
 #include "gpio.hpp"
+#include "gpo.hpp"
+#include "integer.hpp"
 #include "inventory.hpp"
+#include "object.hpp"
 #include "parser.hpp"
 #include "task.hpp"
 #include "task_factory.hpp"
@@ -51,6 +57,80 @@ namespace server {
 		if (!m_gpio_inventory) {
 			throw std::invalid_argument("invalid gpio_inventory pointer received");
 		}
+		m_task_factory.register_creator(
+			TaskId::CREATE_GPIO,
+			engine_utl::FunctionalCreator<engine::Task<engine::Data *> *(const engine::Data&)>(
+				[this](const engine::Data& cfg)-> engine::Task<engine::Data *> * {
+					return new engine_utl::FunctionalTask<engine::Data *>(
+						[this, &cfg]()-> engine::Data * {
+							m_gpio_inventory->put(
+								m_gpio_id_parser->parse(cfg),
+								m_gpio_creator->create(m_gpio_id_parser->parse(cfg), m_gpio_dir_parser->parse(cfg))
+							);
+							engine::Object report;
+							report.add("result", engine::Integer(0));
+							return report.clone();
+						}
+					);
+				}
+			)
+		);
+		m_task_factory.register_creator(
+			TaskId::DELETE_GPIO,
+			engine_utl::FunctionalCreator<engine::Task<engine::Data *> *(const engine::Data&)>(
+				[this](const engine::Data& cfg)-> engine::Task<engine::Data *> * {
+					return new engine_utl::FunctionalTask<engine::Data *>(
+						[this, &cfg]()-> engine::Data * {
+							delete m_gpio_inventory->pull(m_gpio_id_parser->parse(cfg));
+							engine::Object report;
+							report.add("result", engine::Integer(0));
+							return report.clone();
+						}
+					);
+				}
+			)
+		);
+		m_task_factory.register_creator(
+			TaskId::SET_GPIO_STATE,
+			engine_utl::FunctionalCreator<engine::Task<engine::Data *> *(const engine::Data&)>(
+				[this](const engine::Data& cfg)-> engine::Task<engine::Data *> * {
+					return new engine_utl::FunctionalTask<engine::Data *>(
+						[this, &cfg]()-> engine::Data * {
+							auto gpio_ptr = m_gpio_inventory->access(m_gpio_id_parser->parse(cfg));
+							Gpio::cast<Gpo>(*gpio_ptr).set_state(m_gpio_state_parser->parse(cfg));
+							engine::Object report;
+							report.add("result", engine::Integer(0));
+							return report.clone();
+						}
+					);
+				}
+			)
+		);
+		m_task_factory.register_creator(
+			TaskId::READ_GPIO_STATE,
+			engine_utl::FunctionalCreator<engine::Task<engine::Data *> *(const engine::Data&)>(
+				[this](const engine::Data& cfg)-> engine::Task<engine::Data *> * {
+					return new engine_utl::FunctionalTask<engine::Data *>(
+						[this, &cfg]()-> engine::Data * {
+							auto gpio_ptr = m_gpio_inventory->access(m_gpio_id_parser->parse(cfg));
+							Gpio::State state(Gpio::State::LOW);
+							switch (gpio_ptr->direction()) {
+							case Gpio::Direction::IN:
+								state = Gpio::cast<Gpi>(*gpio_ptr).state();
+							case Gpio::Direction::OUT:
+								state = Gpio::cast<Gpo>(*gpio_ptr).state();
+							default:
+								throw std::invalid_argument("unsupported gpio type");
+							}
+							engine::Object report;
+							report.add("result", engine::Integer(0));
+							report.add("state", engine::Integer(static_cast<int>(state)));
+							return report.clone();
+						}
+					);
+				}
+			)
+		);
 	}
 
 	template <typename Tgpio_id>

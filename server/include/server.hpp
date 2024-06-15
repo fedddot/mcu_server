@@ -4,20 +4,19 @@
 #include <stdexcept>
 
 #include "connection.hpp"
+#include "data.hpp"
 #include "engine.hpp"
+#include "parser.hpp"
 
 namespace server {
 	template <typename Traw_data>
 	class Server {
 	public:
-		using Engine = engine::Engine<Traw_data, Traw_data>;
-		using TaskFactory = typename Engine::EngineTaskFactory;
-		using FailureReportCreator = typename Engine::EngineFailureReportCreator;
-		using RawDataParser = typename Engine::EngineRawDataParser;
-		using ReportSerializer = typename Engine::EngineReportSerializer;
-		using ClientConnection = mcu_control::Connection<Traw_data>;
-		
-		Server(ClientConnection *connection, const FailureReportCreator& failure_report_creator, const RawDataParser& raw_data_parser, const ReportSerializer& report_serializer);
+		using RawDataParser = engine::Parser<engine::Data *(const Traw_data&)>;
+		using RawDataSerializer = engine::Serializer<Traw_data(const engine::Data&)>;
+		using Connection = mcu_control::Connection<Traw_data>;
+
+		Server(Connection *connection);
 		Server(const Server& other) = delete;
 		Server& operator=(const Server& other) = delete;
 	
@@ -25,9 +24,9 @@ namespace server {
 		bool is_running() const;
 		void stop();
 	private:
-		Engine m_engine;
-
-		ClientConnection *m_connection;
+		Connection *m_connection;
+		
+		engine::Engine<Traw_data, Traw_data> m_engine;
 		bool m_is_running;
 	};
 
