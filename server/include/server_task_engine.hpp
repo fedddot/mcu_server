@@ -1,5 +1,5 @@
-#ifndef	SERVER_FACTORY_HPP
-#define	SERVER_FACTORY_HPP
+#ifndef	SERVER_TASK_ENGINE_HPP
+#define	SERVER_TASK_ENGINE_HPP
 
 #include "creator.hpp"
 #include "data.hpp"
@@ -193,4 +193,4 @@ namespace server {
 	}
 }
 
-#endif // SERVER_FACTORY_HPP
+#endif // SERVER_TASK_ENGINE_HPP

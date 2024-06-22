@@ -10,6 +10,7 @@ add_executable(
 	server_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_server.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_create_gpio_task.cpp
 )
 
 target_link_libraries(
@@ -28,6 +29,8 @@ target_link_libraries(
     functional_task
 	test_gpo
 	test_gpi
+
+	create_gpio_task
 	gtest
 	gmock
 	-g
