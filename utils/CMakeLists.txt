@@ -1,7 +1,3 @@
 add_library(functional_connection INTERFACE)
 target_include_directories(functional_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(functional_connection INTERFACE connection)
-
-add_library(task_factory INTERFACE)
-target_include_directories(task_factory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(task_factory INTERFACE creator task parser)

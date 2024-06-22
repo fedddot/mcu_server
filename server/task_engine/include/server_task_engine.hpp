@@ -37,28 +37,10 @@ namespace server {
 		ServerTaskEngine(const ServerTaskEngine& other) = delete;
 		ServerTaskEngine& operator=(const ServerTaskEngine& other) = delete;
 	private:
-		GpioInventory *m_gpio_inventory;
-		std::shared_ptr<		ServerTaskEngine(const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser, const GpioCreator& gpio_creator);
-> m_gpio_creator;
-		std::shared_ptr<GpioIdParser> m_gpio_id_parser;
-		std::shared_ptr<GpioDirParser> m_gpio_dir_parser;
-		std::shared_ptr<GpioStateParser> m_gpio_state_parser;
-
-		server_utl::TaskFactory<engine::Data, engine::Data *, TaskId> m_task_factory;
-
-		class CreateGpioTask: public InventoryTask<Tgpio_id, Gpio> {
-		public:
-			CreateGpioTask(GpioInventory *inventory_ptr, const engine::Data& task_data, const GpioCreator& gpio_creator, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser);
-		private:
-			std::shared_ptr<GpioCreator> m_gpio_creator;
-			std::shared_ptr<GpioIdParser> m_gpio_id_parser;
-			std::shared_ptr<GpioDirParser> m_gpio_dir_parser;
-		}
-
-		engine::Data *create_gpio(const engine::Data& cfg);
-		engine::Data *delete_gpio(GpioInventory *inventory, const engine::Data& cfg);
-		engine::Data *set_gpio(GpioInventory *inventory, const engine::Data& cfg);
-		engine::Data *read_gpio(GpioInventory *inventory, const engine::Data& cfg);
+		std::unique_ptr<GpioIdParser> m_gpio_id_parser;
+		std::unique_ptr<GpioDirParser> m_gpio_dir_parser;
+		std::unique_ptr<GpioStateParser> m_gpio_state_parser;
+		std::unique_ptr<GpioCreator> m_gpio_creator;
 	};
 
 	template <typename Tgpio_id>

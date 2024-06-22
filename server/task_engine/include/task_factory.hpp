@@ -9,7 +9,7 @@
 #include "parser.hpp"
 #include "task.hpp"
 
-namespace server_utl {
+namespace server {
 	template <class Tdata, class Treport, class Ttask_id>
 	class TaskFactory: public engine::Creator<engine::Task<Treport> *(const Tdata&)> {
 	public:
