@@ -1,38 +1,7 @@
-add_library(gpio INTERFACE)
-target_include_directories(gpio INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(gpi INTERFACE)
-target_include_directories(gpi INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(gpi INTERFACE gpio)
-
-add_library(gpo INTERFACE)
-target_include_directories(gpo INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(gpo INTERFACE gpio)
-
-add_library(inventory INTERFACE)
-target_include_directories(inventory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(server_tasks INTERFACE)
 target_include_directories(server_tasks INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
-add_library(inventory_task INTERFACE)
-target_include_directories(inventory_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(inventory_task INTERFACE inventory task)
-
-add_library(create_gpio_task INTERFACE)
-target_include_directories(create_gpio_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(
-    create_gpio_task
-    INTERFACE
-    creator
-    data
-    gpio
-    integer
-    inventory
-    inventory_task
-    object
-    parser
-)
 
 add_library(server_factory INTERFACE)
 target_include_directories(server_factory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
