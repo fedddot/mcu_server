@@ -35,7 +35,7 @@ namespace server {
 
 	template <typename Tctor_id, typename Tprod, typename Tdata>
 	inline Factory<Tctor_id, Tprod, Tdata>::Factory(const Factory& other): m_task_id_parser(other.m_task_id_parser->clone()) {
-		for (auto item: other.m_creators) {
+		for (auto& item: other.m_creators) {
 			m_creators.insert(
 				{item.first, std::unique_ptr<ItemCreator>(item.second->clone())}
 			);

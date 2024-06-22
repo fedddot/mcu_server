@@ -7,8 +7,10 @@
 #include "create_gpio_task.hpp"
 #include "creator.hpp"
 #include "data.hpp"
+#include "delete_gpio_task.hpp"
 #include "engine.hpp"
 #include "functional_creator.hpp"
+#include "get_gpio_task.hpp"
 #include "gpio.hpp"
 #include "inventory.hpp"
 #include "parser.hpp"
@@ -85,7 +87,7 @@ namespace server {
 			"get_gpio",
 			engine_utl::FunctionalCreator<EngineTask *(const engine::Data&)>(
 				[this](const engine::Data& cfg)-> EngineTask * {
-					return new SetGpioTask<Tgpio_id>(
+					return new GetGpioTask<Tgpio_id>(
 						&m_gpio_inventory,
 						cfg,
 						*m_gpio_id_parser
@@ -97,7 +99,7 @@ namespace server {
 			"delete_gpio",
 			engine_utl::FunctionalCreator<EngineTask *(const engine::Data&)>(
 				[this](const engine::Data& cfg)-> EngineTask * {
-					return new SetGpioTask<Tgpio_id>(
+					return new DeleteGpioTask<Tgpio_id>(
 						&m_gpio_inventory,
 						cfg,
 						*m_gpio_id_parser
