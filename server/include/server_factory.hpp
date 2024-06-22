@@ -15,7 +15,7 @@
 #include "parser.hpp"
 #include "server_tasks.hpp"
 #include "task.hpp"
-#include "task_factory.hpp"
+#include "factory.hpp"
 
 #include <memory>
 #include <stdexcept>
@@ -46,7 +46,7 @@ namespace server {
 		std::shared_ptr<GpioDirParser> m_gpio_dir_parser;
 		std::shared_ptr<GpioStateParser> m_gpio_state_parser;
 
-		server_utl::TaskFactory<engine::Data, engine::Data *, TaskId> m_task_factory;
+		server_utl::TaskFactory<engine::Data, engine::Data *, TaskId> m_factory;
 
 		class CreateGpioTask: public InventoryTask<Tgpio_id, Gpio> {
 		public:
@@ -141,14 +141,14 @@ namespace server {
 	
 
 	template <typename Tgpio_id>
-	inline ServerFactory<Tgpio_id>::ServerFactory(const TaskIdParser& task_id_parser, GpioInventory *gpio_inventory, const GpioCreator& gpio_creator, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser): m_gpio_inventory(gpio_inventory), m_gpio_creator(gpio_creator.clone()), m_gpio_id_parser(gpio_id_parser.clone()), m_gpio_dir_parser(gpio_dir_parser.clone()), m_gpio_state_parser(gpio_state_parser.clone()), m_task_factory(task_id_parser) {
+	inline ServerFactory<Tgpio_id>::ServerFactory(const TaskIdParser& task_id_parser, GpioInventory *gpio_inventory, const GpioCreator& gpio_creator, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser): m_gpio_inventory(gpio_inventory), m_gpio_creator(gpio_creator.clone()), m_gpio_id_parser(gpio_id_parser.clone()), m_gpio_dir_parser(gpio_dir_parser.clone()), m_gpio_state_parser(gpio_state_parser.clone()), m_factory(task_id_parser) {
 		if (!m_gpio_inventory) {
 			throw std::invalid_argument("invalid gpio_inventory pointer received");
 		}
 		auto create_gpio_task = InventoryTask<Tgpio_id, Gpio>(
 			
 		)
-		m_task_factory.register_creator(
+		m_factory.register_creator(
 			TaskId::CREATE_GPIO,
 			engine_utl::FunctionalCreator<engine::Task<engine::Data *> *(const engine::Data&)>(
 				[this](const engine::Data& cfg)-> engine::Task<engine::Data *> * {
@@ -156,7 +156,7 @@ namespace server {
 				}
 			)
 		);
-		m_task_factory.register_creator(
+		m_factory.register_creator(
 			TaskId::DELETE_GPIO,
 			engine_utl::FunctionalCreator<engine::Task<engine::Data *> *(const engine::Data&)>(
 				[this](const engine::Data& cfg)-> engine::Task<engine::Data *> * {
@@ -164,7 +164,7 @@ namespace server {
 				}
 			)
 		);
-		m_task_factory.register_creator(
+		m_factory.register_creator(
 			TaskId::SET_GPIO_STATE,
 			engine_utl::FunctionalCreator<engine::Task<engine::Data *> *(const engine::Data&)>(
 				[this](const engine::Data& cfg)-> engine::Task<engine::Data *> * {
@@ -172,7 +172,7 @@ namespace server {
 				}
 			)
 		);
-		m_task_factory.register_creator(
+		m_factory.register_creator(
 			TaskId::READ_GPIO_STATE,
 			engine_utl::FunctionalCreator<engine::Task<engine::Data *> *(const engine::Data&)>(
 				[this](const engine::Data& cfg)-> engine::Task<engine::Data *> * {
@@ -184,7 +184,7 @@ namespace server {
 
 	template <typename Tgpio_id>
 	inline engine::Task<engine::Data *> *ServerFactory<Tgpio_id>::create(const engine::Data& cfg) const {
-		return m_task_factory.create(cfg);
+		return m_factory.create(cfg);
 	}
 
 	template <typename Tgpio_id>

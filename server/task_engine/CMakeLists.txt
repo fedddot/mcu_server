@@ -68,9 +68,9 @@ target_link_libraries(
     parser
 )
 
-add_library(task_factory INTERFACE)
-target_include_directories(task_factory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(task_factory INTERFACE creator task parser)
+add_library(factory INTERFACE)
+target_include_directories(factory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(factory INTERFACE creator task parser)
 
 
 
