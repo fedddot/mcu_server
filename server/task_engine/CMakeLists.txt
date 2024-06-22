@@ -22,12 +22,49 @@ target_link_libraries(
     create_gpio_task
     INTERFACE
     creator
-    data
+    data_lib
     gpio
-    integer
     inventory
     inventory_task
-    object
+    parser
+)
+
+add_library(delete_gpio_task INTERFACE)
+target_include_directories(delete_gpio_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    delete_gpio_task
+    INTERFACE
+    data_lib
+    gpio
+    inventory
+    inventory_task
+    parser
+)
+
+add_library(get_gpio_task INTERFACE)
+target_include_directories(get_gpio_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    get_gpio_task
+    INTERFACE
+    data_lib
+    gpio
+    gpi
+    gpo
+    inventory
+    inventory_task
+    parser
+)
+
+add_library(set_gpio_task INTERFACE)
+target_include_directories(set_gpio_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    set_gpio_task
+    INTERFACE
+    data_lib
+    gpio
+    gpo
+    inventory
+    inventory_task
     parser
 )
 

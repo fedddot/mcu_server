@@ -19,4 +19,5 @@ target_link_libraries(
     server_tasks
 )
 
+add_subdirectory(task_engine)
 add_subdirectory(tests EXCLUDE_FROM_ALL)

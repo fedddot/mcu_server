@@ -30,7 +30,7 @@ using namespace server_uts;
 using namespace engine;
 using namespace engine_utl;
 
-FunctionalParser<Gpio::Direction(const Data&)> gpio_dir_parser(
+FunctionalParser<Gpio::Direction(const Data&)> s_gpio_dir_parser(
 	[](const Data& cfg)-> Gpio::Direction {
 		
 	}
