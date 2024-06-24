@@ -5,8 +5,8 @@ namespace server {
 	class Gpio {
 	public:
 		enum class State: int {
-			HIGH,
-			LOW
+			LOW,
+			HIGH
 		};
 		enum class Direction: int {
 			IN,
