@@ -152,11 +152,15 @@ TEST(ut_server, run_sanity) {
 	delete_gpio_task_data.add("task_id", String("delete_gpio"));
 	delete_gpio_task_data.add("gpio_id", Integer(10));
 
+	Object shutdown_task_data;
+	shutdown_task_data.add("task_id", String("shutdown"));
+
 	const std::map<std::string, RawData> test_cases {
 		{"create_gpio",		s_raw_data_serializer.serialize(create_gpio_task_data)},
 		{"set_gpio",		s_raw_data_serializer.serialize(set_gpio_task_data)},
 		{"read_gpio",		s_raw_data_serializer.serialize(read_gpio_task_data)},
 		{"create_gpio",		s_raw_data_serializer.serialize(delete_gpio_task_data)},
+		{"shutdown",		s_raw_data_serializer.serialize(shutdown_task_data)}
 	};
 
 	// WHEN
@@ -196,8 +200,6 @@ TEST(ut_server, run_sanity) {
 		},
 		&instance
 	);
-	sleep(1);
-	ASSERT_TRUE(instance.is_running());
-	ASSERT_NO_THROW(instance.stop());
 	run_thread.join();
+	ASSERT_FALSE(instance.is_running());
 }

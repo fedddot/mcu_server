@@ -4,9 +4,15 @@
 #include <memory>
 #include <stdexcept>
 
+#include "data.hpp"
 #include "engine.hpp"
 #include "connection.hpp"
+#include "functional_creator.hpp"
+#include "functional_task.hpp"
+#include "integer.hpp"
+#include "object.hpp"
 #include "server_task_engine.hpp"
+#include "string.hpp"
 
 namespace server {
 	template <typename Traw_data, typename Tgpio_id>
@@ -42,8 +48,33 @@ namespace server {
 		if (!m_connection) {
 			throw std::invalid_argument("invalid connection ptr received");
 		}
+		using EngineTask = typename ServerTaskEngine<Traw_data, Tgpio_id>::EngineTask;
+		engine_utl::FunctionalCreator<EngineTask *(const engine::Data&)> shutdown_task_creator(
+			[this](const engine::Data& data) -> EngineTask * {
+				(void)(data);
+				return new engine_utl::FunctionalTask<engine::Data *>(
+					[this]() {
+						stop();
+						engine::Object report;
+						report.add("result", engine::Integer(0));
+						report.add("msg", engine::String("server is now down"));
+						return report.clone();
+					}
+				);
+			}
+		);
 		m_engine = std::unique_ptr<engine::Engine<Traw_data, Traw_data>>(
-			new ServerTaskEngine<Traw_data, Tgpio_id>(task_id_parser, failure_report_creator, raw_data_parser, report_serializer, gpio_id_parser, gpio_dir_parser, gpio_state_parser, gpio_creator)
+			new ServerTaskEngine<Traw_data, Tgpio_id>(
+				task_id_parser,
+				failure_report_creator,
+				raw_data_parser,
+				report_serializer,
+				gpio_id_parser,
+				gpio_dir_parser,
+				gpio_state_parser,
+				gpio_creator,
+				shutdown_task_creator
+			)
 		);
 	}
 

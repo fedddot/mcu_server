@@ -4,8 +4,11 @@ target_link_libraries(
     server
     INTERFACE
     engine
+    data_lib
     connection
     server_task_engine
+    functional_task
+    functional_creator
 )
 
 add_subdirectory(task_engine)
