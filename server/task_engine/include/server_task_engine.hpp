@@ -19,16 +19,15 @@
 #include "factory.hpp"
 
 namespace server {
-	using ServerRawData = std::string;
 	using ServerTaskId = std::string;
 
-	template <typename Tgpio_id>
-	class ServerTaskEngine: public engine::Engine<ServerRawData, ServerRawData> {
+	template <typename Traw_data, typename Tgpio_id>
+	class ServerTaskEngine: public engine::Engine<Traw_data, Traw_data> {
 	public:
 		using TaskIdParser = engine::Parser<ServerTaskId(const engine::Data&)>;
-		using EngineFailureReportCreator = typename engine::TaskEngine<ServerRawData, ServerRawData>::EngineFailureReportCreator;
-		using EngineRawDataParser = typename engine::TaskEngine<ServerRawData, ServerRawData>::EngineRawDataParser;
-		using EngineReportSerializer = typename engine::TaskEngine<ServerRawData, ServerRawData>::EngineReportSerializer;
+		using EngineFailureReportCreator = typename engine::TaskEngine<Traw_data, Traw_data>::EngineFailureReportCreator;
+		using EngineRawDataParser = typename engine::TaskEngine<Traw_data, Traw_data>::EngineRawDataParser;
+		using EngineReportSerializer = typename engine::TaskEngine<Traw_data, Traw_data>::EngineReportSerializer;
 	
 		using GpioIdParser = engine::Parser<Tgpio_id(const engine::Data&)>;
 		using GpioDirParser = engine::Parser<Gpio::Direction(const engine::Data&)>;
@@ -41,20 +40,20 @@ namespace server {
 		ServerTaskEngine(const ServerTaskEngine& other) = delete;
 		ServerTaskEngine& operator=(const ServerTaskEngine& other) = delete;
 
-		ServerRawData run_task(const ServerRawData& cfg) const override;
+		Traw_data run_task(const Traw_data& cfg) const override;
 	private:
 		std::unique_ptr<GpioIdParser> m_gpio_id_parser;
 		std::unique_ptr<GpioDirParser> m_gpio_dir_parser;
 		std::unique_ptr<GpioStateParser> m_gpio_state_parser;
 		std::unique_ptr<GpioCreator> m_gpio_creator;
 
-		using EngineTask = typename engine::TaskEngine<ServerRawData, ServerRawData>::EngineTask;
-		std::unique_ptr<engine::Engine<ServerRawData, ServerRawData>> m_engine;
+		using EngineTask = typename engine::TaskEngine<Traw_data, Traw_data>::EngineTask;
+		std::unique_ptr<engine::Engine<Traw_data, Traw_data>> m_engine;
 		Inventory<Tgpio_id, Gpio> m_gpio_inventory;
 	};
 
-	template <typename Tgpio_id>
-	ServerTaskEngine<Tgpio_id>::ServerTaskEngine(const TaskIdParser& task_id_parser, const EngineFailureReportCreator& failure_report_creator, const EngineRawDataParser& raw_data_parser, const EngineReportSerializer& report_serializer, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser, const GpioCreator& gpio_creator): m_gpio_id_parser(gpio_id_parser.clone()), m_gpio_dir_parser(gpio_dir_parser.clone()), m_gpio_state_parser(gpio_state_parser.clone()), m_gpio_creator(gpio_creator.clone()) {
+	template <typename Traw_data, typename Tgpio_id>
+	ServerTaskEngine<Traw_data, Tgpio_id>::ServerTaskEngine(const TaskIdParser& task_id_parser, const EngineFailureReportCreator& failure_report_creator, const EngineRawDataParser& raw_data_parser, const EngineReportSerializer& report_serializer, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser, const GpioCreator& gpio_creator): m_gpio_id_parser(gpio_id_parser.clone()), m_gpio_dir_parser(gpio_dir_parser.clone()), m_gpio_state_parser(gpio_state_parser.clone()), m_gpio_creator(gpio_creator.clone()) {
 		Factory<ServerTaskId, EngineTask *, engine::Data> factory(task_id_parser);
 		factory.register_creator(
 			"create_gpio",
@@ -107,8 +106,8 @@ namespace server {
 				}
 			)
 		);
-		m_engine = std::unique_ptr<engine::Engine<ServerRawData, ServerRawData>>(
-			new engine::TaskEngine<ServerRawData, ServerRawData>(
+		m_engine = std::unique_ptr<engine::Engine<Traw_data, Traw_data>>(
+			new engine::TaskEngine<Traw_data, Traw_data>(
 				factory,
 				failure_report_creator,
 				raw_data_parser,
@@ -117,8 +116,8 @@ namespace server {
 		);
 	}
 
-	template <typename Tgpio_id>
-	ServerRawData ServerTaskEngine<Tgpio_id>::run_task(const ServerRawData& cfg) const {
+	template <typename Traw_data, typename Tgpio_id>
+	Traw_data ServerTaskEngine<Traw_data, Tgpio_id>::run_task(const Traw_data& cfg) const {
 		return m_engine->run_task(cfg);
 	}
 }

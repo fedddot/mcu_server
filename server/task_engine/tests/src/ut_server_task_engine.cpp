@@ -23,6 +23,8 @@ using namespace server_uts;
 using namespace engine;
 using namespace engine_utl;
 
+using ServerRawData = std::string;
+
 FunctionalParser<Data *(const ServerRawData&)> s_server_raw_data_parser(
 	[](const ServerRawData& data)-> Data * {
 		return JsonDataParser().parse(data).clone();
@@ -80,13 +82,13 @@ const Gpio::Direction gpio2_dir(Gpio::Direction::OUT);
 
 TEST(ut_server_task_engine, ctor_dtor_sanity) {
 	// WHEN
-	std::unique_ptr<ServerTaskEngine<int>> instance_ptr(nullptr);
+	std::unique_ptr<ServerTaskEngine<ServerRawData, int>> instance_ptr(nullptr);
 	
 	// THEN
 	ASSERT_NO_THROW(
 		(
-			instance_ptr = std::unique_ptr<ServerTaskEngine<int>>(
-				new ServerTaskEngine<int>(
+			instance_ptr = std::unique_ptr<ServerTaskEngine<ServerRawData, int>>(
+				new ServerTaskEngine<ServerRawData, int>(
 					s_server_task_id_parser,
 					s_server_failure_report_creator,
 					s_server_raw_data_parser,
@@ -145,7 +147,7 @@ TEST(ut_server_task_engine, run_task_sanity) {
 	};
 
 	// WHEN
-	ServerTaskEngine<int> instance(
+	ServerTaskEngine<ServerRawData, int> instance(
 		s_server_task_id_parser,
 		s_server_failure_report_creator,
 		s_server_raw_data_parser,
