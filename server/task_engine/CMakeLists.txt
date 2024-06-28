@@ -70,12 +70,26 @@ target_link_libraries(
 
 add_library(factory INTERFACE)
 target_include_directories(factory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(factory INTERFACE creator task parser)
-
-
+target_link_libraries(factory INTERFACE creator parser)
 
 add_library(server_task_engine INTERFACE)
 target_include_directories(server_task_engine INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(server_task_engine INTERFACE engine)
+target_link_libraries(
+    server_task_engine
+    INTERFACE
+    engine
+    task_engine
+    data_lib
+    creator
+    parser
+    factory
+    gpio
+    inventory
+    functional_creator
+    create_gpio_task
+    delete_gpio_task
+    get_gpio_task
+    set_gpio_task
+)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
