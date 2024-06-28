@@ -28,6 +28,7 @@ using namespace server;
 using namespace server_uts;
 using namespace engine;
 using namespace engine_utl;
+using namespace mcu_control_utl;
 
 using RawData = std::string;
 using GpioId = int;
@@ -94,7 +95,7 @@ FunctionalParser<Gpio::State(const Data&)> s_gpio_state_parser(
 
 TEST(ut_server, ctor_dtor_sanity) {
 	// GIVEN
-	mcu_control_utl::FunctionalConnection<RawData> test_connection(
+	FunctionalConnection<RawData> test_connection(
 		[](const RawData& data) {
 			(void)(data);
 		},
@@ -160,7 +161,7 @@ TEST(ut_server, run_sanity) {
 
 	// WHEN
 	auto test_cases_iter = test_cases.begin();
-	mcu_control_utl::FunctionalConnection<RawData> test_connection(
+	FunctionalConnection<RawData> test_connection(
 		[this](const RawData& data) {
 			std::cout << "server sends report:" << std::endl << data << std::endl;
 			std::unique_ptr<Data> report_parsed(s_raw_data_parser.parse(data));
