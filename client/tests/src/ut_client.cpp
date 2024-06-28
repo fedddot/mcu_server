@@ -10,7 +10,6 @@
 
 #include "client.hpp"
 #include "functional_connection.hpp"
-#include "object.hpp"
 
 using namespace client;
 using namespace mcu_control_utl;
