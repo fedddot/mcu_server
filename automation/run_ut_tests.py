@@ -21,7 +21,8 @@ uts = [
     "engine_tests",
     "parse_tests",
     "server_tests",
-    "client_tests"
+    "client_tests",
+    "e2e_mcu_control_tests"
 ]
 
 def find_executable(name, path):

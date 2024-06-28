@@ -7,9 +7,18 @@ add_executable(
 target_link_libraries(
 	e2e_mcu_control_tests
 	PRIVATE
+    client
+    connection
+    data_lib
+    functional_parser
+    functional_serializer
+    json_data_parser
+    json_data_serializer
+    server
+    server_task_engine
+    test_gpi
+    test_gpo
 
 	gtest
 	gmock
-	-g
-	-O0
 )
