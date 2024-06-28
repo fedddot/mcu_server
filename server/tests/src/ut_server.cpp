@@ -1,30 +1,30 @@
+#include <exception>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "gtest/gtest.h"
 
 #include "data.hpp"
-#include "gpio.hpp"
-#include "object.hpp"
-#include "integer.hpp"
-
+#include "functional_connection.hpp"
 #include "functional_creator.hpp"
-
 #include "functional_parser.hpp"
-#include "json_data_parser.hpp"
 #include "functional_serializer.hpp"
+#include "gpio.hpp"
+#include "integer.hpp"
+#include "json_data_parser.hpp"
 #include "json_data_serializer.hpp"
-
+#include "object.hpp"
 #include "server.hpp"
-#include "server_tasks.hpp"
+#include "server_task_engine.hpp"
 #include "string.hpp"
 #include "test_gpi.hpp"
 #include "test_gpo.hpp"
 
 using namespace server;
-using namespace server_utl;
 using namespace server_uts;
 using namespace engine;
 using namespace engine_utl;
@@ -33,6 +33,21 @@ using RawData = std::string;
 using GpioId = int;
 
 using TestServer = Server<RawData, GpioId>;
+
+FunctionalParser<ServerTaskId(const engine::Data&)> s_task_id_parser(
+	[](const engine::Data& data) {
+		return ServerTaskId(Data::cast<String>(Data::cast<Object>(data).access("task_id")).get());
+	}
+);
+
+FunctionalCreator<Data *(const std::exception&)> s_failure_report_creator(
+	[](const std::exception& e) {
+		Object report;
+		report.add("result", Integer(-1));
+		report.add("what", String(std::string(e.what())));
+		return report.clone();
+	}
+);
 
 FunctionalParser<Data *(const RawData&)> s_raw_data_parser(
 	[](const RawData& data)-> Data * {
@@ -65,7 +80,32 @@ FunctionalParser<GpioId(const Data&)> s_gpio_id_parser(
 	}
 );
 
+FunctionalParser<Gpio::Direction(const Data&)> s_gpio_dir_parser(
+	[](const Data& data) {
+		return static_cast<Gpio::Direction>(engine::Data::cast<engine::Integer>(engine::Data::cast<engine::Object>(data).access("gpio_dir")).get());
+	}
+);
+
+FunctionalParser<Gpio::State(const Data&)> s_gpio_state_parser(
+	[](const Data& data) {
+		return static_cast<Gpio::State>(engine::Data::cast<engine::Integer>(engine::Data::cast<engine::Object>(data).access("gpio_state")).get());
+	}
+);
+
 TEST(ut_server, ctor_dtor_sanity) {
+	// GIVEN
+	mcu_control_utl::FunctionalConnection<RawData> test_connection(
+		[](const RawData& data) {
+			(void)(data);
+		},
+		[]() {
+			return false;
+		},
+		[]() {
+			return RawData("");
+		} 
+	);
+
 	// WHEN
 	TestServer *instance_ptr(nullptr);
 
@@ -73,10 +113,15 @@ TEST(ut_server, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		(
 			instance_ptr = new TestServer(
+				&test_connection,
+				s_task_id_parser,
+				s_failure_report_creator,
 				s_raw_data_parser,
 				s_raw_data_serializer,
-				s_gpio_creator,
-				s_gpio_id_parser
+				s_gpio_id_parser,
+				s_gpio_dir_parser,
+				s_gpio_state_parser,
+				s_gpio_creator
 			)
 		)
 	);
@@ -89,21 +134,21 @@ TEST(ut_server, ctor_dtor_sanity) {
 TEST(ut_server, run_sanity) {
 	// GIVEN
 	Object create_gpio_task_data;
-	create_gpio_task_data.add("task_id", Integer(static_cast<int>(TaskId::CREATE_GPIO)));
+	create_gpio_task_data.add("task_id", String("create_gpio"));
 	create_gpio_task_data.add("gpio_dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
 	create_gpio_task_data.add("gpio_id", Integer(10));
 
 	Object set_gpio_task_data;
-	set_gpio_task_data.add("task_id", Integer(static_cast<int>(TaskId::SET_GPIO_STATE)));
+	set_gpio_task_data.add("task_id", String("set_gpio"));
 	set_gpio_task_data.add("gpio_state", Integer(static_cast<int>(Gpio::State::HIGH)));
 	set_gpio_task_data.add("gpio_id", Integer(10));
 
 	Object read_gpio_task_data;
-	read_gpio_task_data.add("task_id", Integer(static_cast<int>(TaskId::READ_GPIO_STATE)));
+	read_gpio_task_data.add("task_id", String("get_gpio"));
 	read_gpio_task_data.add("gpio_id", Integer(10));
 
 	Object delete_gpio_task_data;
-	delete_gpio_task_data.add("task_id", Integer(static_cast<int>(TaskId::DELETE_GPIO)));
+	delete_gpio_task_data.add("task_id", String("delete_gpio"));
 	delete_gpio_task_data.add("gpio_id", Integer(10));
 
 	const std::map<std::string, RawData> test_cases {
@@ -114,25 +159,44 @@ TEST(ut_server, run_sanity) {
 	};
 
 	// WHEN
+	auto test_cases_iter = test_cases.begin();
+	mcu_control_utl::FunctionalConnection<RawData> test_connection(
+		[this](const RawData& data) {
+			std::cout << "server sends report:" << std::endl << data << std::endl;
+			std::unique_ptr<Data> report_parsed(s_raw_data_parser.parse(data));
+			ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_parsed).access("result")).get());
+		},
+		[&test_cases_iter, &test_cases]() {
+			return test_cases_iter != test_cases.end();
+		},
+		[&test_cases_iter]() {
+			auto data(test_cases_iter->second);
+			std::cout << "server reads data:" << std::endl << data << std::endl;
+			++test_cases_iter;
+			return data;
+		}
+	);
 	TestServer instance(
+		&test_connection,
+		s_task_id_parser,
+		s_failure_report_creator,
 		s_raw_data_parser,
 		s_raw_data_serializer,
-		s_gpio_creator,
-		s_gpio_id_parser
+		s_gpio_id_parser,
+		s_gpio_dir_parser,
+		s_gpio_state_parser,
+		s_gpio_creator
 	);
 
-	for (auto test_case: test_cases) {
-		// WHEN
-		RawData result("");
-
-		// THEN
-		std::cout << "TC: " << test_case.first << std::endl;
-		std::cout << "task data:" << std::endl << test_case.second << std::endl;
-		
-		ASSERT_NO_THROW(result = instance.run(test_case.second));
-		
-		std::cout << "task report:" << std::endl << result << std::endl;
-		
-		ASSERT_EQ(0, Data::cast<Integer>(JsonDataParser().parse(result).access("result")).get());
-	}
+	// THEN
+	std::thread run_thread(
+		[](TestServer *server) {
+			ASSERT_NO_THROW(server->run());
+		},
+		&instance
+	);
+	sleep(1);
+	ASSERT_TRUE(instance.is_running());
+	ASSERT_NO_THROW(instance.stop());
+	run_thread.join();
 }
