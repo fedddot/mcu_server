@@ -1,3 +1,9 @@
 add_library(functional_connection INTERFACE)
 target_include_directories(functional_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(functional_connection INTERFACE connection)
+
+add_library(serial_connection INTERFACE)
+target_include_directories(serial_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(serial_connection INTERFACE connection)
+
+add_subdirectory(tests EXCLUDE_FROM_ALL)
