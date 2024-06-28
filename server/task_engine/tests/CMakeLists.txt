@@ -16,6 +16,7 @@ add_executable(
 target_link_libraries(
 	server_task_engine_tests
 	PRIVATE
+	server_task_engine
 	functional_parser
 	test_gpi
 	test_gpo
@@ -26,8 +27,8 @@ target_link_libraries(
 	delete_gpio_task
 	set_gpio_task
 	get_gpio_task
-	
-    # server_task_engine
+
+	functional_task
 
 	gtest
 	gmock

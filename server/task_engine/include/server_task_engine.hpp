@@ -34,9 +34,10 @@ namespace server {
 		using GpioStateParser = engine::Parser<Gpio::State(const engine::Data&)>;
 		
 		using GpioCreator = engine::Creator<Gpio *(const Tgpio_id&, const Gpio::Direction&)>;
-
+		using EngineTask = typename engine::TaskEngine<Traw_data, Traw_data>::EngineTask;
+		using ShutdownTaskCreator = engine::Creator<EngineTask *(const engine::Data&)>;
 		
-		ServerTaskEngine(const TaskIdParser& task_id_parser, const EngineFailureReportCreator& failure_report_creator, const EngineRawDataParser& raw_data_parser, const EngineReportSerializer& report_serializer, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser, const GpioCreator& gpio_creator);
+		ServerTaskEngine(const TaskIdParser& task_id_parser, const EngineFailureReportCreator& failure_report_creator, const EngineRawDataParser& raw_data_parser, const EngineReportSerializer& report_serializer, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser, const GpioCreator& gpio_creator, const ShutdownTaskCreator& shutdown_task_creator);
 		ServerTaskEngine(const ServerTaskEngine& other) = delete;
 		ServerTaskEngine& operator=(const ServerTaskEngine& other) = delete;
 
@@ -47,13 +48,12 @@ namespace server {
 		std::unique_ptr<GpioStateParser> m_gpio_state_parser;
 		std::unique_ptr<GpioCreator> m_gpio_creator;
 
-		using EngineTask = typename engine::TaskEngine<Traw_data, Traw_data>::EngineTask;
 		std::unique_ptr<engine::Engine<Traw_data, Traw_data>> m_engine;
 		Inventory<Tgpio_id, Gpio> m_gpio_inventory;
 	};
 
 	template <typename Traw_data, typename Tgpio_id>
-	ServerTaskEngine<Traw_data, Tgpio_id>::ServerTaskEngine(const TaskIdParser& task_id_parser, const EngineFailureReportCreator& failure_report_creator, const EngineRawDataParser& raw_data_parser, const EngineReportSerializer& report_serializer, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser, const GpioCreator& gpio_creator): m_gpio_id_parser(gpio_id_parser.clone()), m_gpio_dir_parser(gpio_dir_parser.clone()), m_gpio_state_parser(gpio_state_parser.clone()), m_gpio_creator(gpio_creator.clone()) {
+	ServerTaskEngine<Traw_data, Tgpio_id>::ServerTaskEngine(const TaskIdParser& task_id_parser, const EngineFailureReportCreator& failure_report_creator, const EngineRawDataParser& raw_data_parser, const EngineReportSerializer& report_serializer, const GpioIdParser& gpio_id_parser, const GpioDirParser& gpio_dir_parser, const GpioStateParser& gpio_state_parser, const GpioCreator& gpio_creator, const ShutdownTaskCreator& shutdown_task_creator): m_gpio_id_parser(gpio_id_parser.clone()), m_gpio_dir_parser(gpio_dir_parser.clone()), m_gpio_state_parser(gpio_state_parser.clone()), m_gpio_creator(gpio_creator.clone()) {
 		Factory<ServerTaskId, EngineTask *, engine::Data> factory(task_id_parser);
 		factory.register_creator(
 			"create_gpio",
@@ -106,6 +106,8 @@ namespace server {
 				}
 			)
 		);
+		factory.register_creator("shutdown", shutdown_task_creator);
+
 		m_engine = std::unique_ptr<engine::Engine<Traw_data, Traw_data>>(
 			new engine::TaskEngine<Traw_data, Traw_data>(
 				factory,

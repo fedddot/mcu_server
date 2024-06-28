@@ -2,6 +2,7 @@
 #include "functional_creator.hpp"
 #include "functional_parser.hpp"
 #include "functional_serializer.hpp"
+#include "functional_task.hpp"
 #include "gpio.hpp"
 #include "integer.hpp"
 #include "json_data_parser.hpp"
@@ -75,6 +76,21 @@ FunctionalCreator<Data *(const std::exception&)> s_server_failure_report_creator
 		return report.clone();
 	}
 );
+
+using EngineTask = typename ServerTaskEngine<ServerRawData, int>::EngineTask;
+FunctionalCreator<EngineTask *(const Data&)> s_shutdown_task_creator(
+	[](const Data& data) -> EngineTask * {
+		(void)(data);
+		return new FunctionalTask<Data *>(
+			[]() {
+				Object report;
+				report.add("result", Integer(0));
+				report.add("msg", String("server is now down"));
+				return report.clone();
+			}
+		);
+	}
+);
 const int gpio1_id(0);
 const Gpio::Direction gpio1_dir(Gpio::Direction::IN);
 const int gpio2_id(1);
@@ -96,7 +112,8 @@ TEST(ut_server_task_engine, ctor_dtor_sanity) {
 					s_server_gpio_id_parser,
 					s_server_gpio_dir_parser,
 					s_server_gpio_state_parser,
-					s_server_gpio_creator
+					s_server_gpio_creator,
+					s_shutdown_task_creator
 				)
 			)
 		)
@@ -128,6 +145,9 @@ TEST(ut_server_task_engine, run_task_sanity) {
 	delete_task_data.add("task_id", String("delete_gpio"));
 	delete_task_data.add("gpio_id", Integer(gpio_id));
 
+	Object shutdown_task_data;
+	shutdown_task_data.add("task_id", String("shutdown"));
+
 	auto regular_result_assertion = [](const Data& data) {
 		ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
 	};
@@ -143,7 +163,8 @@ TEST(ut_server_task_engine, run_task_sanity) {
 		{get_task_data, get_low_result_assertion},
 		{set_task_data, regular_result_assertion},
 		{get_task_data, get_high_result_assertion},
-		{delete_task_data, regular_result_assertion}
+		{delete_task_data, regular_result_assertion},
+		{shutdown_task_data, regular_result_assertion}
 	};
 
 	// WHEN
@@ -155,7 +176,8 @@ TEST(ut_server_task_engine, run_task_sanity) {
 		s_server_gpio_id_parser,
 		s_server_gpio_dir_parser,
 		s_server_gpio_state_parser,
-		s_server_gpio_creator
+		s_server_gpio_creator,
+		s_shutdown_task_creator
 	);
 
 	for (auto test_case: test_cases) {
