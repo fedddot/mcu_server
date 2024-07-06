@@ -17,8 +17,8 @@ namespace mcu_server_utl {
 		JsonDataParser(const JsonDataParser& other) = default;
 		JsonDataParser& operator=(const JsonDataParser& other) = default;
 		
-		virtual engine::Data *parse(const std::string& data) const override;
-		virtual mcu_server::Parser<engine::Data *(const std::string&)> *clone() const override;
+		engine::Data *parse(const std::string& data) const override;
+		mcu_server::Parser<engine::Data *(const std::string&)> *clone() const override;
 	private:
 		static engine::Data *parseValue(const Json::Value& root);
 		static engine::Data *parseObject(const Json::Value& root);
