@@ -24,11 +24,12 @@ target_include_directories(mcu_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/includ
 target_link_libraries(
     mcu_server
     INTERFACE
+    data
+    data_extractor
     data_sender
     engine
-    data_extractor
-    serializer
     parser
+    serializer
 )
 
 add_subdirectory(external)
