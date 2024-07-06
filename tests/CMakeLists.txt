@@ -3,6 +3,9 @@ target_include_directories(mcu_server_fixture INTERFACE ${CMAKE_CURRENT_LIST_DIR
 target_link_libraries(
 	mcu_server_fixture
 	INTERFACE
+    data
+    engine
+    mcu_task_engine
     mcu_task_engine_fixture
 )
 
