@@ -7,17 +7,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(retriever INTERFACE)
-target_include_directories(retriever INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(data_sender INTERFACE)
+target_include_directories(data_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(mcu_server INTERFACE)
 target_include_directories(mcu_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     mcu_server
     INTERFACE
+    data_sender
+    mcu_engine_types
+    mcu_task_type
+    mcu_task_engine
 )
 
 add_subdirectory(external)
 # add_subdirectory(utils)
 
-# add_subdirectory(tests EXCLUDE_FROM_ALL)
+add_subdirectory(tests EXCLUDE_FROM_ALL)
