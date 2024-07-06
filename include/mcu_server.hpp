@@ -1,68 +1,47 @@
 #ifndef	MCU_SERVER_HPP
 #define	MCU_SERVER_HPP
 
-#include "mcu_engine_types.hpp"
-#include "mcu_task_type.hpp"
+#include "data.hpp"
+#include "data_extractor.hpp"
+#include "data_sender.hpp"
+#include "engine.hpp"
+#include <memory>
+#include <stdexcept>
+#include <string>
 
 namespace mcu_server {
 	template <typename Tgpio_id>
 	class McuServer {
 	public:
-		using CtorIdRetriever = mcu_task_engine::CtorIdRetriever<mcu_task_engine::McuTaskType>;
-		// const FailureReporter& failure_report_creator,
-		// const GpioIdRetriever<Tgpio_id>& gpio_id_retriever,
-		// const GpioDirRetriever& gpio_dir_retriever,
-		// const GpioStateRetriever& gpio_state_retriever,
-		// const GpioCreator<Tgpio_id>& gpio_creator,
-		// const GpioReportCreator& gpio_report_creator,
-		// const GpioGetReportCreator& gpio_get_report_creator);
-	// 	McuServer(
-	// 		const CtorIdRetriever<McuTaskType>& ctor_id_retriever,
-	// 		const FailureReporter& failure_report_creator,
-	// 		const GpioIdRetriever<Tgpio_id>& gpio_id_retriever,
-	// 		const GpioDirRetriever& gpio_dir_retriever,
-	// 		const GpioStateRetriever& gpio_state_retriever,
-	// 		const GpioCreator<Tgpio_id>& gpio_creator,
-	// 		const GpioReportCreator& gpio_report_creator,
-	// 		const GpioGetReportCreator& gpio_get_report_creator);
-	// 	McuServer(const McuServer& other) = delete;
-	// 	McuServer& operator=(const McuServer& other) = delete;
+		using RawData = std::string;
+		using McuEngine = engine::Engine<engine::Data(const engine::Data&)>;
+		McuServer(McuEngine *engine, const DataSender<RawData>& sender, const DataExtractor<RawData>& extractor);
+		McuServer(const McuServer& other) = delete;
+		McuServer& operator=(const McuServer& other) = delete;
+		virtual ~McuServer() noexcept = default;
 
-	// 	engine::Data *run(const engine::Data& cfg) const override;
-	// private:
-	// 	using GpioInventory = Inventory<Tgpio_id, Gpio>;
-	// 	GpioInventory m_gpio_inventory;
-	// 	engine::TaskEngine m_engine;
+		void feed(const RawData& data);
+	private:
+		McuEngine *m_engine;
+		std::unique_ptr<DataSender<RawData>> m_sender;
+		std::unique_ptr<DataSender<RawData>> m_extractor;
+		RawData m_data;
 	};
 
-	// template <typename Tgpio_id>
-	// McuServer<Tgpio_id>::McuServer(
-	// 	const CtorIdRetriever<McuTaskType>& ctor_id_retriever,
-	// 	const FailureReporter& failure_report_creator,
-	// 	const GpioIdRetriever<Tgpio_id>& gpio_id_retriever,
-	// 	const GpioDirRetriever& gpio_dir_retriever,
-	// 	const GpioStateRetriever& gpio_state_retriever,
-	// 	const GpioCreator<Tgpio_id>& gpio_creator,
-	// 	const GpioReportCreator& gpio_report_creator,
-	// 	const GpioGetReportCreator& gpio_get_report_creator
-	// ): m_engine(
-	// 	McuFactory<Tgpio_id>(
-	// 		ctor_id_retriever,
-	// 		&m_gpio_inventory,
-	// 		gpio_id_retriever,
-	// 		gpio_dir_retriever,
-	// 		gpio_state_retriever,
-	// 		gpio_creator,
-	// 		gpio_report_creator,
-	// 		gpio_get_report_creator
-	// 	), failure_report_creator) {
+	template <typename Tgpio_id>
+	McuServer<Tgpio_id>::McuServer(McuEngine *engine, const DataSender<RawData>& sender, const DataExtractor<RawData>& extractor): m_engine(engine), m_sender(sender.clone()), m_extractor(extractor.clone()) {
+		if (!engine) {
+			throw std::invalid_argument("invalid engine ptr received");
+		}
+	}
 
-	// }
-
-	// template <typename Tgpio_id>
-	// engine::Data *McuServer<Tgpio_id>::run(const engine::Data& cfg) const {
-	// 	return m_engine.run(cfg);
-	// }
+	template <typename Tgpio_id>
+	void McuServer<Tgpio_id>::feed(const RawData& data) {
+		m_data.insert(m_data.end(), data.begin(), data.end());
+		if (m_extractor->is_extractable(m_data)) {
+			
+		}
+	}
 }
 
 #endif // MCU_SERVER_HPP
