@@ -15,7 +15,10 @@ TEST_F(McuServerFixture, ctor_dtor_sanity) {
 	// THEN
 	ASSERT_NO_THROW(
 		(
-			instance_ptr = new McuServer<GpioId>()
+			instance_ptr = new McuServer<GpioId>(
+				mcu_engine(),
+				
+			)
 		)
 	);
 	ASSERT_NE(nullptr, instance_ptr);
