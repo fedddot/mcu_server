@@ -1,3 +1,5 @@
+add_library(data_extractor INTERFACE)
+target_include_directories(data_extractor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(custom_sender INTERFACE)
 target_include_directories(custom_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)

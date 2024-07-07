@@ -8,7 +8,6 @@ namespace mcu_server {
 	public:
 		virtual ~DataSender() noexcept = default;
 		virtual void send(const Tdata&) const = 0;
-		virtual DataSender *clone() const = 0;
 	};
 }
 

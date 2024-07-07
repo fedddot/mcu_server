@@ -3,6 +3,7 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_json_data_parser.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_json_data_serializer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_custom_receiver.cpp
 )
 
 target_link_libraries(
@@ -10,6 +11,8 @@ target_link_libraries(
 	PRIVATE
 	json_data_parser
 	json_data_serializer
+	custom_receiver
+	listener
 
 	gtest
 )

@@ -9,7 +9,6 @@
 #include "json_data_serializer.hpp"
 #include "mcu_server.hpp"
 #include "mcu_server_fixture.hpp"
-#include "mcu_task_engine.hpp"
 
 using namespace mcu_server;
 using namespace mcu_server_uts;
