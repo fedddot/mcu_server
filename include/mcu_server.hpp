@@ -20,7 +20,7 @@ namespace mcu_server {
 		using McuEngine = engine::Engine<engine::Data *(const engine::Data&)>;
 		using RawDataSender = DataSender<RawData>;
 		using RawDataExtractor = DataExtractor<RawData>;
-		using RawDataParser = Parser<engine::Data *(RawData)>;
+		using RawDataParser = Parser<engine::Data *(const RawData&)>;
 		using RawDataSerializer = Serializer<RawData(const engine::Data&)>;		
 		
 		McuServer(McuEngine *engine, const RawDataSender& sender, const RawDataExtractor& extractor, const RawDataParser& parser, const RawDataSerializer& serializer);
