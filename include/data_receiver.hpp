@@ -10,6 +10,7 @@ namespace mcu_server {
 	public:
 		virtual ~DataReceiver() noexcept = default;
 		virtual void set_listener(const Listener<Tdata>&) = 0;
+		virtual void unset_listener() = 0;
 		virtual void feed(const Tfood& food) = 0;
 	};
 }

@@ -19,48 +19,7 @@ using RawData = typename McuServer<GpioId>::RawData;
 
 class TestExtractor: public DataExtractor<RawData> {
 public:
-	TestExtractor(const RawData& header, const RawData& tail): m_header(header), m_tail(tail) {
-
-	}
-	TestExtractor(const TestExtractor& other) = default;
-	TestExtractor& operator=(const TestExtractor& other) = default;
-
-	bool is_extractable(const RawData& data) const override {
-		auto header_pos = data.find(m_header);
-		if (RawData::npos == header_pos) {
-			return false;
-		}
-		auto tail_pos = data.find(m_tail, header_pos);
-		if (RawData::npos == tail_pos) {
-			return false;
-		}
-		return true;
-    }
-	RawData extract(RawData *data) const override {
-		auto header_pos = data->find(m_header);
-		if (RawData::npos == header_pos) {
-			throw std::invalid_argument("missing header");
-		}
-		auto tail_pos = data->find(m_tail, header_pos);
-		if (RawData::npos == tail_pos) {
-			throw std::invalid_argument("missing tail");
-		}
-		RawData extracted_data(
-			data->begin() + header_pos + m_header.size(),
-			data->begin() + tail_pos
-		);
-		data->erase(
-			data->begin() + header_pos,
-			data->begin() + tail_pos + m_tail.size()
-		);
-		return extracted_data;
-    }
-	DataExtractor<RawData> *clone() const override {
-		return new TestExtractor(*this);
-    }
-private:
-	RawData m_header;
-	RawData m_tail;
+	
 };
 
 class TestSender: public DataSender<RawData> {

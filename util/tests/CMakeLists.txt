@@ -12,6 +12,7 @@ target_link_libraries(
 	json_data_parser
 	json_data_serializer
 	custom_receiver
+	custom_listener
 	listener
 
 	gtest

@@ -18,7 +18,6 @@ namespace mcu_server_utl {
 		CustomSender& operator=(const CustomSender& other) = default;
 				
 		void send(const Tdata& data) const override;
-		mcu_server::DataSender<Tdata> *clone() const override;
 	private:
 		SendFunction m_send_function;
 	};
@@ -33,11 +32,6 @@ namespace mcu_server_utl {
 	template <typename Tdata>
 	inline void CustomSender<Tdata>::send(const Tdata& data) const {
 		m_send_function(data);
-	}
-
-	template <typename Tdata>
-	inline mcu_server::DataSender<Tdata> *CustomSender<Tdata>::clone() const {
-		return new CustomSender(*this);
 	}
 }
 

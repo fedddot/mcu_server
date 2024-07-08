@@ -2,11 +2,11 @@
 #define	LISTENER_HPP
 
 namespace mcu_server {	
-	template <typename... Args>
+	template <typename Tevent>
 	class Listener {
 	public:
 		virtual ~Listener() noexcept = default;
-		virtual void on_event(Args... args) = 0;
+		virtual void on_event(const Tevent& event) = 0;
 		virtual Listener *clone() const = 0;
 	};
 }

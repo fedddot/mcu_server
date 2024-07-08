@@ -25,7 +25,7 @@ namespace mcu_server {
 		McuServer(McuEngine *engine, RawDataSender *sender, RawDataReceiver *receiver, const RawDataParser& parser, const RawDataSerializer& serializer);
 		McuServer(const McuServer& other) = delete;
 		McuServer& operator=(const McuServer& other) = delete;
-		virtual ~McuServer() noexcept = default;
+		virtual ~McuServer() noexcept;
 
 		void feed(const Tfood& data);
 	private:
@@ -68,7 +68,12 @@ namespace mcu_server {
 	}
 
 	template <typename Tgpio_id, typename Traw_data, typename Tfood>
-	void McuServer<Tgpio_id, Traw_data, Tfood>::feed(const Tfood& data) {
+	inline McuServer<Tgpio_id, Traw_data, Tfood>::~McuServer() noexcept {
+		m_receiver->unset_listener();
+	}
+
+	template <typename Tgpio_id, typename Traw_data, typename Tfood>
+	inline void McuServer<Tgpio_id, Traw_data, Tfood>::feed(const Tfood& data) {
 		m_receiver->feed(data);
 	}
 }

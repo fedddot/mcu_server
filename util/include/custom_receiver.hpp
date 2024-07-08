@@ -1,43 +1,69 @@
 #ifndef	CUSTOM_RECEIVER_HPP
 #define	CUSTOM_RECEIVER_HPP
 
+#include <memory>
 #include <stdexcept>
-#include <functional>
+#include <string>
 
 #include "data_receiver.hpp"
-#include "data_sender.hpp"
+#include "listener.hpp"
 
 namespace mcu_server_utl {
-	
-	template <typename Tdata>
-	class CustomReceiver: public mcu_server::DataReceiver<Tdata> {
+	using RawData = std::string;
+	class CustomReceiver: public mcu_server::DataReceiver<RawData, RawData> {
 	public:
-		CustomReceiver();
-		CustomReceiver(const CustomReceiver& other) = default;
-		CustomReceiver& operator=(const CustomReceiver& other) = default;
-				
-		void send(const Tdata& data) const override;
-		mcu_server::DataSender<Tdata> *clone() const override;
-	private:
-		SendFunction m_send_function;
-	};
+		CustomReceiver(const RawData& header, const RawData& tail): m_header(header), m_tail(tail) {
 
-	template <typename Tdata>
-	inline CustomReceiver<Tdata>::CustomReceiver(const SendFunction& send_function): m_send_function(send_function) {
-		if (!m_send_function) {
-			throw std::invalid_argument("invalid send action received");
 		}
-	}
+		CustomReceiver(const CustomReceiver& other) = delete;
+		CustomReceiver& operator=(const CustomReceiver& other) = delete;
 
-	template <typename Tdata>
-	inline void CustomReceiver<Tdata>::send(const Tdata& data) const {
-		m_send_function(data);
-	}
+		void set_listener(const mcu_server::Listener<RawData>& listener) override {
+			m_listener = std::unique_ptr<ReceiverListener>(listener.clone());
+		}
+		void unset_listener() override {
+			m_listener = nullptr;
+		}
+		void feed(const RawData& food) override {
+			m_data.insert(m_data.end(), food.begin(), food.end());
+			while (is_extractable() && m_listener) {
+				auto extracted_data = extract();
+				m_listener->on_event(extracted_data);
+			}
+		}
+	private:
+		RawData m_header;
+		RawData m_tail;
+		RawData m_data;
 
-	template <typename Tdata>
-	inline mcu_server::DataSender<Tdata> *CustomReceiver<Tdata>::clone() const {
-		return new CustomReceiver(*this);
-	}
+		using ReceiverListener = mcu_server::Listener<RawData>;
+		std::unique_ptr<ReceiverListener> m_listener;
+
+		bool is_extractable() const {
+			auto header_pos = m_data.find(m_header);
+			auto tail_pos = m_data.find(m_tail, header_pos);
+			return ((RawData::npos != header_pos) && (RawData::npos != tail_pos));
+		}
+		RawData extract() {
+			auto header_pos = m_data.find(m_header);
+			if (RawData::npos == header_pos) {
+				throw std::invalid_argument("missing header");
+			}
+			auto tail_pos = m_data.find(m_tail, header_pos);
+			if (RawData::npos == tail_pos) {
+				throw std::invalid_argument("missing tail");
+			}
+			RawData extracted_data(
+				m_data.begin() + header_pos + m_header.size(),
+				m_data.begin() + tail_pos
+			);
+			m_data.erase(
+				m_data.begin() + header_pos,
+				m_data.begin() + tail_pos + m_tail.size()
+			);
+			return extracted_data;
+		}
+	};
 }
 
 #endif // CUSTOM_RECEIVER_HPP

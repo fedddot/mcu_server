@@ -1,29 +1,21 @@
-#include <memory>
-#include <string>
-
 #include "gtest/gtest.h"
 
-#include "data.hpp"
-#include "json_data_parser.hpp"
-#include "object.hpp"
+#include "custom_receiver.hpp"
 
-using namespace engine;
 using namespace mcu_server_utl;
 
-TEST(ut_json_data_parser, parse_sanity) {
-	// GIVEN:
-	const std::string test_data("{\"key1\": 1, \"key2\": \"ahahaha\", \"key3\": {\"key4\": \"ahaha\"}");
+TEST(ut_custom_receiver, ctor_dtor) {
+	// WHEN
+	CustomReceiver *instance_ptr(nullptr);
 
-	// WHEN:
-	JsonDataParser instance;
-	std::unique_ptr<Data> result(nullptr);
+	// THEN
+	ASSERT_NO_THROW(
+		(
+			instance_ptr = new CustomReceiver("test_header", "test_tail")
+		)
+	);
+	ASSERT_NE(nullptr, instance_ptr);
+	ASSERT_NO_THROW(delete instance_ptr);
 
-	// THEN:
-	ASSERT_NO_THROW(result = std::unique_ptr<Data>(instance.parse(test_data)));
-	ASSERT_NE(nullptr, result);
-	Object *result_obj(dynamic_cast<Object *>(result.get()));
-	ASSERT_NE(nullptr, result_obj);
-	ASSERT_TRUE(result_obj->contains("key1"));
-	ASSERT_TRUE(result_obj->contains("key2"));
-	ASSERT_TRUE(result_obj->contains("key3"));
+	instance_ptr = nullptr;
 }
