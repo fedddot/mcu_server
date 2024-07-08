@@ -4,11 +4,11 @@
 #include <memory>
 #include <stdexcept>
 
+#include "custom_listener.hpp"
 #include "data.hpp"
 #include "data_receiver.hpp"
 #include "data_sender.hpp"
 #include "engine.hpp"
-#include "listener.hpp"
 #include "parser.hpp"
 #include "serializer.hpp"
 
@@ -34,29 +34,6 @@ namespace mcu_server {
 		RawDataReceiver *m_receiver;
 		std::unique_ptr<RawDataParser> m_parser;
 		std::unique_ptr<RawDataSerializer> m_serializer;
-
-		class ServerListener: public Listener<Traw_data> {
-		public:
-			ServerListener(McuServer *server): m_server(server) {
-				if (!m_server) {
-					throw std::invalid_argument("invalid server ptr received");
-				}
-			}
-			ServerListener(const ServerListener&) = default;
-			ServerListener& operator=(const ServerListener&) = default;
-			
-			void on_event(const Traw_data& data) override {
-				const std::unique_ptr<engine::Data> parsed_data(m_server->m_parser->parse(data));
-				const std::unique_ptr<engine::Data> report(m_server->m_engine->run(*parsed_data));
-				auto serialized_report = m_server->m_serializer->serialize(*report);
-				m_server->m_sender->send(serialized_report);
-			}
-			Listener<Traw_data> *clone() const override {
-				return new ServerListener(*this);
-			}
-		private:
-			McuServer *m_server;
-		};
 	};
 
 	template <typename Tgpio_id, typename Traw_data, typename Tfood>
@@ -64,7 +41,16 @@ namespace mcu_server {
 		if (!engine || !sender || !receiver) {
 			throw std::invalid_argument("invalid ptr received");
 		}
-		m_receiver->set_listener(ServerListener(this));
+		m_receiver->set_listener(
+			mcu_server_utl::CustomListener<Traw_data>(
+				[this](const Traw_data& data) {
+					const std::unique_ptr<engine::Data> parsed_data(m_parser->parse(data));
+					const std::unique_ptr<engine::Data> report(m_engine->run(*parsed_data));
+					auto serialized_report = m_serializer->serialize(*report);
+					m_sender->send(serialized_report);
+				}
+			)
+		);
 	}
 
 	template <typename Tgpio_id, typename Traw_data, typename Tfood>
