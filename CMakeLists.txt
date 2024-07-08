@@ -29,7 +29,6 @@ target_link_libraries(
     mcu_server
     INTERFACE
     data
-    data_extractor
     data_sender
     engine
     parser

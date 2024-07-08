@@ -35,7 +35,7 @@ namespace mcu_server {
 		std::unique_ptr<RawDataParser> m_parser;
 		std::unique_ptr<RawDataSerializer> m_serializer;
 
-		class ServerListener: public Listener<const Traw_data&> {
+		class ServerListener: public Listener<Traw_data> {
 		public:
 			ServerListener(McuServer *server): m_server(server) {
 				if (!m_server) {
@@ -51,7 +51,7 @@ namespace mcu_server {
 				auto serialized_report = m_server->m_serializer->serialize(*report);
 				m_server->m_sender->send(serialized_report);
 			}
-			Listener<const Traw_data&> *clone() const override {
+			Listener<Traw_data> *clone() const override {
 				return new ServerListener(*this);
 			}
 		private:
