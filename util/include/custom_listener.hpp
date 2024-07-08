@@ -18,7 +18,7 @@ namespace mcu_server_utl {
 		CustomListener& operator=(const CustomListener& other) = default;
 				
 		void on_event(const Tevent& data) override;
-		mcu_server::Listener<Tevent> *clone() override;
+		mcu_server::Listener<Tevent> *clone() const override;
 	private:
 		ListenFunction m_listen_function;
 	};
@@ -33,6 +33,11 @@ namespace mcu_server_utl {
 	template <typename Tevent>
 	inline void CustomListener<Tevent>::on_event(const Tevent& data) {
 		m_listen_function(data);
+	}
+
+	template <typename Tevent>
+	inline mcu_server::Listener<Tevent> *CustomListener<Tevent>::clone() const {
+		return new CustomListener(*this);
 	}
 }
 
