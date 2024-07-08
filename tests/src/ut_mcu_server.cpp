@@ -60,7 +60,10 @@ TEST_F(McuServerFixture, feed_sanity) {
 	);
 
 	const std::vector<std::pair<std::string, std::string>> test_cases {
-		{"create_gpio", serializer().serialize(create_gpio_data(1, Gpio::Direction::OUT))}
+		{"create_gpio", serializer().serialize(create_gpio_data(1, Gpio::Direction::OUT))},
+		{"set_gpio", serializer().serialize(set_gpio_data(1, Gpio::State::HIGH))},
+		{"get_gpio", serializer().serialize(get_gpio_data(1))},
+		{"delete_gpio", serializer().serialize(delete_gpio_data(1))}
 	};
 
 	// WHEN
@@ -74,7 +77,7 @@ TEST_F(McuServerFixture, feed_sanity) {
 
 	// THEN
 	for (auto test_case: test_cases) {
-		std::cout << "running TC: " << test_case.first << std::endl;
+		std::cout << std::endl << std::endl << "running TC: " << test_case.first << std::endl;
 		std::cout << "feeding data: " << test_case.second << std::endl;
 		ASSERT_NO_THROW(instance.feed(head() + test_case.second + tail()));
 	}
