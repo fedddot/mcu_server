@@ -28,7 +28,9 @@ target_include_directories(mcu_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/includ
 target_link_libraries(
     mcu_server
     INTERFACE
+    custom_listener
     data
+    data_receiver
     data_sender
     engine
     parser
