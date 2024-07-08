@@ -10,8 +10,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(data_sender INTERFACE)
 target_include_directories(data_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(data_extractor INTERFACE)
-target_include_directories(data_extractor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(listener INTERFACE)
+target_include_directories(listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
+add_library(data_receiver INTERFACE)
+target_include_directories(data_receiver INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(data_receiver INTERFACE listener)
 
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
@@ -25,7 +29,6 @@ target_link_libraries(
     mcu_server
     INTERFACE
     data
-    data_extractor
     data_sender
     engine
     parser

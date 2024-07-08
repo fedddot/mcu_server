@@ -20,6 +20,8 @@ target_link_libraries(
 	PRIVATE
 	mcu_server_fixture
 	mcu_server
+	json_data_parser
+	json_data_serializer
 
 	gtest
 )

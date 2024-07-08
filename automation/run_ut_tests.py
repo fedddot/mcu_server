@@ -18,8 +18,7 @@ subprocess.run(["cmake", ".."], cwd=build_path).check_returncode()
 
 uts = [
     "mcu_server_util_tests",
-    # "mcu_task_engine_tests",
-    # "mcu_utils_tests"
+    "mcu_server_tests"
 ]
 
 def find_executable(name, path):
