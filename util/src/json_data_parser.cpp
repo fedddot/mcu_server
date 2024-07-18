@@ -5,6 +5,7 @@
 #include "data.hpp"
 #include "integer.hpp"
 #include "object.hpp"
+#include "array.hpp"
 #include "string.hpp"
 
 #include "json/reader.h"
@@ -27,6 +28,8 @@ Data *JsonDataParser::parseValue(const Json::Value& root) {
 	switch (root.type()) {
 	case Json::ValueType::objectValue:
 		return parseObject(root);
+	case Json::ValueType::arrayValue:
+		return parseArray(root);
 	case Json::ValueType::intValue:
 		return parseInteger(root);
 	case Json::ValueType::stringValue:
@@ -41,6 +44,15 @@ Data *JsonDataParser::parseObject(const Json::Value& root) {
 	for (auto member_name: root.getMemberNames()) {
 		std::unique_ptr<Data> member_data(parseValue(root[member_name]));
 		result.add(member_name, *member_data);
+	}
+	return result.clone();
+}
+
+Data *JsonDataParser::parseArray(const Json::Value& root) {
+	Array result;
+	for (int i = 0; i < root.size(); ++i) {
+		std::unique_ptr<Data> member_data(parseValue(root[i]));
+		result.push_back(*member_data);
 	}
 	return result.clone();
 }
