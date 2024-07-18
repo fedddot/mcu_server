@@ -12,7 +12,7 @@ using namespace mcu_server_utl;
 
 TEST(ut_json_data_parser, parse_sanity) {
 	// GIVEN:
-	const std::string test_data("{\"key1\": 1, \"key2\": \"ahahaha\", \"key3\": {\"key4\": \"ahaha\"}");
+	const std::string test_data("{\"key1\": 1, \"key2\": \"ahahaha\", \"key3\": {\"key4\": \"ahaha\"}, \"key6\": [0, 1, 2, {}]}");
 
 	// WHEN:
 	JsonDataParser instance;

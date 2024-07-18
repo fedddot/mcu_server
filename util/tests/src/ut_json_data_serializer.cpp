@@ -3,6 +3,7 @@
 
 #include "gtest/gtest.h"
 
+#include "array.hpp"
 #include "integer.hpp"
 #include "string.hpp"
 #include "object.hpp"
@@ -19,7 +20,12 @@ TEST(ut_json_data_serializer, serialize_sanity) {
 	Object nested_data;
 	nested_data.add("key3", String("val2"));
 	nested_data.add("key4", Integer(34));
-	data.add("nested_data", nested_data);
+	Array array;
+	array.push_back(String("asdf"));
+	array.push_back(Integer(0));
+	array.push_back(nested_data);
+	data.add("array", array);
+
 
 	// WHEN:
 	JsonDataSerializer instance;

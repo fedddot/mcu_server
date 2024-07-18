@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "array.hpp"
 #include "data.hpp"
 #include "integer.hpp"
 #include "object.hpp"
@@ -25,6 +26,8 @@ Json::Value JsonDataSerializer::parseJsonValue(const Data& obj) {
 	switch (obj.type()) {
 	case Data::Type::OBJECT:
 		return parseJsonObject(obj);
+	case Data::Type::ARRAY:
+		return parseJsonArray(obj);
 	case Data::Type::STR:
 		return parseJsonString(obj);
 	case Data::Type::INT:
@@ -39,6 +42,16 @@ Json::Value JsonDataSerializer::parseJsonObject(const Data& obj) {
 	Data::cast<Object>(obj).for_each(
 		[&root](const std::string& field_name, const Data& data) {
 			root[field_name] = parseJsonValue(data);
+		}
+	);
+	return root;
+}
+
+Json::Value JsonDataSerializer::parseJsonArray(const Data& obj) {
+	Json::Value root(Json::ValueType::arrayValue);
+	Data::cast<Array>(obj).for_each(
+		[&root](int index, const Data& data) {
+			root.append(parseJsonValue(data));
 		}
 	);
 	return root;

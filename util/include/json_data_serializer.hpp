@@ -22,6 +22,7 @@ namespace mcu_server_utl {
 	private:
 		static Json::Value parseJsonValue(const engine::Data& obj);
 		static Json::Value parseJsonObject(const engine::Data& obj);
+		static Json::Value parseJsonArray(const engine::Data& obj);
 		static Json::Value parseJsonString(const engine::Data& obj);
 		static Json::Value parseJsonInteger(const engine::Data& obj);
 	};
