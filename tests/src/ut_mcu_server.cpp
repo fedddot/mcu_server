@@ -64,6 +64,7 @@ TEST_F(McuServerFixture, feed_sanity) {
 		{"set_gpio", serializer().serialize(set_gpio_data(1, Gpio::State::HIGH))},
 		{"get_gpio", serializer().serialize(get_gpio_data(1))},
 		{"delete_gpio", serializer().serialize(delete_gpio_data(1))},
+		{"delay", serializer().serialize(delay_data(1000))},
 		{"sequence", serializer().serialize(sequence_data(4))}
 	};
 
