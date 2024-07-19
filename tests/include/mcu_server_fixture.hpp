@@ -65,9 +65,11 @@ namespace mcu_server_uts {
 				gpio_dir_retriever(),
 				gpio_state_retriever(),
 				sequence_retriever(),
+				delay_retriever(),
 				gpio_creator(),
 				gpio_report_creator(),
-				gpio_get_report_creator()
+				gpio_get_report_creator(),
+				delay_ctor()
 			)
 		);
 		m_receiver = std::unique_ptr<mcu_server::DataReceiver<RawData, RawData>>(
