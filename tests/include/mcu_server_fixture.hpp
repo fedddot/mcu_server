@@ -64,6 +64,7 @@ namespace mcu_server_uts {
 				gpio_id_retriever(),
 				gpio_dir_retriever(),
 				gpio_state_retriever(),
+				sequence_retriever(),
 				gpio_creator(),
 				gpio_report_creator(),
 				gpio_get_report_creator()

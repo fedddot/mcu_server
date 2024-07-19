@@ -63,7 +63,8 @@ TEST_F(McuServerFixture, feed_sanity) {
 		{"create_gpio", serializer().serialize(create_gpio_data(1, Gpio::Direction::OUT))},
 		{"set_gpio", serializer().serialize(set_gpio_data(1, Gpio::State::HIGH))},
 		{"get_gpio", serializer().serialize(get_gpio_data(1))},
-		{"delete_gpio", serializer().serialize(delete_gpio_data(1))}
+		{"delete_gpio", serializer().serialize(delete_gpio_data(1))},
+		{"sequence", serializer().serialize(sequence_data(4))}
 	};
 
 	// WHEN
