@@ -11,6 +11,7 @@
 #include "json/reader.h"
 #include "json/value.h"
 
+#include "json_data_postparser.hpp"
 #include "json_data_parser.hpp"
 
 using namespace engine;
@@ -21,7 +22,9 @@ Data *JsonDataParser::parse(const std::string& data) const {
 	Json::Value root;
 	Json::Reader reader;
     reader.parse(data, root);
-	return parseValue(root);
+	std::unique_ptr<Data> parsed(parseValue(root));
+	JsonDataPostParser preparser;
+	return preparser.parse(*parsed);
 }
 
 Data *JsonDataParser::parseValue(const Json::Value& root) {
