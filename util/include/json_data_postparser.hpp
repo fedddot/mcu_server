@@ -1,5 +1,5 @@
-#ifndef	JSON_DATA_PREPARSER_HPP
-#define	JSON_DATA_PREPARSER_HPP
+#ifndef	JSON_DATA_POSTPARSER_HPP
+#define	JSON_DATA_POSTPARSER_HPP
 
 #include <map>
 #include <memory>
@@ -15,11 +15,11 @@ namespace Json {
 }
 
 namespace mcu_server_utl {
-	class JsonDataPreParser: public mcu_server::Parser<engine::Data *(const engine::Data&)> {
+	class JsonDataPostParser: public mcu_server::Parser<engine::Data *(const engine::Data&)> {
 	public:
-		JsonDataPreParser() = default;
-		JsonDataPreParser(const JsonDataPreParser& other) = default;
-		JsonDataPreParser& operator=(const JsonDataPreParser& other) = default;
+		JsonDataPostParser() = default;
+		JsonDataPostParser(const JsonDataPostParser& other) = default;
+		JsonDataPostParser& operator=(const JsonDataPostParser& other) = default;
 		
 		engine::Data *parse(const engine::Data& data) const override;
 		mcu_server::Parser<engine::Data *(const engine::Data&)> *clone() const override;
@@ -29,7 +29,7 @@ namespace mcu_server_utl {
 		engine::Data *preparse_array(const engine::Data& data) const;
 	};
 
-	inline engine::Data *JsonDataPreParser::parse(const engine::Data& data) const {
+	inline engine::Data *JsonDataPostParser::parse(const engine::Data& data) const {
 		switch (data.type()) {
 		case engine::Data::Type::OBJECT:
 			return preparse_object(data);
@@ -40,11 +40,11 @@ namespace mcu_server_utl {
 		}
 	}
 
-	inline mcu_server::Parser<engine::Data *(const engine::Data&)> *JsonDataPreParser::clone() const {
-		return new JsonDataPreParser(*this);
+	inline mcu_server::Parser<engine::Data *(const engine::Data&)> *JsonDataPostParser::clone() const {
+		return new JsonDataPostParser(*this);
 	}
 
-	inline engine::Data *JsonDataPreParser::preparse_object(const engine::Data& data) const {
+	inline engine::Data *JsonDataPostParser::preparse_object(const engine::Data& data) const {
 		using namespace engine;
 		Object preparsed;
 		Data::cast<Object>(data).for_each(
@@ -61,7 +61,7 @@ namespace mcu_server_utl {
 		return preparsed.clone();
 	}
 	
-	inline engine::Data *JsonDataPreParser::preparse_array(const engine::Data& data) const {
+	inline engine::Data *JsonDataPostParser::preparse_array(const engine::Data& data) const {
 		using namespace engine;
 		Array preparsed;
 		Data::cast<Array>(data).for_each(
@@ -74,4 +74,4 @@ namespace mcu_server_utl {
 	}
 }
 
-#endif // JSON_DATA_PREPARSER_HPP
+#endif // JSON_DATA_POSTPARSER_HPP
