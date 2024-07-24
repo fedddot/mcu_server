@@ -17,7 +17,7 @@ target_link_libraries(data_encoder_decoder INTERFACE data_lib)
 add_library(json_data_parser INTERFACE)
 target_sources(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src/json_data_parser.cpp)
 target_include_directories(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(json_data_parser INTERFACE parser data_lib jsoncpp_static json_data_postparser)
+target_link_libraries(json_data_parser INTERFACE parser data_lib jsoncpp_static)
 
 add_library(decoding_data_parser INTERFACE)
 target_include_directories(decoding_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
