@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(data_sender INTERFACE)
-target_include_directories(data_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(message_sender INTERFACE)
+target_include_directories(message_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(listener INTERFACE)
 target_include_directories(listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
@@ -31,7 +31,7 @@ target_link_libraries(
     custom_listener
     data
     message_receiver
-    data_sender
+    message_sender
     engine
     parser
     serializer
