@@ -13,9 +13,9 @@ target_include_directories(data_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/inclu
 add_library(listener INTERFACE)
 target_include_directories(listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(data_receiver INTERFACE)
-target_include_directories(data_receiver INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(data_receiver INTERFACE listener)
+add_library(message_receiver INTERFACE)
+target_include_directories(message_receiver INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(message_receiver INTERFACE listener)
 
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
@@ -30,7 +30,7 @@ target_link_libraries(
     INTERFACE
     custom_listener
     data
-    data_receiver
+    message_receiver
     data_sender
     engine
     parser
