@@ -7,8 +7,8 @@
 #include "data.hpp"
 #include "data_receiver.hpp"
 #include "engine.hpp"
-#include "json_data_parser.hpp"
-#include "json_data_serializer.hpp"
+#include "decoding_data_parser.hpp"
+#include "encoding_data_serializer.hpp"
 #include "mcu_server.hpp"
 #include "mcu_task_engine.hpp"
 #include "mcu_task_engine_fixture.hpp"
@@ -76,11 +76,23 @@ namespace mcu_server_uts {
 			new mcu_server_utl::CustomReceiver(m_head, m_tail)
 		);
 
+		const std::map<std::string, std::string> conversion_map {
+			{"ctor_id", "0"},
+			{"gpio_id", "1"},
+			{"gpio_dir", "2"},
+			{"gpio_state", "3"},
+			{"delay_ms", "4"},
+			{"tasks", "5"},
+			{"result", "6"},
+			{"reports", "7"},
+			{"what", "8"}
+		};
+
 		m_parser = std::unique_ptr<mcu_server::Parser<engine::Data *(const RawData&)>>(
-			new mcu_server_utl::JsonDataParser()
+			new mcu_server_utl::DecodingDataParser(conversion_map)
 		);
 		m_serializer = std::unique_ptr<mcu_server::Serializer<RawData(const engine::Data&)>>(
-			new mcu_server_utl::JsonDataSerializer()
+			new mcu_server_utl::EncodingDataSerializer(conversion_map)
 		);
 	}
 }
