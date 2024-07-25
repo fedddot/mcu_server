@@ -1,14 +1,14 @@
-#ifndef	DATA_SENDER_HPP
-#define	DATA_SENDER_HPP
+#ifndef	MESSAGE_SENDER_HPP
+#define	MESSAGE_SENDER_HPP
 
 namespace mcu_server {
 	
-	template <typename Tdata>
-	class DataSender {
+	template <typename Tmsg>
+	class MessageSender {
 	public:
-		virtual ~DataSender() noexcept = default;
-		virtual void send(const Tdata&) const = 0;
+		virtual ~MessageSender() noexcept = default;
+		virtual void send(const Tmsg&) const = 0;
 	};
 }
 
-#endif // DATA_SENDER_HPP
+#endif // MESSAGE_SENDER_HPP
