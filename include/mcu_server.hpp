@@ -1,66 +1,102 @@
 #ifndef	MCU_SERVER_HPP
 #define	MCU_SERVER_HPP
 
+#include <exception>
 #include <memory>
 #include <stdexcept>
 
-#include "custom_listener.hpp"
+#include "creator.hpp"
 #include "data.hpp"
-#include "data_receiver.hpp"
+#include "message_receiver.hpp"
 #include "message_sender.hpp"
-#include "engine.hpp"
 #include "parser.hpp"
 #include "serializer.hpp"
+#include "task.hpp"
 
 namespace mcu_server {
-	template <typename Tgpio_id, typename Traw_data, typename Tfood>
+	template <typename Traw_data>
 	class McuServer {
 	public:
-		using McuEngine = engine::Engine<engine::Data *(const engine::Data&)>;
-		using RawDataSender = DataSender<Traw_data>;
-		using RawDataReceiver = DataReceiver<Traw_data, Tfood>;
-		using RawDataParser = Parser<engine::Data *(const Traw_data&)>;
-		using RawDataSerializer = Serializer<Traw_data(const engine::Data&)>;		
+		using MessageSender = MessageSender<Traw_data>;
+		using MessageReceiver = MessageReceiver<Traw_data>;
+		using DataParser = Parser<mcu_server::Data *(const Traw_data&)>;
+		using DataSerializer = Serializer<Traw_data(const mcu_server::Data&)>;		
+		using TaskFactory = mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)>;
+		using FailureReportCreator = mcu_server::Creator<mcu_server::Data *(const std::exception&)>;
 		
-		McuServer(McuEngine *engine, RawDataSender *sender, RawDataReceiver *receiver, const RawDataParser& parser, const RawDataSerializer& serializer);
+		McuServer(MessageSender *sender, MessageReceiver *receiver, const DataParser& parser, const DataSerializer& serializer, const TaskFactory& factory, const FailureReportCreator& failure_report_ctor);
 		McuServer(const McuServer& other) = delete;
 		McuServer& operator=(const McuServer& other) = delete;
 		virtual ~McuServer() noexcept;
 
-		void feed(const Tfood& data);
+		void run();
+		bool is_running() const;
+		void stop();
 	private:
-		McuEngine *m_engine;
-		RawDataSender *m_sender;
-		RawDataReceiver *m_receiver;
-		std::unique_ptr<RawDataParser> m_parser;
-		std::unique_ptr<RawDataSerializer> m_serializer;
+		MessageSender *m_sender;
+		MessageReceiver *m_receiver;
+		std::unique_ptr<DataParser> m_parser;
+		std::unique_ptr<DataSerializer> m_serializer;
+		std::unique_ptr<TaskFactory> m_factory;
+		std::unique_ptr<FailureReportCreator> m_failure_report_ctor;
+
+		bool m_is_running;
+
+		void run_server_iteration();
 	};
 
-	template <typename Tgpio_id, typename Traw_data, typename Tfood>
-	inline McuServer<Tgpio_id, Traw_data, Tfood>::McuServer(McuEngine *engine, RawDataSender *sender, RawDataReceiver *receiver, const RawDataParser& parser, const RawDataSerializer& serializer): m_engine(engine), m_sender(sender), m_receiver(receiver), m_parser(parser.clone()), m_serializer(serializer.clone()) {
-		if (!engine || !sender || !receiver) {
+	template <typename Traw_data>
+	inline McuServer<Traw_data>::McuServer(MessageSender *sender, MessageReceiver *receiver, const DataParser& parser, const DataSerializer& serializer, const TaskFactory& factory, const FailureReportCreator& failure_report_ctor): m_sender(sender), m_receiver(receiver), m_parser(parser.clone()), m_serializer(serializer.clone()), m_factory(factory.clone()), m_failure_report_ctor(failure_report_ctor.clone()), m_is_running(false) {
+		if (!sender || !receiver) {
 			throw std::invalid_argument("invalid ptr received");
 		}
-		m_receiver->set_listener(
-			mcu_server_utl::CustomListener<Traw_data>(
-				[this](const Traw_data& data) {
-					const std::unique_ptr<engine::Data> parsed_data(m_parser->parse(data));
-					const std::unique_ptr<engine::Data> report(m_engine->run(*parsed_data));
-					auto serialized_report = m_serializer->serialize(*report);
-					m_sender->send(serialized_report);
-				}
-			)
-		);
 	}
 
-	template <typename Tgpio_id, typename Traw_data, typename Tfood>
-	inline McuServer<Tgpio_id, Traw_data, Tfood>::~McuServer() noexcept {
-		m_receiver->unset_listener();
+	template <typename Traw_data>
+	inline McuServer<Traw_data>::~McuServer() noexcept {
+		if (is_running()) {
+			stop();
+		}
 	}
 
-	template <typename Tgpio_id, typename Traw_data, typename Tfood>
-	inline void McuServer<Tgpio_id, Traw_data, Tfood>::feed(const Tfood& data) {
-		m_receiver->feed(data);
+	template <typename Traw_data>
+	inline void McuServer<Traw_data>::run() {
+		if (m_is_running) {
+			throw std::runtime_error("the server is already running");
+		}
+		m_is_running = true;
+		while (m_is_running) {
+			run_server_iteration();
+		}
+	}
+
+	template <typename Traw_data>
+	bool McuServer<Traw_data>::is_running() const {
+		return m_is_running;
+	}
+
+	template <typename Traw_data>
+	void McuServer<Traw_data>::stop() {
+		m_is_running = false;
+	}
+
+	template <typename Traw_data>
+	inline void McuServer<Traw_data>::run_server_iteration() {
+		using namespace mcu_server;
+		std::unique_ptr<Data> report(nullptr);
+		try {
+			if (!(m_receiver->message_received())) {
+				return;
+			}
+			auto msg = m_receiver->receive();
+			std::unique_ptr<Data> parsed_msg(m_parser->parse(msg));
+			std::unique_ptr<Task<Data *(void)>> task(m_factory->create(*parsed_msg));
+			report = std::unique_ptr<Data>(task->execute());
+		} catch (const std::exception& e) {
+			report = std::unique_ptr<Data>(m_failure_report_ctor->create(e));
+		}
+		auto serialized_report = m_serializer->serialize(*report);
+		m_sender->send(serialized_report);
 	}
 }
 

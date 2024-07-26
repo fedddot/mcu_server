@@ -32,11 +32,11 @@ target_link_libraries(
     data
     message_receiver
     message_sender
-    engine
     parser
     serializer
 )
 
+add_subdirectory(data)
 add_subdirectory(external)
 add_subdirectory(util)
 
