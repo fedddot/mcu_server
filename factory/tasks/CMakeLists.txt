@@ -15,11 +15,10 @@ target_include_directories(delete_gpio_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/
 target_link_libraries(
     delete_gpio_task
     INTERFACE
+    creator
     data
     gpio
     inventory
-    inventory_task
-    mcu_engine_types
 )
 
 add_library(get_gpio_task INTERFACE)
