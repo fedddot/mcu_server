@@ -1,36 +1,19 @@
+add_library(buffered_message_receiver INTERFACE)
+target_include_directories(buffered_message_receiver INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(buffered_message_receiver INTERFACE message_receiver)
+
 add_library(custom_sender INTERFACE)
 target_include_directories(custom_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(custom_sender INTERFACE sender)
-
-add_library(custom_listener INTERFACE)
-target_include_directories(custom_listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(custom_listener INTERFACE listener)
-
-add_library(custom_receiver INTERFACE)
-target_include_directories(custom_receiver INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(custom_receiver INTERFACE data_receiver listener)
-
-add_library(data_encoder_decoder INTERFACE)
-target_include_directories(data_encoder_decoder INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(data_encoder_decoder INTERFACE data_lib)
+target_link_libraries(custom_sender INTERFACE message_sender)
 
 add_library(json_data_parser INTERFACE)
 target_sources(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src/json_data_parser.cpp)
 target_include_directories(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(json_data_parser INTERFACE parser data_lib jsoncpp_static)
 
-add_library(decoding_data_parser INTERFACE)
-target_include_directories(decoding_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(decoding_data_parser INTERFACE parser data_lib json_data_parser data_encoder_decoder)
-
-
 add_library(json_data_serializer INTERFACE)
 target_sources(json_data_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src/json_data_serializer.cpp)
 target_include_directories(json_data_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(json_data_serializer INTERFACE serializer data_lib jsoncpp_static)
-
-add_library(encoding_data_serializer INTERFACE)
-target_include_directories(encoding_data_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(encoding_data_serializer INTERFACE serializer data_lib json_data_serializer data_encoder_decoder)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
