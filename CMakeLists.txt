@@ -7,15 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(message_sender INTERFACE)
-target_include_directories(message_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
-add_library(listener INTERFACE)
-target_include_directories(listener INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(creator INTERFACE)
+target_include_directories(creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(message_receiver INTERFACE)
 target_include_directories(message_receiver INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(message_receiver INTERFACE listener)
+
+add_library(message_sender INTERFACE)
+target_include_directories(message_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
@@ -23,17 +22,21 @@ target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 add_library(serializer INTERFACE)
 target_include_directories(serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(task INTERFACE)
+target_include_directories(task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
 add_library(mcu_server INTERFACE)
 target_include_directories(mcu_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     mcu_server
     INTERFACE
-    custom_listener
+    creator
     data
     message_receiver
     message_sender
     parser
     serializer
+    task
 )
 
 add_subdirectory(data)

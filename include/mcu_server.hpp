@@ -19,10 +19,10 @@ namespace mcu_server {
 	public:
 		using MessageSender = MessageSender<Traw_data>;
 		using MessageReceiver = MessageReceiver<Traw_data>;
-		using DataParser = Parser<mcu_server::Data *(const Traw_data&)>;
-		using DataSerializer = Serializer<Traw_data(const mcu_server::Data&)>;		
-		using TaskFactory = mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)>;
-		using FailureReportCreator = mcu_server::Creator<mcu_server::Data *(const std::exception&)>;
+		using DataParser = Parser<Data *(const Traw_data&)>;
+		using DataSerializer = Serializer<Traw_data(const Data&)>;		
+		using TaskFactory = Creator<Task<Data *(void)> *(const Data&)>;
+		using FailureReportCreator = Creator<Data *(const std::exception&)>;
 		
 		McuServer(MessageSender *sender, MessageReceiver *receiver, const DataParser& parser, const DataSerializer& serializer, const TaskFactory& factory, const FailureReportCreator& failure_report_ctor);
 		McuServer(const McuServer& other) = delete;
@@ -82,7 +82,6 @@ namespace mcu_server {
 
 	template <typename Traw_data>
 	inline void McuServer<Traw_data>::run_server_iteration() {
-		using namespace mcu_server;
 		std::unique_ptr<Data> report(nullptr);
 		try {
 			if (!(m_receiver->message_received())) {
