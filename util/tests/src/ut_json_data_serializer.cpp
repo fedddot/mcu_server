@@ -9,7 +9,7 @@
 #include "object.hpp"
 #include "json_data_serializer.hpp"
 
-using namespace engine;
+using namespace mcu_server;
 using namespace mcu_server_utl;
 
 TEST(ut_json_data_serializer, serialize_sanity) {

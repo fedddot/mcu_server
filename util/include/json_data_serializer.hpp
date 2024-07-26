@@ -11,23 +11,23 @@ namespace Json {
 }
 
 namespace mcu_server_utl {
-	class JsonDataSerializer: public mcu_server::Serializer<std::string(const engine::Data&)> {
+	class JsonDataSerializer: public mcu_server::Serializer<std::string(const mcu_server::Data&)> {
 	public:
 		JsonDataSerializer() = default;
 		JsonDataSerializer(const JsonDataSerializer& other) = default;
 		JsonDataSerializer& operator=(const JsonDataSerializer& other) = default;
 
-		std::string serialize(const engine::Data& data) const override;
-		mcu_server::Serializer<std::string(const engine::Data&)> *clone() const override;
+		std::string serialize(const mcu_server::Data& data) const override;
+		mcu_server::Serializer<std::string(const mcu_server::Data&)> *clone() const override;
 	private:
-		static Json::Value parseJsonValue(const engine::Data& obj);
-		static Json::Value parseJsonObject(const engine::Data& obj);
-		static Json::Value parseJsonArray(const engine::Data& obj);
-		static Json::Value parseJsonString(const engine::Data& obj);
-		static Json::Value parseJsonInteger(const engine::Data& obj);
+		static Json::Value parseJsonValue(const mcu_server::Data& obj);
+		static Json::Value parseJsonObject(const mcu_server::Data& obj);
+		static Json::Value parseJsonArray(const mcu_server::Data& obj);
+		static Json::Value parseJsonString(const mcu_server::Data& obj);
+		static Json::Value parseJsonInteger(const mcu_server::Data& obj);
 	};
 
-	inline mcu_server::Serializer<std::string(const engine::Data&)> *JsonDataSerializer::clone() const {
+	inline mcu_server::Serializer<std::string(const mcu_server::Data&)> *JsonDataSerializer::clone() const {
 		return new JsonDataSerializer(*this);
 	}
 }
