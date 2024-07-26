@@ -6,10 +6,10 @@
 
 #include "message_sender.hpp"
 
-namespace mcu_server_utl {
+namespace mcu_platform_utl {
 	
 	template <typename Tdata>
-	class CustomSender: public mcu_server::MessageSender<Tdata> {
+	class CustomSender: public mcu_platform::MessageSender<Tdata> {
 	public:
 		using SendFunction = std::function<void(const Tdata&)>;
 		

@@ -7,9 +7,9 @@
 
 #include "message_receiver.hpp"
 
-namespace mcu_server_utl {
+namespace mcu_platform_utl {
 
-	class BufferedReceiver: public mcu_server::MessageReceiver<std::string> {
+	class BufferedReceiver: public mcu_platform::MessageReceiver<std::string> {
 	public:
 		BufferedReceiver(const std::string& header, const std::string& tail, const std::size_t& max_buffer_size);
 		BufferedReceiver(const BufferedReceiver& other) = delete;

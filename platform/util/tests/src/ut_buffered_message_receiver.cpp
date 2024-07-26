@@ -5,8 +5,8 @@
 
 #include "buffered_message_receiver.hpp"
 
-using namespace mcu_server;
-using namespace mcu_server_utl;
+using namespace mcu_platform;
+using namespace mcu_platform_utl;
 
 TEST(ut_buffered_message_receiver, ctor_dtor) {
 	// WHEN

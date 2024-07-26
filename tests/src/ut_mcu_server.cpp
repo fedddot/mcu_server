@@ -22,6 +22,8 @@
 
 using namespace mcu_server;
 using namespace mcu_server_utl;
+using namespace mcu_platform;
+using namespace mcu_platform_utl;
 
 using McuData = std::string;
 using TestMcuServer = McuServer<McuData>;
