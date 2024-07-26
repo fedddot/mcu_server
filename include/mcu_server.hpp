@@ -17,14 +17,14 @@ namespace mcu_server {
 	template <typename Traw_data>
 	class McuServer {
 	public:
-		using MessageSender = MessageSender<Traw_data>;
-		using MessageReceiver = MessageReceiver<Traw_data>;
-		using DataParser = Parser<Data *(const Traw_data&)>;
-		using DataSerializer = Serializer<Traw_data(const Data&)>;		
+		using McuMessageSender = MessageSender<Traw_data>;
+		using McuMessageReceiver = MessageReceiver<Traw_data>;
+		using McuParser = Parser<Data *(const Traw_data&)>;
+		using McuSerializer = Serializer<Traw_data(const Data&)>;		
 		using TaskFactory = Creator<Task<Data *(void)> *(const Data&)>;
 		using FailureReportCreator = Creator<Data *(const std::exception&)>;
 		
-		McuServer(MessageSender *sender, MessageReceiver *receiver, const DataParser& parser, const DataSerializer& serializer, const TaskFactory& factory, const FailureReportCreator& failure_report_ctor);
+		McuServer(McuMessageSender *sender, McuMessageReceiver *receiver, const McuParser& parser, const McuSerializer& serializer, const TaskFactory& factory, const FailureReportCreator& failure_report_ctor);
 		McuServer(const McuServer& other) = delete;
 		McuServer& operator=(const McuServer& other) = delete;
 		virtual ~McuServer() noexcept;
@@ -33,10 +33,10 @@ namespace mcu_server {
 		bool is_running() const;
 		void stop();
 	private:
-		MessageSender *m_sender;
-		MessageReceiver *m_receiver;
-		std::unique_ptr<DataParser> m_parser;
-		std::unique_ptr<DataSerializer> m_serializer;
+		McuMessageSender *m_sender;
+		McuMessageReceiver *m_receiver;
+		std::unique_ptr<McuParser> m_parser;
+		std::unique_ptr<McuSerializer> m_serializer;
 		std::unique_ptr<TaskFactory> m_factory;
 		std::unique_ptr<FailureReportCreator> m_failure_report_ctor;
 
@@ -46,7 +46,7 @@ namespace mcu_server {
 	};
 
 	template <typename Traw_data>
-	inline McuServer<Traw_data>::McuServer(MessageSender *sender, MessageReceiver *receiver, const DataParser& parser, const DataSerializer& serializer, const TaskFactory& factory, const FailureReportCreator& failure_report_ctor): m_sender(sender), m_receiver(receiver), m_parser(parser.clone()), m_serializer(serializer.clone()), m_factory(factory.clone()), m_failure_report_ctor(failure_report_ctor.clone()), m_is_running(false) {
+	inline McuServer<Traw_data>::McuServer(McuMessageSender *sender, McuMessageReceiver *receiver, const McuParser& parser, const McuSerializer& serializer, const TaskFactory& factory, const FailureReportCreator& failure_report_ctor): m_sender(sender), m_receiver(receiver), m_parser(parser.clone()), m_serializer(serializer.clone()), m_factory(factory.clone()), m_failure_report_ctor(failure_report_ctor.clone()), m_is_running(false) {
 		if (!sender || !receiver) {
 			throw std::invalid_argument("invalid ptr received");
 		}
@@ -71,12 +71,12 @@ namespace mcu_server {
 	}
 
 	template <typename Traw_data>
-	bool McuServer<Traw_data>::is_running() const {
+	inline bool McuServer<Traw_data>::is_running() const {
 		return m_is_running;
 	}
 
 	template <typename Traw_data>
-	void McuServer<Traw_data>::stop() {
+	inline void McuServer<Traw_data>::stop() {
 		m_is_running = false;
 	}
 
