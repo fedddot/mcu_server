@@ -54,9 +54,10 @@ target_include_directories(sequence_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/inc
 target_link_libraries(
     sequence_task
     INTERFACE
-    task
+    array
     creator
-    data_lib
+    data
+    task
 )
 
 add_library(delay_task INTERFACE)
