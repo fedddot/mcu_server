@@ -27,13 +27,13 @@ target_include_directories(get_gpio_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/inc
 target_link_libraries(
     get_gpio_task
     INTERFACE
+    creator
     data
     gpio
     gpi
     gpo
     inventory
-    inventory_task
-    mcu_engine_types
+    task
 )
 
 add_library(set_gpio_task INTERFACE)
