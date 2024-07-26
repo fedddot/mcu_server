@@ -13,7 +13,6 @@
 
 #include "json_data_parser.hpp"
 
-using namespace engine;
 using namespace mcu_server;
 using namespace mcu_server_utl;
 

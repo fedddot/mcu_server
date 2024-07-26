@@ -11,23 +11,23 @@ namespace Json {
 }
 
 namespace mcu_server_utl {
-	class JsonDataParser: public mcu_server::Parser<engine::Data *(const std::string&)> {
+	class JsonDataParser: public mcu_server::Parser<mcu_server::Data *(const std::string&)> {
 	public:
 		JsonDataParser() = default;
 		JsonDataParser(const JsonDataParser& other) = default;
 		JsonDataParser& operator=(const JsonDataParser& other) = default;
 		
-		engine::Data *parse(const std::string& data) const override;
-		mcu_server::Parser<engine::Data *(const std::string&)> *clone() const override;
+		mcu_server::Data *parse(const std::string& data) const override;
+		mcu_server::Parser<mcu_server::Data *(const std::string&)> *clone() const override;
 	private:
-		static engine::Data *parseValue(const Json::Value& root);
-		static engine::Data *parseObject(const Json::Value& root);
-		static engine::Data *parseArray(const Json::Value& root);
-		static engine::Data *parseString(const Json::Value& root);
-		static engine::Data *parseInteger(const Json::Value& root);
+		static mcu_server::Data *parseValue(const Json::Value& root);
+		static mcu_server::Data *parseObject(const Json::Value& root);
+		static mcu_server::Data *parseArray(const Json::Value& root);
+		static mcu_server::Data *parseString(const Json::Value& root);
+		static mcu_server::Data *parseInteger(const Json::Value& root);
 	};
 
-	inline mcu_server::Parser<engine::Data *(const std::string&)> *JsonDataParser::clone() const {
+	inline mcu_server::Parser<mcu_server::Data *(const std::string&)> *JsonDataParser::clone() const {
 		return new JsonDataParser(*this);
 	}
 }

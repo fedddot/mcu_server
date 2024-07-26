@@ -12,7 +12,6 @@
 
 #include "json_data_serializer.hpp"
 
-using namespace engine;
 using namespace mcu_server;
 using namespace mcu_server_utl;
 

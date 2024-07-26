@@ -9,7 +9,7 @@
 namespace mcu_server_utl {
 	
 	template <typename Tdata>
-	class CustomSender: public mcu_server::DataSender<Tdata> {
+	class CustomSender: public mcu_server::MessageSender<Tdata> {
 	public:
 		using SendFunction = std::function<void(const Tdata&)>;
 		
