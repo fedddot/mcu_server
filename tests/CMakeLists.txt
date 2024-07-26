@@ -7,11 +7,15 @@ add_executable(
 target_link_libraries(
 	mcu_server_tests
 	PRIVATE
-	mcu_server
-	buffered_message_receiver
-	json_data_parser
-	json_data_serializer
-	custom_sender
+    buffered_message_receiver
+    custom_creator
+    custom_sender
+    custom_task
+    data_lib
+    json_data_parser
+    json_data_serializer
+    mcu_server
+    task
 
 	gtest
 )
