@@ -65,8 +65,7 @@ target_include_directories(delay_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/includ
 target_link_libraries(
     delay_task
     INTERFACE
-    task
     creator
-    data_lib
-    delay
+    data
+    task
 )
