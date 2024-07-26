@@ -7,6 +7,7 @@
 #include "data.hpp"
 #include "gpio.hpp"
 #include "inventory.hpp"
+#include "task.hpp"
 
 namespace mcu_factory {
 	template <typename Tgpio_id>

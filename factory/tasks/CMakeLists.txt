@@ -19,6 +19,7 @@ target_link_libraries(
     data
     gpio
     inventory
+    task
 )
 
 add_library(get_gpio_task INTERFACE)
