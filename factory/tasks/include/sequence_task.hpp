@@ -10,7 +10,7 @@
 #include "task.hpp"
 
 namespace mcu_factory {
-	template <typename Tgpio_id>
+
 	class SequenceTask: public mcu_server::Task<mcu_server::Data *(void)> {
 	public:
 		using SubTask = mcu_server::Task<mcu_server::Data *(void)>;
@@ -28,13 +28,11 @@ namespace mcu_factory {
 		const std::unique_ptr<ReportCreator> m_report_ctor;
 	};
 
-	template <class Tgpio_id>
-	inline SequenceTask<Tgpio_id>::SequenceTask(const TaskCreator& task_ctor, const mcu_server::Array& tasks_data, const ReportCreator& report_ctor): m_task_ctor(task_ctor.clone()), m_tasks_data(tasks_data), m_report_ctor(report_ctor.clone()) {
+	inline SequenceTask::SequenceTask(const TaskCreator& task_ctor, const mcu_server::Array& tasks_data, const ReportCreator& report_ctor): m_task_ctor(task_ctor.clone()), m_tasks_data(tasks_data), m_report_ctor(report_ctor.clone()) {
 
 	}
 
-	template <class Tgpio_id>
-	inline mcu_server::Data *SequenceTask<Tgpio_id>::execute() const {
+	inline mcu_server::Data *SequenceTask::execute() const {
 		std::vector<std::unique_ptr<SubTask>> tasks;
 		m_tasks_data.for_each(
 			[&tasks, this](int index, const mcu_server::Data& subtask_data) {

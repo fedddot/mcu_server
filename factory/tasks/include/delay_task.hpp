@@ -10,7 +10,6 @@
 #include "task.hpp"
 
 namespace mcu_factory {
-	template <typename Tgpio_id>
 	class DelayTask: public mcu_server::Task<mcu_server::Data *(void)> {
 	public:
 		using DelayFunction = std::function<void(unsigned int)>;
@@ -27,15 +26,13 @@ namespace mcu_factory {
 		const std::unique_ptr<ReportCreator> m_report_ctor;
 	};
 
-	template <class Tgpio_id>
-	inline DelayTask<Tgpio_id>::DelayTask(const DelayFunction& delay_function, unsigned int delay_ms, const ReportCreator& report_ctor): m_delay_function(delay_function), m_delay_ms(delay_ms), m_report_ctor(report_ctor.clone()) {
+	inline DelayTask::DelayTask(const DelayFunction& delay_function, unsigned int delay_ms, const ReportCreator& report_ctor): m_delay_function(delay_function), m_delay_ms(delay_ms), m_report_ctor(report_ctor.clone()) {
 		if (!m_delay_function) {
 			throw std::invalid_argument("invalid delay function received");
 		}
 	}
 
-	template <class Tgpio_id>
-	inline mcu_server::Data *DelayTask<Tgpio_id>::execute() const {
+	inline mcu_server::Data *DelayTask::execute() const {
 		m_delay_function(m_delay_ms);
 		return m_report_ctor->create(0);
 	}
