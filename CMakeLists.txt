@@ -29,6 +29,7 @@ target_link_libraries(
     message_receiver
     message_sender
     parser
+    platform
     serializer
     task
 )
