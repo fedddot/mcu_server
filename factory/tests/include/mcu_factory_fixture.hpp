@@ -149,7 +149,7 @@ namespace mcu_factory_uts {
 	private:
 		class TestPlatform: public McuPlatform {
 		public:
-			TestPlatform(const std::string& msg_head, const std::string& msg_tail, const std::size_t& max_buffer_size): m_receiver(msg_head, msg_tail, max_buffer_size), m_sender(nullptr) {
+			TestPlatform(const std::string& msg_head, const std::string& msg_tail, const std::size_t& max_buffer_size): m_receiver(msg_head, msg_tail, max_buffer_size), m_sender([](const McuData&) { throw std::runtime_error("SEND ACTION NOT SET"); }) {
 
 			}
 
