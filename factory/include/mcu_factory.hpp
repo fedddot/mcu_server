@@ -80,7 +80,7 @@ namespace mcu_factory {
 		using FactoryTask = mcu_server::Task<mcu_server::Data *(void)>;
 		using TaskCtor = mcu_server::Creator<FactoryTask *(const mcu_server::Data&)>;
 		
-		std::map<TaskType, const std::unique_ptr<TaskCtor>> m_ctors;
+		std::map<TaskType, std::unique_ptr<TaskCtor>> m_ctors;
 
 		void init_factory();
 	};
@@ -151,28 +151,36 @@ namespace mcu_factory {
 	inline void McuFactory<Tdata, Tgpio_id>::init_factory() {
 		using namespace mcu_server;
 		using namespace mcu_server_utl;
-		m_ctors = {
+		m_ctors.insert(
 			{
 				TaskType::CREATE_GPIO,
 				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask(const Data&)>(
+					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							auto gpio_id = m_gpio_id_parser->parse(data);
-							auto gpio_dir = m_gpio_dir_parser->parse(data);
+							const Tgpio_id gpio_id(m_gpio_id_parser->parse(data));
+							const GpioDirection gpio_dir(m_gpio_dir_parser->parse(data));
+							const CustomCreator<mcu_platform::Gpio *(const Tgpio_id&, const mcu_platform::Gpio::Direction&)> gpio_ctor(
+								[this](const Tgpio_id& id, const mcu_platform::Gpio::Direction& dir) {
+									return m_platform->create_gpio(id, dir);
+								}
+							);
 							return new CreateGpioTask<Tgpio_id>(
 								m_platform->gpio_inventory(),
 								gpio_id,
 								gpio_dir,
+								gpio_ctor,
 								*m_result_reporter
 							);
 						}
 					)
 				)
-			},
+			}
+		);
+		m_ctors.insert(
 			{
 				TaskType::DELETE_GPIO,
 				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask(const Data&)>(
+					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
 							auto gpio_id = m_gpio_id_parser->parse(data);
 							return new DeleteGpioTask<Tgpio_id>(
@@ -183,11 +191,13 @@ namespace mcu_factory {
 						}
 					)
 				)
-			},
+			}
+		);
+		m_ctors.insert(
 			{
 				TaskType::SET_GPIO,
 				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask(const Data&)>(
+					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
 							auto gpio_id = m_gpio_id_parser->parse(data);
 							auto gpio_state = m_gpio_state_parser->parse(data);
@@ -200,11 +210,13 @@ namespace mcu_factory {
 						}
 					)
 				)
-			},
+			}
+		);
+		m_ctors.insert(
 			{
 				TaskType::GET_GPIO,
 				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask(const Data&)>(
+					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
 							auto gpio_id = m_gpio_id_parser->parse(data);
 							return new GetGpioTask<Tgpio_id>(
@@ -215,11 +227,13 @@ namespace mcu_factory {
 						}
 					)
 				)
-			},
+			}
+		);
+		m_ctors.insert(
 			{
 				TaskType::SEQUENCE,
 				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask(const Data&)>(
+					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
 							auto tasks = m_tasks_parser->parse(data);
 							return new SequenceTask(
@@ -230,22 +244,27 @@ namespace mcu_factory {
 						}
 					)
 				)
-			},
+			}
+		);
+		m_ctors.insert(
 			{
 				TaskType::DELAY,
 				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask(const Data&)>(
+					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
 							auto delay_ms = m_delay_parser->parse(data);
 							return new DelayTask(
-								m_platform,
+								[this](unsigned int delay_ms) {
+									m_platform->delay(delay_ms);
+								},
+								delay_ms,
 								*m_result_reporter
 							);
 						}
 					)
 				)
 			}
-		};
+		);
 	}
 }
 #endif // MCU_FACTORY_HPP
