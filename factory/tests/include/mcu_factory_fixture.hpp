@@ -82,7 +82,7 @@ namespace mcu_factory_uts {
 		mcu_server::Object create_gpio_data(const GpioId& id, const mcu_platform::Gpio::Direction& dir) const {
 			using namespace mcu_server;
 			Object task_data;
-			task_data.add("ctor_id", Integer(static_cast<int>(TestFactory::TaskType::CREATE_GPIO)));
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::CREATE_GPIO)));
 			task_data.add("gpio_id", Integer(id));
 			task_data.add("gpio_dir", Integer(static_cast<int>(dir)));
 			return task_data;
@@ -91,7 +91,7 @@ namespace mcu_factory_uts {
 		mcu_server::Object set_gpio_data(const GpioId& id, const mcu_platform::Gpio::State& state) const {
 			using namespace mcu_server;
 			Object task_data;
-			task_data.add("ctor_id", Integer(static_cast<int>(TestFactory::TaskType::SET_GPIO)));
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::SET_GPIO)));
 			task_data.add("gpio_id", Integer(id));
 			task_data.add("gpio_state", Integer(static_cast<int>(state)));
 			return task_data;
@@ -100,7 +100,7 @@ namespace mcu_factory_uts {
 		mcu_server::Object get_gpio_data(const GpioId& id) const {
 			using namespace mcu_server;
 			Object task_data;
-			task_data.add("ctor_id", Integer(static_cast<int>(TestFactory::TaskType::GET_GPIO)));
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::GET_GPIO)));
 			task_data.add("gpio_id", Integer(id));
 			return task_data;
 		}
@@ -108,7 +108,7 @@ namespace mcu_factory_uts {
 		mcu_server::Object delete_gpio_data(const GpioId& id) const {
 			using namespace mcu_server;
 			Object task_data;
-			task_data.add("ctor_id", Integer(static_cast<int>(TestFactory::TaskType::DELETE_GPIO)));
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELETE_GPIO)));
 			task_data.add("gpio_id", Integer(id));
 			return task_data;
 		}
@@ -116,7 +116,7 @@ namespace mcu_factory_uts {
 		mcu_server::Object sequence_data(const GpioId& id) const {
 			using namespace mcu_server;
 			Object task_data;
-			task_data.add("ctor_id", Integer(static_cast<int>(TestFactory::TaskType::SEQUENCE)));
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::SEQUENCE)));
 			Array tasks;
 			tasks.push_back(create_gpio_data(id, mcu_platform::Gpio::Direction::OUT));
 			tasks.push_back(delay_data(100));
@@ -130,7 +130,7 @@ namespace mcu_factory_uts {
 		mcu_server::Object delay_data(int delay_ms) const {
 			using namespace mcu_server;
 			Object task_data;
-			task_data.add("ctor_id", Integer(static_cast<int>(TestFactory::TaskType::DELAY)));
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELAY)));
 			task_data.add("delay_ms", Integer(delay_ms));
 			return task_data;
 		}
