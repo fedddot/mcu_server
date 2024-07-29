@@ -1,20 +1,31 @@
 #ifndef MCU_FACTORY_FIXTURE_HPP
 #define MCU_FACTORY_FIXTURE_HPP
 
+#include <chrono>
+#include <functional>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "gtest/gtest.h"
 
 #include "array.hpp"
+#include "buffered_message_receiver.hpp"
 #include "custom_creator.hpp"
 #include "custom_parser.hpp"
+#include "custom_sender.hpp"
 #include "data.hpp"
 #include "gpio.hpp"
 #include "integer.hpp"
+#include "inventory.hpp"
 #include "mcu_factory.hpp"
+#include "message_receiver.hpp"
+#include "message_sender.hpp"
 #include "object.hpp"
 #include "platform.hpp"
+#include "test_gpi.hpp"
+#include "test_gpo.hpp"
 
 namespace mcu_factory_uts {
 	class McuFactoryFixture: public testing::Test {
@@ -24,12 +35,12 @@ namespace mcu_factory_uts {
 		using TestFactory = mcu_factory::McuFactory<McuData, GpioId>;
 		using McuPlatform = mcu_platform::Platform<McuData, GpioId>;
 
-		McuFactoryFixture();
+		McuFactoryFixture(const std::string& msg_head = "test_msg_head", const std::string& msg_tail = "test_msg_tail", const std::size_t& max_buffer_size = 1000UL);
 		McuFactoryFixture(const McuFactoryFixture&) = delete;
 		McuFactoryFixture& operator=(const McuFactoryFixture&) = delete;
 		
 		McuPlatform *platform() const {
-			return m_platform;
+			return &m_platform;
 		}
 
 		const TestFactory::TaskTypeParser& task_type_parser() const {
@@ -123,8 +134,63 @@ namespace mcu_factory_uts {
 			task_data.add("delay_ms", Integer(delay_ms));
 			return task_data;
 		}
+
+		void set_sender(const std::function<void(const McuData&)>& send_function) {
+			m_platform.set_sender(send_function);
+		}
+
+		std::string msg_head() const {
+			return m_msg_head;
+		}
+
+		std::string msg_tail() const {
+			return m_msg_tail;
+		}
 	private:
-		mutable McuPlatform *m_platform;
+		class TestPlatform: public McuPlatform {
+		public:
+			TestPlatform(const std::string& msg_head, const std::string& msg_tail, const std::size_t& max_buffer_size): m_receiver(msg_head, msg_tail, max_buffer_size), m_sender(nullptr) {
+
+			}
+
+			mcu_platform::MessageReceiver<McuData> *message_receiver() const override {
+				return &m_receiver;
+			}
+			
+			mcu_platform::MessageSender<McuData> *message_sender() const override {
+				return &m_sender;
+			}
+
+			void delay(unsigned int timeout_ms) const override {
+				std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms));
+			}
+			
+			mcu_platform::Gpio *create_gpio(const GpioId& id, const mcu_platform::Gpio::Direction& dir) const override {
+				switch (dir) {
+				case mcu_platform::Gpio::Direction::IN:
+					return new mcu_platform_uts::TestGpi();
+				case mcu_platform::Gpio::Direction::OUT:
+					return new mcu_platform_uts::TestGpo();
+				default:
+					throw std::invalid_argument("unsupported GPIO direction received");
+				}
+			}
+
+			mcu_platform::Inventory<GpioId, mcu_platform::Gpio> *gpio_inventory() const override {
+				return &m_gpio_inventory;
+			}
+
+			void set_sender(const std::function<void(const McuData&)>& send_function) {
+				m_sender = mcu_platform_utl::CustomSender<McuData>(send_function);
+			}
+		private:
+			mutable mcu_platform_utl::BufferedReceiver m_receiver;
+			mutable mcu_platform_utl::CustomSender<McuData> m_sender;
+			mutable mcu_platform::Inventory<GpioId, mcu_platform::Gpio> m_gpio_inventory;
+		};
+		const std::string m_msg_head;
+		const std::string m_msg_tail;
+		mutable TestPlatform m_platform;
 		std::unique_ptr<TestFactory::TaskTypeParser> m_task_type_parser;
 		std::unique_ptr<TestFactory::GpioIdParser> m_gpio_id_parser;
 		std::unique_ptr<TestFactory::GpioDirParser> m_gpio_dir_parser;
@@ -136,7 +202,7 @@ namespace mcu_factory_uts {
 		std::unique_ptr<TestFactory::TasksResultsReporter> m_tasks_results_reporter;
 	};
 
-	inline McuFactoryFixture::McuFactoryFixture() {
+	inline McuFactoryFixture::McuFactoryFixture(const std::string& msg_head, const std::string& msg_tail, const std::size_t& max_buffer_size): m_msg_head(msg_head), m_msg_tail(msg_tail), m_platform(msg_head, msg_tail, max_buffer_size) {
 		using namespace mcu_factory;
 		using namespace mcu_server;
 		using namespace mcu_server_utl;
