@@ -56,6 +56,10 @@ namespace mcu_platform_uts {
 		void set_sender(const std::function<void(const TestPlatformData&)>& send_function) {
 			m_sender = mcu_platform_utl::CustomSender<TestPlatformData>(send_function);
 		}
+
+		void feed_receiver(const TestPlatformData& data) {
+			m_receiver.feed(data);
+		}
 	private:
 		mutable mcu_platform_utl::BufferedReceiver m_receiver;
 		mutable mcu_platform_utl::CustomSender<TestPlatformData> m_sender;

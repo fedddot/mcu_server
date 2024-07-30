@@ -1,4 +1,5 @@
 #include <atomic>
+#include <chrono>
 #include <exception>
 #include <iostream>
 #include <memory>
@@ -20,8 +21,11 @@
 #include "object.hpp"
 #include "task.hpp"
 
+#include "mcu_server_fixture.hpp"
+
 using namespace mcu_server;
 using namespace mcu_server_utl;
+using namespace mcu_server_uts;
 using namespace mcu_platform;
 using namespace mcu_platform_utl;
 
@@ -29,19 +33,8 @@ using McuData = std::string;
 using TestMcuServer = McuServer<McuData>;
 using McuTask = Task<Data *(void)>;
 
-TEST(ut_mcu_server, ctor_dtor_sanity) {
+TEST_F(McuServerFixture, ctor_dtor_sanity) {
 	// GIVEN
-	CustomSender<McuData> sender(
-		[](const McuData&) {
-			throw std::runtime_error("NOT_IMPLEMENTED");
-		}
-	);
-	BufferedReceiver receiver("msg_header", "msg_tail", 1000UL);
-	CustomCreator<McuTask *(const Data&)> factory(
-		[](const Data&)-> McuTask * {
-			throw std::runtime_error("NOT_IMPLEMENTED");
-		}
- 	);
 	CustomCreator<Data *(const std::exception&)> failure_report_ctor(
 		[](const std::exception&)-> Data * {
 			throw std::runtime_error("NOT_IMPLEMENTED");
@@ -55,12 +48,12 @@ TEST(ut_mcu_server, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		(
 			instance_ptr = new TestMcuServer(
-				&sender,
-				&receiver,
+				platform()->message_sender(),
+				platform()->message_receiver(),
 				JsonDataParser(),
 				JsonDataSerializer(),
-				factory,
-				failure_report_ctor
+				factory(),
+				fail_report_creator()
 			)
 		)
 	);
@@ -70,65 +63,113 @@ TEST(ut_mcu_server, ctor_dtor_sanity) {
 	instance_ptr = nullptr;
 }
 
-TEST(ut_mcu_server, sanity) {
-	// GIVEN
-	const int expected_result(100);
-	Object test_data;
-	test_data.add("expected_result", Integer(expected_result));
-	CustomCreator<McuTask *(const Data&)> factory(
-		[expected_result](const Data& data)-> McuTask * {
-			return new CustomTask<Data *(void)>(
-				[&data](void) {
-					Object report(Data::cast<Object>(data));
-					report.add("added_result", Integer(0));
-					return report.clone();
-				}
-			);
-		}
-	);
-	std::atomic<bool> reported(false);
-	CustomSender<McuData> sender(
-		[expected_result, &reported](const McuData& data) {
-			std::cout << "report received: " << std::endl << data << std::endl;
-			std::unique_ptr<Data> parsed_report(JsonDataParser().parse(data));
-			ASSERT_EQ(expected_result, Data::cast<Integer>(Data::cast<Object>(*parsed_report).access("expected_result")).get());
-			ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*parsed_report).access("added_result")).get());
-			reported.store(true, std::memory_order_release);
-		}
-	);
-	const std::string msg_header("msg_header");
-	const std::string msg_tail("msg_tail");
-	BufferedReceiver receiver(msg_header, msg_tail, 1000UL);
-	CustomCreator<Data *(const std::exception&)> failure_report_ctor(
-		[](const std::exception&)-> Data * {
-			throw std::runtime_error("NOT_IMPLEMENTED");
-		}
- 	);
+using CheckReportFunction = std::function<void(const McuServerFixture::McuData&)>;
+
+static void run_create_sanity_tc(const std::string& tc_name, const McuServerFixture::McuData& test_data, const CheckReportFunction& check_task_report, McuServerFixture *fixture) {
+	std::cout << "running TC: " << tc_name << std::endl;
+	std::cout << "test data: " << test_data << std::endl;
 
 	// WHEN
-	TestMcuServer instance(
-		&sender,
-		&receiver,
-		JsonDataParser(),
-		JsonDataSerializer(),
-		factory,
-		failure_report_ctor
-	);
-	const McuData data(JsonDataSerializer().serialize(test_data));
-	McuData report("");
-
-	// THEN
-	std::thread run_thread(
-		[&instance](void) {
-			ASSERT_NO_THROW(instance.run());
+	fixture->set_sender(
+		[check_task_report](const McuServerFixture::McuData& data) {
+			std::cout << "mcu server sends data: " << data << std::endl;
+			check_task_report(data);
 		}
 	);
-	receiver.feed(msg_header + data + msg_tail);
-	while (!reported.load(std::memory_order_acquire)) {
-		sleep(1);
-	}
+	TestMcuServer instance(
+		fixture->platform()->message_sender(),
+		fixture->platform()->message_receiver(),
+		JsonDataParser(),
+		JsonDataSerializer(),
+		fixture->factory(),
+		fixture->fail_report_creator()
+	);
+
+	std::thread run_thread(
+		[](TestMcuServer *instance) {
+			instance->run();
+		},
+		&instance
+	);
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+	// THEN
 	ASSERT_TRUE(instance.is_running());
-	ASSERT_NO_THROW(instance.stop());
+	ASSERT_NO_THROW(fixture->platform()->feed_receiver(fixture->msg_head()));
+	ASSERT_NO_THROW(fixture->platform()->feed_receiver(test_data));
+	ASSERT_NO_THROW(fixture->platform()->feed_receiver(fixture->msg_tail()));
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	instance.stop();
 	run_thread.join();
-	ASSERT_FALSE(instance.is_running());
+}
+
+TEST_F(McuServerFixture, run_sanity) {
+	// GIVEN
+	auto check_report = [](const McuServerFixture::McuData& data) {
+		std::unique_ptr<Data> parsed_data(JsonDataParser().parse(data));
+		auto result = Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("result")).get();
+		ASSERT_EQ(0, result);
+	};
+	auto check_get_report = [](const McuServerFixture::McuData& data, const Gpio::State& expected_state) {
+		std::unique_ptr<Data> parsed_data(JsonDataParser().parse(data));
+		auto result = Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("result")).get();
+		ASSERT_EQ(0, result);
+		ASSERT_EQ(0, result);
+		auto state = static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("gpio_state")).get());
+		ASSERT_EQ(expected_state, state);
+	};
+	using TestCase = std::pair<std::string, std::pair<McuServerFixture::McuData, CheckReportFunction>>;
+	const std::vector<TestCase> test_cases{
+		{
+			"gpi creation",
+			{JsonDataSerializer().serialize(create_gpio_data(1, Gpio::Direction::IN)), check_report}
+		},
+		{
+			"gpo creation",
+			{JsonDataSerializer().serialize(create_gpio_data(2, Gpio::Direction::OUT)), check_report}
+		},
+		{
+			"gpo set",
+			{JsonDataSerializer().serialize(set_gpio_data(2, Gpio::State::HIGH)), check_report}
+		},
+		{
+			"gpo get",
+			{
+				JsonDataSerializer().serialize(get_gpio_data(2)),
+				[check_get_report](const McuServerFixture::McuData& data) {
+					check_get_report(data, Gpio::State::HIGH);
+				}
+			}
+		},
+		{
+			"gpi get",
+			{
+				JsonDataSerializer().serialize(get_gpio_data(1)),
+				[check_get_report](const McuServerFixture::McuData& data) {
+					check_get_report(data, Gpio::State::LOW);
+				}
+			}
+		},
+		{
+			"gpi deletion",
+			{JsonDataSerializer().serialize(delete_gpio_data(1)), check_report}
+		},
+		{
+			"gpo deletion",
+			{JsonDataSerializer().serialize(delete_gpio_data(2)), check_report}
+		},
+		{
+			"delay",
+			{JsonDataSerializer().serialize(delay_data(1000)), check_report}
+		},
+		{
+			"sequence task",
+			{JsonDataSerializer().serialize(sequence_data(4)), check_report}
+		}
+	};
+
+	// THEN
+	for (auto test_case: test_cases) {
+		run_create_sanity_tc(test_case.first, test_case.second.first, test_case.second.second, this);
+	}
 }

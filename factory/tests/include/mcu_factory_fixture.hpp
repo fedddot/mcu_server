@@ -15,7 +15,6 @@
 #include "integer.hpp"
 #include "mcu_factory.hpp"
 #include "object.hpp"
-#include "platform.hpp"
 #include "test_platform.hpp"
 
 namespace mcu_factory_uts {
@@ -24,13 +23,12 @@ namespace mcu_factory_uts {
 		using McuData = std::string;
 		using GpioId = int;
 		using TestFactory = mcu_factory::McuFactory<McuData, GpioId>;
-		using McuPlatform = mcu_platform::Platform<McuData, GpioId>;
 
 		McuFactoryFixture(const std::string& msg_head = "test_msg_head", const std::string& msg_tail = "test_msg_tail", const std::size_t& max_buffer_size = 1000UL);
 		McuFactoryFixture(const McuFactoryFixture&) = delete;
 		McuFactoryFixture& operator=(const McuFactoryFixture&) = delete;
 		
-		McuPlatform *platform() const {
+		mcu_platform_uts::TestPlatform *platform() const {
 			return &m_platform;
 		}
 
