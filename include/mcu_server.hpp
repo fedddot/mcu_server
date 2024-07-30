@@ -17,10 +17,10 @@ namespace mcu_server {
 	template <typename Traw_data>
 	class McuServer {
 	public:
-		using McuMessageSender = MessageSender<Traw_data>;
-		using McuMessageReceiver = MessageReceiver<Traw_data>;
+		using McuMessageSender = mcu_platform::MessageSender<Traw_data>;
+		using McuMessageReceiver = mcu_platform::MessageReceiver<Traw_data>;
 		using McuParser = Parser<Data *(const Traw_data&)>;
-		using McuSerializer = Serializer<Traw_data(const Data&)>;		
+		using McuSerializer = Serializer<Traw_data(const Data&)>;
 		using TaskFactory = Creator<Task<Data *(void)> *(const Data&)>;
 		using FailureReportCreator = Creator<Data *(const std::exception&)>;
 		

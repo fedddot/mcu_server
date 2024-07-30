@@ -10,12 +10,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(creator INTERFACE)
 target_include_directories(creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(message_receiver INTERFACE)
-target_include_directories(message_receiver INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
-add_library(message_sender INTERFACE)
-target_include_directories(message_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
@@ -35,12 +29,15 @@ target_link_libraries(
     message_receiver
     message_sender
     parser
+    platform
     serializer
     task
 )
 
 add_subdirectory(data)
 add_subdirectory(external)
+add_subdirectory(factory)
+add_subdirectory(platform)
 add_subdirectory(util)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

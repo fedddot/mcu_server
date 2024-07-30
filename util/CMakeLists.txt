@@ -1,7 +1,3 @@
-add_library(buffered_message_receiver INTERFACE)
-target_include_directories(buffered_message_receiver INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(buffered_message_receiver INTERFACE message_receiver)
-
 add_library(custom_task INTERFACE)
 target_include_directories(custom_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(custom_task INTERFACE task)
@@ -10,9 +6,9 @@ add_library(custom_creator INTERFACE)
 target_include_directories(custom_creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(custom_creator INTERFACE creator)
 
-add_library(custom_sender INTERFACE)
-target_include_directories(custom_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(custom_sender INTERFACE message_sender)
+add_library(custom_parser INTERFACE)
+target_include_directories(custom_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(custom_parser INTERFACE parser)
 
 add_library(json_data_parser INTERFACE)
 target_sources(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src/json_data_parser.cpp)

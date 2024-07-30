@@ -1,7 +1,7 @@
 #ifndef	MESSAGE_RECEIVER_HPP
 #define	MESSAGE_RECEIVER_HPP
 
-namespace mcu_server {	
+namespace mcu_platform {	
 
 	template <typename Tmsg>
 	class MessageReceiver {
