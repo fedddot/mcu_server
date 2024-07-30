@@ -5,8 +5,12 @@
 #include "custom_creator.hpp"
 #include "data.hpp"
 #include "integer.hpp"
+#include "json_data_parser.hpp"
+#include "json_data_serializer.hpp"
 #include "mcu_factory_fixture.hpp"
 #include "object.hpp"
+#include "parser.hpp"
+#include "serializer.hpp"
 #include "string.hpp"
 #include <exception>
 
@@ -47,9 +51,19 @@ namespace mcu_server_uts {
 		const mcu_server::Creator<mcu_server::Data *(const std::exception&)>& fail_report_creator() const {
 			return m_fail_report_creator;
 		}
+
+		const mcu_server::Parser<mcu_server::Data *(const McuData&)>& parser() const {
+			return m_parser;
+		}
+
+		const mcu_server::Serializer<McuData(const mcu_server::Data&)>& serializer() const {
+			return m_serializer;
+		}
 	private:
 		TestFactory m_factory;
 		mcu_server_utl::CustomCreator<mcu_server::Data *(const std::exception&)> m_fail_report_creator;
+		mcu_server_utl::JsonDataParser m_parser;
+		mcu_server_utl::JsonDataSerializer m_serializer;
 	};
 }
 
