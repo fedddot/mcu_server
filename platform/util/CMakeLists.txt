@@ -6,4 +6,8 @@ add_library(custom_sender INTERFACE)
 target_include_directories(custom_sender INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(custom_sender INTERFACE message_sender)
 
+add_library(tcp_ipc_server INTERFACE)
+target_include_directories(tcp_ipc_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(tcp_ipc_server INTERFACE ipc_server)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)
