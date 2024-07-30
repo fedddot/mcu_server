@@ -4,18 +4,13 @@ target_link_libraries(
 	mcu_factory_fixture
 	INTERFACE
     data_lib
-    buffered_message_receiver
     custom_creator
     custom_parser
-    custom_sender
     gpio
-    inventory
     mcu_factory
-    message_receiver
-    message_sender
+    object
     platform
-    test_gpi
-    test_gpo
+    test_platform
 )
 
 add_executable(
