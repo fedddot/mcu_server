@@ -1,7 +1,6 @@
 #ifndef MCU_FACTORY_FIXTURE_HPP
 #define MCU_FACTORY_FIXTURE_HPP
 
-#include <functional>
 #include <memory>
 #include <string>
 
