@@ -19,9 +19,8 @@
 namespace mcu_factory_uts {
 	class McuFactoryFixture: public testing::Test {
 	public:
-		using McuData = std::string;
 		using GpioId = int;
-		using TestFactory = mcu_factory::McuFactory<McuData, GpioId>;
+		using TestFactory = mcu_factory::McuFactory<GpioId>;
 
 		McuFactoryFixture();
 		McuFactoryFixture(const McuFactoryFixture&) = delete;
