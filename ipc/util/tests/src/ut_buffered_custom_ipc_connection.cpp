@@ -1,29 +1,59 @@
-#include <memory>
+#include <cstddef>
+#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
 
-#include "data.hpp"
-#include "json_data_parser.hpp"
-#include "object.hpp"
+#include "buffered_custom_ipc_connection.hpp"
 
-using namespace mcu_server;
-using namespace mcu_server_utl;
+using namespace mcu_ipc_utl;
 
-TEST(ut_buffered_custom_ipc_connection, parse_sanity) {
-	// GIVEN:
-	const std::string test_data("{\"key1\": 1, \"key2\": \"ahahaha\", \"key3\": {\"key4\": \"ahaha\"}, \"key6\": [0, 1, 2, {}]}");
+TEST(ut_buffered_custom_ipc_connection, ctor_dtor_sanity) {
+	// GIVEN
+	const std::string test_head("test_head");
+	const std::string test_tail("test_tail");
+	const std::size_t test_size(1000UL);
+	auto sender = [](const std::string& data) {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
 
-	// WHEN:
-	JsonDataParser instance;
-	std::unique_ptr<Data> result(nullptr);
+	// WHEN
+	BufferedCustomIpcConnection<std::string> *instance_ptr(nullptr);
 
-	// THEN:
-	ASSERT_NO_THROW(result = std::unique_ptr<Data>(instance.parse(test_data)));
-	ASSERT_NE(nullptr, result);
-	Object *result_obj(dynamic_cast<Object *>(result.get()));
-	ASSERT_NE(nullptr, result_obj);
-	ASSERT_TRUE(result_obj->contains("key1"));
-	ASSERT_TRUE(result_obj->contains("key2"));
-	ASSERT_TRUE(result_obj->contains("key3"));
+	// THEN
+	ASSERT_NO_THROW(
+		(
+			instance_ptr = new BufferedCustomIpcConnection<std::string>(test_head, test_tail, test_size, sender)
+		)
+	);
+	ASSERT_NE(nullptr, instance_ptr);
+	ASSERT_NO_THROW(delete instance_ptr);
+
+	instance_ptr = nullptr;
+}
+
+TEST(ut_buffered_custom_ipc_connection, feed_sanity) {
+	// GIVEN
+	const std::string test_head("test_head");
+	const std::string test_data("test_data");
+	const std::string test_tail("test_tail");
+	const std::size_t test_size(1000UL);
+	auto sender = [](const std::string& data) {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+
+	// WHEN
+	BufferedCustomIpcConnection<std::string> instance(test_head, test_tail, test_size, sender);
+	std::string data("");
+
+	ASSERT_FALSE(instance.readable());
+	ASSERT_NO_THROW(instance.feed(test_head));
+	ASSERT_FALSE(instance.readable());
+	ASSERT_NO_THROW(instance.feed(test_data));
+	ASSERT_FALSE(instance.readable());
+	ASSERT_NO_THROW(instance.feed(test_tail));
+	ASSERT_TRUE(instance.readable());
+	ASSERT_NO_THROW(data = instance.read());
+	ASSERT_FALSE(instance.readable());
+	ASSERT_EQ(data, test_data);
 }
