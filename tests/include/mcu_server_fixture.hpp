@@ -1,6 +1,8 @@
 #ifndef MCU_SERVER_FIXTURE_HPP
 #define MCU_SERVER_FIXTURE_HPP
 
+#include <exception>
+
 #include "creator.hpp"
 #include "custom_creator.hpp"
 #include "data.hpp"
@@ -8,17 +10,21 @@
 #include "json_data_parser.hpp"
 #include "json_data_serializer.hpp"
 #include "mcu_factory_fixture.hpp"
+#include "mcu_server.hpp"
 #include "object.hpp"
 #include "parser.hpp"
 #include "serializer.hpp"
 #include "string.hpp"
-#include <exception>
+#include "task.hpp"
 
 namespace mcu_server_uts {
 	class McuServerFixture: public mcu_factory_uts::McuFactoryFixture {
 	public:
-		McuServerFixture(const std::string& msg_head = "test_msg_head", const std::string& msg_tail = "test_msg_tail", const std::size_t& max_buffer_size = 1000UL): 
-			mcu_factory_uts::McuFactoryFixture(msg_head, msg_tail, max_buffer_size), 
+		using McuData = std::string;
+		using TestMcuServer = mcu_server::McuServer<McuData>;
+		using McuTask = mcu_server::Task<mcu_server::Data *(void)>;
+		
+		McuServerFixture():
 			m_factory(
 				platform(),
 				task_type_parser(),

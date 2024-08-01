@@ -26,8 +26,6 @@ target_link_libraries(
     INTERFACE
     creator
     data
-    message_receiver
-    message_sender
     parser
     platform
     serializer

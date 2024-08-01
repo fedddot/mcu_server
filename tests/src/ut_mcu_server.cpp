@@ -1,41 +1,24 @@
-#include <condition_variable>
-#include <exception>
+#include <functional>
 #include <iostream>
 #include <memory>
-#include <mutex>
-#include <stdexcept>
 #include <string>
-#include <thread>
+#include <utility>
+#include <vector>
 
 #include "gtest/gtest.h"
 
-#include "custom_creator.hpp"
 #include "data.hpp"
+#include "gpio.hpp"
 #include "integer.hpp"
-#include "mcu_server.hpp"
-#include "object.hpp"
-#include "task.hpp"
-
 #include "mcu_server_fixture.hpp"
+#include "object.hpp"
 
 using namespace mcu_server;
 using namespace mcu_server_utl;
 using namespace mcu_server_uts;
 using namespace mcu_platform;
-using namespace mcu_platform_utl;
-
-using McuData = std::string;
-using TestMcuServer = McuServer<McuData>;
-using McuTask = Task<Data *(void)>;
 
 TEST_F(McuServerFixture, ctor_dtor_sanity) {
-	// GIVEN
-	CustomCreator<Data *(const std::exception&)> failure_report_ctor(
-		[](const std::exception&)-> Data * {
-			throw std::runtime_error("NOT_IMPLEMENTED");
-		}
- 	);
-
 	// WHEN
 	TestMcuServer *instance_ptr(nullptr);
 
@@ -43,8 +26,6 @@ TEST_F(McuServerFixture, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		(
 			instance_ptr = new TestMcuServer(
-				platform()->message_sender(),
-				platform()->message_receiver(),
 				parser(),
 				serializer(),
 				factory(),
@@ -64,52 +45,17 @@ static void run_create_sanity_tc(const std::string& tc_name, const McuServerFixt
 	std::cout << "running TC: " << tc_name << std::endl;
 	std::cout << "test data: " << test_data << std::endl;
 
-	std::mutex mux;
-	std::condition_variable cond;
-	McuServerFixture::McuData report("");
-
 	// WHEN
-	fixture->set_sender(
-		[&mux, &cond, &report](const McuServerFixture::McuData& data) {
-			std::unique_lock lock(mux);
-			std::cout << "mcu server sends data: " << data << std::endl;
-			report = data;
-			cond.notify_all();			
-		}
-	);
-	TestMcuServer instance(
-		fixture->platform()->message_sender(),
-		fixture->platform()->message_receiver(),
+	McuServerFixture::McuData report("");
+	McuServerFixture::TestMcuServer instance(
 		fixture->parser(),
 		fixture->serializer(),
 		fixture->factory(),
 		fixture->fail_report_creator()
 	);
 
-	std::thread run_thread(
-		[](TestMcuServer *instance) {
-			instance->run();
-		},
-		&instance
-	);
-	
-	ASSERT_NO_THROW(fixture->platform()->feed_receiver(fixture->msg_head()));
-	ASSERT_NO_THROW(fixture->platform()->feed_receiver(test_data));
-	ASSERT_NO_THROW(fixture->platform()->feed_receiver(fixture->msg_tail()));
-
-	while (true) {
-		std::unique_lock lock(mux);
-		if (!report.empty()) {
-			break;
-		}
-		cond.wait(lock);	
-	}
-
 	// THEN
-	ASSERT_TRUE(instance.is_running());
-	ASSERT_NO_THROW(instance.stop());
-	run_thread.join();
-	ASSERT_FALSE(instance.is_running());
+	ASSERT_NO_THROW(report = instance.run(test_data));
 	check_task_report(report);
 }
 
