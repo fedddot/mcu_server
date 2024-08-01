@@ -19,6 +19,7 @@ namespace mcu_ipc_utl {
 		bool readable() const override;
 		Tdata read() override;
 		void send(const Tdata& data) const override;
+		void feed(const Tdata& data);
 	private:
 		Tdata m_head;
 		Tdata m_tail;
@@ -66,6 +67,11 @@ namespace mcu_ipc_utl {
 	template <typename Tdata>
 	inline void BufferedCustomIpcConnection<Tdata>::send(const Tdata& data) const {
 		m_send_raw_data(data);
+	}
+
+	template <typename Tdata>
+	inline void BufferedCustomIpcConnection<Tdata>::feed(const Tdata& data) {
+		m_data.insert(m_data.end(), data.begin(), data.end());
 	}
 }
 
