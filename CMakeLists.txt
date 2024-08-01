@@ -35,6 +35,7 @@ target_link_libraries(
 add_subdirectory(data)
 add_subdirectory(external)
 add_subdirectory(factory)
+add_subdirectory(ipc)
 add_subdirectory(platform)
 add_subdirectory(util)
 
