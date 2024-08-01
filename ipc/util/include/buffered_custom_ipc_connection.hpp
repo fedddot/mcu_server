@@ -13,7 +13,7 @@ namespace mcu_ipc_utl {
 	public:
 		using SendRawDataFunction = std::function<void(const Tdata&)>;
 		BufferedCustomIpcConnection(const Tdata& head, const Tdata& tail, const std::size_t& max_buff_size, const SendRawDataFunction& send_raw_data);
-		BufferedCustomIpcConnection(const BufferedCustomIpcConnection& other);
+		BufferedCustomIpcConnection(const BufferedCustomIpcConnection& other) = delete;
 		BufferedCustomIpcConnection& operator=(const BufferedCustomIpcConnection& other) = delete;
 		
 		bool readable() const override;
@@ -21,10 +21,10 @@ namespace mcu_ipc_utl {
 		void send(const Tdata& data) const override;
 		void feed(const Tdata& data);
 	private:
-		Tdata m_head;
-		Tdata m_tail;
-		std::size_t m_max_buff_size;
-		SendRawDataFunction m_send_raw_data;
+		const Tdata m_head;
+		const Tdata m_tail;
+		const std::size_t m_max_buff_size;
+		const SendRawDataFunction m_send_raw_data;
 
 		Tdata m_data;
 	};
