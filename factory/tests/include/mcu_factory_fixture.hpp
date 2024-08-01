@@ -24,7 +24,7 @@ namespace mcu_factory_uts {
 		using GpioId = int;
 		using TestFactory = mcu_factory::McuFactory<McuData, GpioId>;
 
-		McuFactoryFixture(const std::string& msg_head = "test_msg_head", const std::string& msg_tail = "test_msg_tail", const std::size_t& max_buffer_size = 1000UL);
+		McuFactoryFixture();
 		McuFactoryFixture(const McuFactoryFixture&) = delete;
 		McuFactoryFixture& operator=(const McuFactoryFixture&) = delete;
 		
@@ -124,21 +124,7 @@ namespace mcu_factory_uts {
 			return task_data;
 		}
 
-		void set_sender(const std::function<void(const McuData&)>& send_function) {
-			m_platform.set_sender(send_function);
-		}
-
-		std::string msg_head() const {
-			return m_msg_head;
-		}
-
-		std::string msg_tail() const {
-			return m_msg_tail;
-		}
 	private:
-		
-		const std::string m_msg_head;
-		const std::string m_msg_tail;
 		mutable mcu_platform_uts::TestPlatform m_platform;
 		std::unique_ptr<TestFactory::TaskTypeParser> m_task_type_parser;
 		std::unique_ptr<TestFactory::GpioIdParser> m_gpio_id_parser;
@@ -151,7 +137,7 @@ namespace mcu_factory_uts {
 		std::unique_ptr<TestFactory::TasksResultsReporter> m_tasks_results_reporter;
 	};
 
-	inline McuFactoryFixture::McuFactoryFixture(const std::string& msg_head, const std::string& msg_tail, const std::size_t& max_buffer_size): m_msg_head(msg_head), m_msg_tail(msg_tail), m_platform(msg_head, msg_tail, max_buffer_size) {
+	inline McuFactoryFixture::McuFactoryFixture() {
 		using namespace mcu_factory;
 		using namespace mcu_server;
 		using namespace mcu_server_utl;
