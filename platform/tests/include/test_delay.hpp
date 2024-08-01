@@ -9,7 +9,7 @@
 namespace mcu_platform_uts {
 	class TestDelay: public mcu_platform::Delay {
 	public:
-		TestDelay();
+		TestDelay() = default;
 		TestDelay(const TestDelay&) = default;
 		TestDelay& operator=(const TestDelay&) = default;
 
