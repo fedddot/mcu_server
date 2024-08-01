@@ -7,6 +7,7 @@ target_link_libraries(
     creator
     custom_creator
     gpio
+    delay
     parser
     platform
     task

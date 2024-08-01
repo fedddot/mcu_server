@@ -10,6 +10,7 @@
 #include "creator.hpp"
 #include "custom_creator.hpp"
 #include "data.hpp"
+#include "delay.hpp"
 #include "delay_task.hpp"
 #include "delete_gpio_task.hpp"
 #include "get_gpio_task.hpp"
@@ -21,7 +22,7 @@
 #include "task.hpp"
 
 namespace mcu_factory {
-	template <typename Tdata, typename Tgpio_id>
+	template <typename Tgpio_id>
 	class McuFactory: public mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> {
 	public:
 		enum class TaskType: int {
@@ -49,7 +50,7 @@ namespace mcu_factory {
 		using TasksResultsReporter = mcu_server::Creator<mcu_server::Data *(const mcu_server::Array&)>;
 
 		McuFactory(
-			mcu_platform::Platform<Tdata, Tgpio_id> *platform,
+			mcu_platform::Platform<Tgpio_id> *platform,
 			const TaskTypeParser& task_type_parser,
 			const GpioIdParser& gpio_id_parser,
 			const GpioDirParser& gpio_dir_parser,
@@ -66,7 +67,7 @@ namespace mcu_factory {
 		mcu_server::Task<mcu_server::Data *(void)> *create(const mcu_server::Data& data) const override;
 		mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *clone() const override;
 	private:
-		mcu_platform::Platform<Tdata, Tgpio_id> *m_platform;
+		mcu_platform::Platform<Tgpio_id> *m_platform;
 		const std::unique_ptr<TaskTypeParser> m_task_type_parser;
 		const std::unique_ptr<GpioIdParser> m_gpio_id_parser;
 		const std::unique_ptr<GpioDirParser> m_gpio_dir_parser;
@@ -85,9 +86,9 @@ namespace mcu_factory {
 		void init_factory();
 	};
 
-	template <typename Tdata, typename Tgpio_id>
-	inline McuFactory<Tdata, Tgpio_id>::McuFactory(
-		mcu_platform::Platform<Tdata, Tgpio_id> *platform,
+	template <typename Tgpio_id>
+	inline McuFactory<Tgpio_id>::McuFactory(
+		mcu_platform::Platform<Tgpio_id> *platform,
 		const TaskTypeParser& task_type_parser,
 		const GpioIdParser& gpio_id_parser,
 		const GpioDirParser& gpio_dir_parser,
@@ -116,8 +117,8 @@ namespace mcu_factory {
 		init_factory();
 	}
 
-	template <typename Tdata, typename Tgpio_id>
-	inline McuFactory<Tdata, Tgpio_id>::McuFactory(const McuFactory& other):
+	template <typename Tgpio_id>
+	inline McuFactory<Tgpio_id>::McuFactory(const McuFactory& other):
 		m_platform(other.m_platform),
 		m_task_type_parser(other.m_task_type_parser->clone()),
 		m_gpio_id_parser(other.m_gpio_id_parser->clone()),
@@ -132,8 +133,8 @@ namespace mcu_factory {
 		init_factory();
 	}
 
-	template <typename Tdata, typename Tgpio_id>
-	inline mcu_server::Task<mcu_server::Data *(void)> *McuFactory<Tdata, Tgpio_id>::create(const mcu_server::Data& data) const {
+	template <typename Tgpio_id>
+	inline mcu_server::Task<mcu_server::Data *(void)> *McuFactory<Tgpio_id>::create(const mcu_server::Data& data) const {
 		auto task_type = m_task_type_parser->parse(data);
 		auto task_ctor_iter = m_ctors.find(task_type);
 		if (m_ctors.end() == task_ctor_iter) {
@@ -142,13 +143,13 @@ namespace mcu_factory {
 		return task_ctor_iter->second->create(data);
 	}
 	
-	template <typename Tdata, typename Tgpio_id>
-	inline mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *McuFactory<Tdata, Tgpio_id>::clone() const {
+	template <typename Tgpio_id>
+	inline mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *McuFactory<Tgpio_id>::clone() const {
 		return new McuFactory(*this);
 	}
 
-	template <typename Tdata, typename Tgpio_id>
-	inline void McuFactory<Tdata, Tgpio_id>::init_factory() {
+	template <typename Tgpio_id>
+	inline void McuFactory<Tgpio_id>::init_factory() {
 		using namespace mcu_server;
 		using namespace mcu_server_utl;
 		m_ctors.insert(
@@ -255,7 +256,8 @@ namespace mcu_factory {
 							auto delay_ms = m_delay_parser->parse(data);
 							return new DelayTask(
 								[this](unsigned int delay_ms) {
-									m_platform->delay(delay_ms);
+									std::unique_ptr<mcu_platform::Delay> delay(m_platform->create_delay());
+									delay->delay(delay_ms);
 								},
 								delay_ms,
 								*m_result_reporter
