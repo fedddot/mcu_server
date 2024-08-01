@@ -22,7 +22,7 @@
 #include "task.hpp"
 
 namespace mcu_factory {
-	template <typename Tdata, typename Tgpio_id>
+	template <typename Tgpio_id>
 	class McuFactory: public mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> {
 	public:
 		enum class TaskType: int {
@@ -86,8 +86,8 @@ namespace mcu_factory {
 		void init_factory();
 	};
 
-	template <typename Tdata, typename Tgpio_id>
-	inline McuFactory<Tdata, Tgpio_id>::McuFactory(
+	template <typename Tgpio_id>
+	inline McuFactory<Tgpio_id>::McuFactory(
 		mcu_platform::Platform<Tgpio_id> *platform,
 		const TaskTypeParser& task_type_parser,
 		const GpioIdParser& gpio_id_parser,
@@ -117,8 +117,8 @@ namespace mcu_factory {
 		init_factory();
 	}
 
-	template <typename Tdata, typename Tgpio_id>
-	inline McuFactory<Tdata, Tgpio_id>::McuFactory(const McuFactory& other):
+	template <typename Tgpio_id>
+	inline McuFactory<Tgpio_id>::McuFactory(const McuFactory& other):
 		m_platform(other.m_platform),
 		m_task_type_parser(other.m_task_type_parser->clone()),
 		m_gpio_id_parser(other.m_gpio_id_parser->clone()),
@@ -133,8 +133,8 @@ namespace mcu_factory {
 		init_factory();
 	}
 
-	template <typename Tdata, typename Tgpio_id>
-	inline mcu_server::Task<mcu_server::Data *(void)> *McuFactory<Tdata, Tgpio_id>::create(const mcu_server::Data& data) const {
+	template <typename Tgpio_id>
+	inline mcu_server::Task<mcu_server::Data *(void)> *McuFactory<Tgpio_id>::create(const mcu_server::Data& data) const {
 		auto task_type = m_task_type_parser->parse(data);
 		auto task_ctor_iter = m_ctors.find(task_type);
 		if (m_ctors.end() == task_ctor_iter) {
@@ -143,13 +143,13 @@ namespace mcu_factory {
 		return task_ctor_iter->second->create(data);
 	}
 	
-	template <typename Tdata, typename Tgpio_id>
-	inline mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *McuFactory<Tdata, Tgpio_id>::clone() const {
+	template <typename Tgpio_id>
+	inline mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *McuFactory<Tgpio_id>::clone() const {
 		return new McuFactory(*this);
 	}
 
-	template <typename Tdata, typename Tgpio_id>
-	inline void McuFactory<Tdata, Tgpio_id>::init_factory() {
+	template <typename Tgpio_id>
+	inline void McuFactory<Tgpio_id>::init_factory() {
 		using namespace mcu_server;
 		using namespace mcu_server_utl;
 		m_ctors.insert(
