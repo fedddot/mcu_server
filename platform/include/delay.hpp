@@ -6,6 +6,7 @@ namespace mcu_platform {
 	public:
 		virtual ~Delay() noexcept = default;
 		virtual void delay(int delay_ms) const = 0;
+		virtual Delay *clone() const = 0;
 	};
 }
 #endif // DELAY_HPP
