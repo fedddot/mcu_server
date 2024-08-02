@@ -21,6 +21,17 @@ target_link_libraries(
     task
 )
 
+add_library(delete_persistent_task INTERFACE)
+target_include_directories(delete_persistent_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    delete_persistent_task
+    INTERFACE
+    creator
+    data
+    inventory
+    task
+)
+
 add_library(delete_gpio_task INTERFACE)
 target_include_directories(delete_gpio_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
