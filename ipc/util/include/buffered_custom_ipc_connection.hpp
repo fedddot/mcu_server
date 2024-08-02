@@ -66,7 +66,7 @@ namespace mcu_ipc_utl {
 
 	template <typename Tdata>
 	inline void BufferedCustomIpcConnection<Tdata>::send(const Tdata& data) const {
-		m_send_raw_data(data);
+		m_send_raw_data(m_head + data + m_tail);
 	}
 
 	template <typename Tdata>
