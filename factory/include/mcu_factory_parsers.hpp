@@ -1,11 +1,12 @@
 #ifndef	MCU_FACTORY_PARSERS_HPP
 #define	MCU_FACTORY_PARSERS_HPP
 
+#include <vector>
+
 #include "array.hpp"
 #include "data.hpp"
 #include "gpio.hpp"
 #include "parser.hpp"
-#include <vector>
 
 namespace mcu_factory {
 	template <typename Tgpio_id, typename Ttask_id, typename Ttask_type>
