@@ -31,6 +31,8 @@ namespace mcu_server_uts {
 				gpio_id_parser(),
 				gpio_dir_parser(),
 				gpio_state_parser(),
+				task_id_parser(),
+				task_data_parser(),
 				tasks_parser(),
 				delay_parser(),
 				result_reporter(),
