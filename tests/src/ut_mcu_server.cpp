@@ -84,6 +84,48 @@ TEST_F(McuServerFixture, run_sanity) {
 			}
 		},
 		{
+			"persistent task creation (create gpi task)",
+			{
+				serializer().serialize(create_persistent_task_data("create gpi task", create_gpio_data(100, Gpio::Direction::IN))),
+				check_report
+			}
+		},
+		{
+			"persistent task creation (delete gpi task)",
+			{
+				serializer().serialize(create_persistent_task_data("delete gpi task", delete_gpio_data(100))),
+				check_report
+			}
+		},
+		{
+			"persistent task execution (create gpi task)",
+			{
+				serializer().serialize(execute_persistent_task_data("create gpi task")),
+				check_report
+			}
+		},
+		{
+			"persistent task execution (delete gpi task)",
+			{
+				serializer().serialize(execute_persistent_task_data("delete gpi task")),
+				check_report
+			}
+		},
+		{
+			"persistent task deletion (create gpi task)",
+			{
+				serializer().serialize(delete_persistent_task_data("create gpi task")),
+				check_report
+			}
+		},
+		{
+			"persistent task deletion (delete gpi task)",
+			{
+				serializer().serialize(delete_persistent_task_data("delete gpi task")),
+				check_report
+			}
+		},
+		{
 			"gpo creation",
 			{
 				serializer().serialize(create_gpio_data(2, Gpio::Direction::OUT)),
