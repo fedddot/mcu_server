@@ -39,6 +39,7 @@ target_link_libraries(
     delete_persistent_task
     set_gpio_task
     execute_persistent_task
+    execute_persistent_tasks
     get_gpio_task
     sequence_task
     delay_task

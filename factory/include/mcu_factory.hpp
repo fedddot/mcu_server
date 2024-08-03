@@ -16,6 +16,7 @@
 #include "delete_gpio_task.hpp"
 #include "delete_persistent_task.hpp"
 #include "execute_persistent_task.hpp"
+#include "execute_persistent_tasks.hpp"
 #include "get_gpio_task.hpp"
 #include "gpio.hpp"
 #include "mcu_factory_parsers.hpp"
@@ -36,6 +37,7 @@ namespace mcu_factory {
 			SET_GPIO,
 			GET_GPIO,
 			EXECUTE_PERSISTENT_TASK,
+			EXECUTE_PERSISTENT_TASKS,
 			SEQUENCE,
 			DELAY
 		};
@@ -267,6 +269,23 @@ namespace mcu_factory {
 							return new ExecutePersistentTask<Ttask_id>(
 								m_platform->task_inventory(),
 								task_id
+							);
+						}
+					)
+				)
+			}
+		);
+		m_ctors.insert(
+			{
+				TaskType::EXECUTE_PERSISTENT_TASKS,
+				std::unique_ptr<TaskCtor>(
+					new CustomCreator<FactoryTask *(const Data&)>(
+						[this](const Data& data) {
+							const auto task_ids((m_parsers->persistent_tasks_ids_parser()).parse(data));
+							return new ExecutePersistentTasks<Ttask_id>(
+								m_platform->task_inventory(),
+								task_ids,
+								*m_tasks_results_reporter
 							);
 						}
 					)
