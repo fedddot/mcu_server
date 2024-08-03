@@ -23,13 +23,14 @@ namespace mcu_factory_uts {
 		using GpioId = int;
 		using TaskId = int;
 		using TestFactory = mcu_factory::McuFactory<GpioId, TaskId>;
-		using TestParsers = mcu_factory::McuFactoryParsers<GpioId, TaskId, TestFactory::TaskType>;
+		using TestPlatform = typename TestFactory::FactoryPlatform;
+		using TestParsers = typename TestFactory::Parsers;
 
 		McuFactoryFixture();
 		McuFactoryFixture(const McuFactoryFixture&) = delete;
 		McuFactoryFixture& operator=(const McuFactoryFixture&) = delete;
 		
-		mcu_platform_uts::TestPlatform *platform() const {
+		TestPlatform *platform() const {
 			return &m_platform;
 		}
 
@@ -131,7 +132,7 @@ namespace mcu_factory_uts {
 		}
 
 	private:
-		mutable mcu_platform_uts::TestPlatform m_platform;
+		mutable mcu_platform_uts::TestPlatform<GpioId, TaskId> m_platform;
 		std::unique_ptr<TestParsers> m_parsers;
 		std::unique_ptr<TestFactory::ResultReporter> m_result_reporter;
 		std::unique_ptr<TestFactory::ResultStateReporter> m_result_state_reporter;

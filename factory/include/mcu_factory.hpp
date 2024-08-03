@@ -47,9 +47,12 @@ namespace mcu_factory {
 		using ResultStateReporter = mcu_server::Creator<mcu_server::Data *(int, const mcu_platform::Gpio::State&)>;
 		using TasksResultsReporter = mcu_server::Creator<mcu_server::Data *(const mcu_server::Array&)>;
 
+		using FactoryPlatform = mcu_platform::Platform<Tgpio_id, Ttask_id>;
+		using Parsers = McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>;
+
 		McuFactory(
-			mcu_platform::Platform<Tgpio_id, Ttask_id> *platform,
-			const McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>& parsers, 
+			FactoryPlatform *platform,
+			const Parsers& parsers, 
 			const ResultReporter& result_reporter,
 			const ResultStateReporter& result_state_reporter,
 			const TasksResultsReporter& tasks_results_reporter
@@ -60,8 +63,8 @@ namespace mcu_factory {
 		mcu_server::Task<mcu_server::Data *(void)> *create(const mcu_server::Data& data) const override;
 		mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *clone() const override;
 	private:
-		mcu_platform::Platform<Tgpio_id, Ttask_id> *m_platform;
-		const std::unique_ptr<McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>> m_parsers;
+		FactoryPlatform *m_platform;
+		const std::unique_ptr<Parsers> m_parsers;
 		const std::unique_ptr<ResultReporter> m_result_reporter;
 		const std::unique_ptr<ResultStateReporter> m_result_state_reporter;
 		const std::unique_ptr<TasksResultsReporter> m_tasks_results_reporter;
@@ -82,8 +85,8 @@ namespace mcu_factory {
 
 	template <typename Tgpio_id, typename Ttask_id>
 	inline McuFactory<Tgpio_id, Ttask_id>::McuFactory(
-		mcu_platform::Platform<Tgpio_id, Ttask_id> *platform,
-		const McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>& parsers, 
+		FactoryPlatform *platform,
+		const Parsers& parsers, 
 		const ResultReporter& result_reporter,
 		const ResultStateReporter& result_state_reporter,
 		const TasksResultsReporter& tasks_results_reporter

@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include <string>
 
 #include "data.hpp"
 #include "gpio.hpp"
@@ -89,6 +90,8 @@ TEST_F(McuFactoryFixture, create_sanity) {
 		ASSERT_EQ(0, result);
 		ASSERT_FALSE(platform()->task_inventory()->contains(expected_task));
 	};
+	const auto create_task_id = 0;
+	const auto delete_task_id = 1;
 	using TestCase = std::pair<std::string, std::pair<Object, CheckReportFunction>>;
 	const std::vector<TestCase> test_cases{
 		{
@@ -96,46 +99,46 @@ TEST_F(McuFactoryFixture, create_sanity) {
 			{create_gpio_data(1, Gpio::Direction::IN), check_report}
 		},
 		{
-			"persistent task creation (create gpi task)",
+			"persistent task creation (" + std::to_string(create_task_id) + ")",
 			{
-				create_persistent_task_data("create gpi task", create_gpio_data(100, Gpio::Direction::IN)),
-				[check_report_and_task_added](const Data& data) {
-					check_report_and_task_added(data, "create gpi task");
+				create_persistent_task_data(create_task_id, create_gpio_data(100, Gpio::Direction::IN)),
+				[check_report_and_task_added, create_task_id](const Data& data) {
+					check_report_and_task_added(data, create_task_id);
 				}
 			}
 		},
 		{
-			"persistent task creation (delete gpi task)",
+			"persistent task creation (" + std::to_string(delete_task_id) + ")",
 			{
-				create_persistent_task_data("delete gpi task", delete_gpio_data(100)),
-				[check_report_and_task_added](const Data& data) {
-					check_report_and_task_added(data, "delete gpi task");
+				create_persistent_task_data(delete_task_id, delete_gpio_data(100)),
+				[check_report_and_task_added, delete_task_id](const Data& data) {
+					check_report_and_task_added(data, delete_task_id);
 				}
 			}
 		},
 		{
-			"persistent task execution (create gpi task)",
-			{execute_persistent_task_data("create gpi task"), check_report}
+			"persistent task execution (" + std::to_string(create_task_id) + ")",
+			{execute_persistent_task_data(create_task_id), check_report}
 		},
 		{
-			"persistent task execution (delete gpi task)",
-			{execute_persistent_task_data("delete gpi task"), check_report}
+			"persistent task execution (" + std::to_string(delete_task_id) + ")",
+			{execute_persistent_task_data(delete_task_id), check_report}
 		},
 		{
-			"persistent task deletion (create gpi task)",
+			"persistent task deletion (" + std::to_string(create_task_id) + ")",
 			{
-				delete_persistent_task_data("create gpi task"),
-				[check_report_and_task_deleted](const Data& data) {
-					check_report_and_task_deleted(data, "create gpi task");
+				delete_persistent_task_data(create_task_id),
+				[check_report_and_task_deleted, create_task_id](const Data& data) {
+					check_report_and_task_deleted(data, create_task_id);
 				}
 			}
 		},
 		{
-			"persistent task deletion (delete gpi task)",
+			"persistent task deletion (" + std::to_string(delete_task_id) + ")",
 			{
-				delete_persistent_task_data("delete gpi task"),
-				[check_report_and_task_deleted](const Data& data) {
-					check_report_and_task_deleted(data, "delete gpi task");
+				delete_persistent_task_data(delete_task_id),
+				[check_report_and_task_deleted, delete_task_id](const Data& data) {
+					check_report_and_task_deleted(data, delete_task_id);
 				}
 			}
 		},
