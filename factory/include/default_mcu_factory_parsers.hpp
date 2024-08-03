@@ -54,7 +54,7 @@ namespace mcu_factory {
 			return *m_persistent_task_data_parser;
 		}
 		const PersistentTasksIdsParser& persistent_tasks_ids_parser() const override {
-
+			return *m_persistent_tasks_ids_parser;
 		}
 		Base *clone() const override {
 			return new DefaultMcuFactoryParsers(*this);
