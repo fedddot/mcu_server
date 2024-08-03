@@ -28,6 +28,15 @@ namespace mcu_factory {
 		virtual const TaskTypeParser& task_type_parser() const = 0;
 		virtual const GpioIdParser& gpio_id_parser() const = 0;
 		virtual const GpioDirParser& gpio_dir_parser() const = 0;
+		virtual const GpioStateParser& gpio_state_parser() const = 0;
+
+		virtual const DelayParser& delay_parser() const = 0;
+		virtual const TasksParser& tasks_parser() const = 0;
+		
+		virtual const PersistentTaskIdParser& persistent_task_id_parser() const = 0;
+		virtual const PersistentTaskDataParser& persistent_task_data_parser() const = 0;
+		
+		
 
 		virtual McuFactoryParsers *clone() const = 0;
 	};
