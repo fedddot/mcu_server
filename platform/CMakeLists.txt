@@ -20,9 +20,11 @@ target_include_directories(platform INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     platform
     INTERFACE 
+    data_lib
     gpio
     inventory
     delay
+    task
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
