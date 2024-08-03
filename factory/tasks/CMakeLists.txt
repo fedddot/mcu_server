@@ -10,6 +10,28 @@ target_link_libraries(
     task
 )
 
+add_library(create_persistent_task INTERFACE)
+target_include_directories(create_persistent_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    create_persistent_task
+    INTERFACE
+    creator
+    data
+    inventory
+    task
+)
+
+add_library(delete_persistent_task INTERFACE)
+target_include_directories(delete_persistent_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    delete_persistent_task
+    INTERFACE
+    creator
+    data
+    inventory
+    task
+)
+
 add_library(delete_gpio_task INTERFACE)
 target_include_directories(delete_gpio_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
@@ -49,6 +71,16 @@ target_link_libraries(
     task
 )
 
+add_library(execute_persistent_task INTERFACE)
+target_include_directories(execute_persistent_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    execute_persistent_task
+    INTERFACE
+    data
+    inventory
+    task
+)
+
 add_library(sequence_task INTERFACE)
 target_include_directories(sequence_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
@@ -67,5 +99,6 @@ target_link_libraries(
     INTERFACE
     creator
     data
+    delay
     task
 )

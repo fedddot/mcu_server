@@ -14,13 +14,15 @@
 #include "integer.hpp"
 #include "mcu_factory.hpp"
 #include "object.hpp"
+#include "string.hpp"
 #include "test_platform.hpp"
 
 namespace mcu_factory_uts {
 	class McuFactoryFixture: public testing::Test {
 	public:
 		using GpioId = int;
-		using TestFactory = mcu_factory::McuFactory<GpioId>;
+		using TaskId = std::string;
+		using TestFactory = mcu_factory::McuFactory<GpioId, TaskId>;
 
 		McuFactoryFixture();
 		McuFactoryFixture(const McuFactoryFixture&) = delete;
@@ -44,6 +46,14 @@ namespace mcu_factory_uts {
 
 		const TestFactory::GpioStateParser& gpio_state_parser() const {
 			return *m_gpio_state_parser;
+		}
+
+		const TestFactory::PersistentTaskIdParser& task_id_parser() const {
+			return *m_task_id_parser;
+		}
+
+		const TestFactory::PersistentTaskDataParser& task_data_parser() const {
+			return *m_task_data_parser;
 		}
 
 		const TestFactory::TasksParser& tasks_parser() const {
@@ -75,6 +85,15 @@ namespace mcu_factory_uts {
 			return task_data;
 		}
 
+		mcu_server::Object create_persistent_task_data(const TaskId& id, const mcu_server::Data& pers_task_data) const {
+			using namespace mcu_server;
+			Object task_data;
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::CREATE_PERSISTENT_TASK)));
+			task_data.add("task_id", String(id));
+			task_data.add("task_data", pers_task_data);
+			return task_data;
+		}
+
 		mcu_server::Object set_gpio_data(const GpioId& id, const mcu_platform::Gpio::State& state) const {
 			using namespace mcu_server;
 			Object task_data;
@@ -92,11 +111,27 @@ namespace mcu_factory_uts {
 			return task_data;
 		}
 
+		mcu_server::Object execute_persistent_task_data(const TaskId& id) const {
+			using namespace mcu_server;
+			Object task_data;
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::EXECUTE_PERSISTENT_TASK)));
+			task_data.add("task_id", String(id));
+			return task_data;
+		}
+
 		mcu_server::Object delete_gpio_data(const GpioId& id) const {
 			using namespace mcu_server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELETE_GPIO)));
 			task_data.add("gpio_id", Integer(id));
+			return task_data;
+		}
+
+		mcu_server::Object delete_persistent_task_data(const TaskId& id) const {
+			using namespace mcu_server;
+			Object task_data;
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELETE_PERSISTENT_TASK)));
+			task_data.add("task_id", String(id));
 			return task_data;
 		}
 
@@ -128,6 +163,8 @@ namespace mcu_factory_uts {
 		std::unique_ptr<TestFactory::GpioIdParser> m_gpio_id_parser;
 		std::unique_ptr<TestFactory::GpioDirParser> m_gpio_dir_parser;
 		std::unique_ptr<TestFactory::GpioStateParser> m_gpio_state_parser;
+		std::unique_ptr<TestFactory::PersistentTaskIdParser> m_task_id_parser;
+		std::unique_ptr<TestFactory::PersistentTaskDataParser> m_task_data_parser;
 		std::unique_ptr<TestFactory::TasksParser> m_tasks_parser;
 		std::unique_ptr<TestFactory::DelayParser> m_delay_parser;
 		std::unique_ptr<TestFactory::ResultReporter> m_result_reporter;
@@ -167,6 +204,20 @@ namespace mcu_factory_uts {
 			new CustomParser<Gpio::State(const Data&)>(
 				[](const Data& data) {
 					return static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get());
+				}
+			)
+		);
+		m_task_id_parser = std::unique_ptr<TestFactory::PersistentTaskIdParser>(
+			new CustomParser<TaskId(const Data&)>(
+				[](const Data& data) {
+					return Data::cast<String>(Data::cast<Object>(data).access("task_id")).get();
+				}
+			)
+		);
+		m_task_data_parser = std::unique_ptr<TestFactory::PersistentTaskDataParser>(
+			new CustomParser<Data *(const Data&)>(
+				[](const Data& data) {
+					return Data::cast<Object>(data).access("task_data").clone();
 				}
 			)
 		);
