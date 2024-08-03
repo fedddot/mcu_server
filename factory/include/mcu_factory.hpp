@@ -18,6 +18,7 @@
 #include "execute_persistent_task.hpp"
 #include "get_gpio_task.hpp"
 #include "gpio.hpp"
+#include "mcu_factory_parsers.hpp"
 #include "parser.hpp"
 #include "platform.hpp"
 #include "sequence_task.hpp"
@@ -39,34 +40,17 @@ namespace mcu_factory {
 			SEQUENCE,
 			DELAY
 		};
-		using TaskTypeParser = mcu_server::Parser<TaskType(const mcu_server::Data&)>;
 		
 		using GpioDirection = typename mcu_platform::Gpio::Direction;
 		using GpioState = typename mcu_platform::Gpio::State;
-		using GpioIdParser = mcu_server::Parser<Tgpio_id(const mcu_server::Data&)>;
-		using GpioDirParser = mcu_server::Parser<GpioDirection(const mcu_server::Data&)>;
-		using GpioStateParser = mcu_server::Parser<GpioState(const mcu_server::Data&)>;
-
-		using PersistentTaskIdParser = mcu_server::Parser<Ttask_id(const mcu_server::Data&)>;
-		using PersistentTaskDataParser = mcu_server::Parser<mcu_server::Data *(const mcu_server::Data&)>;
-
-		using DelayParser = mcu_server::Parser<unsigned int(const mcu_server::Data&)>;
-		using TasksParser = mcu_server::Parser<mcu_server::Array(const mcu_server::Data&)>;
-
+		
 		using ResultReporter = mcu_server::Creator<mcu_server::Data *(int)>;
 		using ResultStateReporter = mcu_server::Creator<mcu_server::Data *(int, const mcu_platform::Gpio::State&)>;
 		using TasksResultsReporter = mcu_server::Creator<mcu_server::Data *(const mcu_server::Array&)>;
 
 		McuFactory(
 			mcu_platform::Platform<Tgpio_id, Ttask_id> *platform,
-			const TaskTypeParser& task_type_parser,
-			const GpioIdParser& gpio_id_parser,
-			const GpioDirParser& gpio_dir_parser,
-			const GpioStateParser& gpio_state_parser,
-			const PersistentTaskIdParser& persistent_task_id_parser,
-			const PersistentTaskDataParser& persistent_task_data_parser,
-			const TasksParser& tasks_parser,
-			const DelayParser& delay_parser,
+			McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>& parsers, 
 			const ResultReporter& result_reporter,
 			const ResultStateReporter& result_state_reporter,
 			const TasksResultsReporter& tasks_results_reporter
@@ -78,14 +62,7 @@ namespace mcu_factory {
 		mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *clone() const override;
 	private:
 		mcu_platform::Platform<Tgpio_id, Ttask_id> *m_platform;
-		const std::unique_ptr<TaskTypeParser> m_task_type_parser;
-		const std::unique_ptr<GpioIdParser> m_gpio_id_parser;
-		const std::unique_ptr<GpioDirParser> m_gpio_dir_parser;
-		const std::unique_ptr<GpioStateParser> m_gpio_state_parser;
-		const std::unique_ptr<PersistentTaskIdParser> m_persistent_task_id_parser;
-		const std::unique_ptr<PersistentTaskDataParser> m_persistent_task_data_parser;
-		const std::unique_ptr<TasksParser> m_tasks_parser;
-		const std::unique_ptr<DelayParser> m_delay_parser;
+		const std::unique_ptr<McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>> m_parsers;
 		const std::unique_ptr<ResultReporter> m_result_reporter;
 		const std::unique_ptr<ResultStateReporter> m_result_state_reporter;
 		const std::unique_ptr<TasksResultsReporter> m_tasks_results_reporter;
@@ -107,27 +84,13 @@ namespace mcu_factory {
 	template <typename Tgpio_id, typename Ttask_id>
 	inline McuFactory<Tgpio_id, Ttask_id>::McuFactory(
 		mcu_platform::Platform<Tgpio_id, Ttask_id> *platform,
-		const TaskTypeParser& task_type_parser,
-		const GpioIdParser& gpio_id_parser,
-		const GpioDirParser& gpio_dir_parser,
-		const GpioStateParser& gpio_state_parser,
-		const PersistentTaskIdParser& persistent_task_id_parser,
-		const PersistentTaskDataParser& persistent_task_data_parser,
-		const TasksParser& tasks_parser,
-		const DelayParser& delay_parser,
+		McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>& parsers, 
 		const ResultReporter& result_reporter,
 		const ResultStateReporter& result_state_reporter,
 		const TasksResultsReporter& tasks_results_reporter
 	):
 		m_platform(platform),
-		m_task_type_parser(task_type_parser.clone()),
-		m_gpio_id_parser(gpio_id_parser.clone()),
-		m_gpio_dir_parser(gpio_dir_parser.clone()),
-		m_gpio_state_parser(gpio_state_parser.clone()),
-		m_persistent_task_id_parser(persistent_task_id_parser.clone()),
-		m_persistent_task_data_parser(persistent_task_data_parser.clone()),
-		m_tasks_parser(tasks_parser.clone()),
-		m_delay_parser(delay_parser.clone()),
+		m_parsers(parsers.clone()),
 		m_result_reporter(result_reporter.clone()),
 		m_result_state_reporter(result_state_reporter.clone()),
 		m_tasks_results_reporter(tasks_results_reporter.clone()),
@@ -152,14 +115,7 @@ namespace mcu_factory {
 	template <typename Tgpio_id, typename Ttask_id>
 	inline McuFactory<Tgpio_id, Ttask_id>::McuFactory(const McuFactory& other):
 		m_platform(other.m_platform),
-		m_task_type_parser(other.m_task_type_parser->clone()),
-		m_gpio_id_parser(other.m_gpio_id_parser->clone()),
-		m_gpio_dir_parser(other.m_gpio_dir_parser->clone()),
-		m_gpio_state_parser(other.m_gpio_state_parser->clone()),
-		m_persistent_task_id_parser(other.m_persistent_task_id_parser->clone()),
-		m_persistent_task_data_parser(other.m_persistent_task_data_parser->clone()),
-		m_tasks_parser(other.m_tasks_parser->clone()),
-		m_delay_parser(other.m_delay_parser->clone()),
+		m_parsers(other.m_parsers->clone()),
 		m_result_reporter(other.m_result_reporter->clone()),
 		m_result_state_reporter(other.m_result_state_reporter->clone()),
 		m_tasks_results_reporter(other.m_tasks_results_reporter->clone()),
@@ -171,7 +127,7 @@ namespace mcu_factory {
 
 	template <typename Tgpio_id, typename Ttask_id>
 	inline mcu_server::Task<mcu_server::Data *(void)> *McuFactory<Tgpio_id, Ttask_id>::create(const mcu_server::Data& data) const {
-		auto task_type = m_task_type_parser->parse(data);
+		auto task_type = m_parsers->task_type_parser()->parse(data);
 		auto task_ctor_iter = m_ctors.find(task_type);
 		if (m_ctors.end() == task_ctor_iter) {
 			throw std::invalid_argument("task ctor with specified id is not registered");
@@ -195,8 +151,8 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							const Tgpio_id gpio_id(m_gpio_id_parser->parse(data));
-							const GpioDirection gpio_dir(m_gpio_dir_parser->parse(data));
+							const Tgpio_id gpio_id((m_parsers->gpio_id_parser()).parse(data));
+							const GpioDirection gpio_dir((m_parsers->gpio_dir_parser()).parse(data));
 							return new CreateGpioTask<Tgpio_id>(
 								m_platform->gpio_inventory(),
 								gpio_id,
