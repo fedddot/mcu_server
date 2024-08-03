@@ -99,5 +99,6 @@ target_link_libraries(
     INTERFACE
     creator
     data
+    delay
     task
 )
