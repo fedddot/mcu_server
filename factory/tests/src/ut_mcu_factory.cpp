@@ -23,6 +23,8 @@ TEST_F(McuFactoryFixture, ctor_dtor_sanity) {
 				gpio_id_parser(),
 				gpio_dir_parser(),
 				gpio_state_parser(),
+				task_id_parser(),
+				task_data_parser(),
 				tasks_parser(),
 				delay_parser(),
 				result_reporter(),
@@ -92,6 +94,10 @@ TEST_F(McuFactoryFixture, create_sanity) {
 			{create_gpio_data(1, Gpio::Direction::IN), check_report}
 		},
 		{
+			"persistent task creation",
+			{create_persistent_task_data("create gpi task", create_gpio_data(1, Gpio::Direction::IN)), check_report}
+		},
+		{
 			"gpo creation",
 			{create_gpio_data(2, Gpio::Direction::OUT), check_report}
 		},
@@ -142,6 +148,8 @@ TEST_F(McuFactoryFixture, create_sanity) {
 		gpio_id_parser(),
 		gpio_dir_parser(),
 		gpio_state_parser(),
+		task_id_parser(),
+		task_data_parser(),
 		tasks_parser(),
 		delay_parser(),
 		result_reporter(),
