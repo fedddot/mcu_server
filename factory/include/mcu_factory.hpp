@@ -48,6 +48,7 @@ namespace mcu_factory {
 		using GpioStateParser = mcu_server::Parser<GpioState(const mcu_server::Data&)>;
 
 		using PersistentTaskIdParser = mcu_server::Parser<Ttask_id(const mcu_server::Data&)>;
+		using PersistentTaskDataParser = mcu_server::Parser<mcu_server::Data *(const mcu_server::Data&)>;
 
 		using DelayParser = mcu_server::Parser<unsigned int(const mcu_server::Data&)>;
 		using TasksParser = mcu_server::Parser<mcu_server::Array(const mcu_server::Data&)>;
@@ -63,6 +64,7 @@ namespace mcu_factory {
 			const GpioDirParser& gpio_dir_parser,
 			const GpioStateParser& gpio_state_parser,
 			const PersistentTaskIdParser& persistent_task_id_parser,
+			const PersistentTaskDataParser& persistent_task_data_parser,
 			const TasksParser& tasks_parser,
 			const DelayParser& delay_parser,
 			const ResultReporter& result_reporter,
@@ -81,6 +83,7 @@ namespace mcu_factory {
 		const std::unique_ptr<GpioDirParser> m_gpio_dir_parser;
 		const std::unique_ptr<GpioStateParser> m_gpio_state_parser;
 		const std::unique_ptr<PersistentTaskIdParser> m_persistent_task_id_parser;
+		const std::unique_ptr<PersistentTaskDataParser> m_persistent_task_data_parser;
 		const std::unique_ptr<TasksParser> m_tasks_parser;
 		const std::unique_ptr<DelayParser> m_delay_parser;
 		const std::unique_ptr<ResultReporter> m_result_reporter;
@@ -103,6 +106,7 @@ namespace mcu_factory {
 		const GpioDirParser& gpio_dir_parser,
 		const GpioStateParser& gpio_state_parser,
 		const PersistentTaskIdParser& persistent_task_id_parser,
+		const PersistentTaskDataParser& persistent_task_data_parser,
 		const TasksParser& tasks_parser,
 		const DelayParser& delay_parser,
 		const ResultReporter& result_reporter,
@@ -115,6 +119,7 @@ namespace mcu_factory {
 		m_gpio_dir_parser(gpio_dir_parser.clone()),
 		m_gpio_state_parser(gpio_state_parser.clone()),
 		m_persistent_task_id_parser(persistent_task_id_parser.clone()),
+		m_persistent_task_data_parser(persistent_task_data_parser.clone()),
 		m_tasks_parser(tasks_parser.clone()),
 		m_delay_parser(delay_parser.clone()),
 		m_result_reporter(result_reporter.clone()),
@@ -136,6 +141,7 @@ namespace mcu_factory {
 		m_gpio_dir_parser(other.m_gpio_dir_parser->clone()),
 		m_gpio_state_parser(other.m_gpio_state_parser->clone()),
 		m_persistent_task_id_parser(other.m_persistent_task_id_parser->clone()),
+		m_persistent_task_data_parser(other.m_persistent_task_data_parser->clone()),
 		m_tasks_parser(other.m_tasks_parser->clone()),
 		m_delay_parser(other.m_delay_parser->clone()),
 		m_result_reporter(other.m_result_reporter->clone()),
@@ -196,11 +202,12 @@ namespace mcu_factory {
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
 							const Ttask_id task_id(m_persistent_task_id_parser->parse(data));
+							std::unique_ptr<Data> task_data(m_persistent_task_data_parser->parse(data));
 							return new CreatePersistentTask<Ttask_id>(
 								m_platform->task_inventory(),
 								task_id,
 								*this,
-								data,
+								*task_data,
 								*m_result_reporter
 							);
 						}
