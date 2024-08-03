@@ -128,5 +128,18 @@ namespace mcu_factory {
 			)
 		);
 	}
+
+	template <typename Tgpio_id, typename Ttask_id, typename Ttask_type>
+	inline DefaultMcuFactoryParsers<Tgpio_id, Ttask_id, Ttask_type>::DefaultMcuFactoryParsers(const DefaultMcuFactoryParsers& other):
+		m_task_type_parser(other.m_task_type_parser->clone()),
+		m_gpio_id_parser(other.m_gpio_id_parser->clone()),
+		m_gpio_dir_parser(other.m_gpio_dir_parser->clone()),
+		m_gpio_state_parser(other.m_gpio_state_parser->clone()),
+		m_persistent_task_id_parser(other.m_persistent_task_id_parser->clone()),
+		m_persistent_task_data_parser(other.m_persistent_task_data_parser->clone()),
+		m_tasks_parser(other.m_tasks_parser->clone()),
+		m_delay_parser(other.m_delay_parser->clone()) {
+
+	}
 }
 #endif // DEFAULT_MCU_FACTORY_PARSERS_HPP
