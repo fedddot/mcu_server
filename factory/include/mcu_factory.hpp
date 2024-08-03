@@ -49,7 +49,7 @@ namespace mcu_factory {
 
 		McuFactory(
 			mcu_platform::Platform<Tgpio_id, Ttask_id> *platform,
-			McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>& parsers, 
+			const McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>& parsers, 
 			const ResultReporter& result_reporter,
 			const ResultStateReporter& result_state_reporter,
 			const TasksResultsReporter& tasks_results_reporter
@@ -83,7 +83,7 @@ namespace mcu_factory {
 	template <typename Tgpio_id, typename Ttask_id>
 	inline McuFactory<Tgpio_id, Ttask_id>::McuFactory(
 		mcu_platform::Platform<Tgpio_id, Ttask_id> *platform,
-		McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>& parsers, 
+		const McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>& parsers, 
 		const ResultReporter& result_reporter,
 		const ResultStateReporter& result_state_reporter,
 		const TasksResultsReporter& tasks_results_reporter
