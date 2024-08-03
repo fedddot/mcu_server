@@ -15,14 +15,13 @@
 #include "mcu_factory.hpp"
 #include "mcu_factory_parsers.hpp"
 #include "object.hpp"
-#include "string.hpp"
 #include "test_platform.hpp"
 
 namespace mcu_factory_uts {
 	class McuFactoryFixture: public testing::Test {
 	public:
 		using GpioId = int;
-		using TaskId = std::string;
+		using TaskId = int;
 		using TestFactory = mcu_factory::McuFactory<GpioId, TaskId>;
 		using TestParsers = mcu_factory::McuFactoryParsers<GpioId, TaskId, TestFactory::TaskType>;
 
@@ -63,7 +62,7 @@ namespace mcu_factory_uts {
 			using namespace mcu_server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::CREATE_PERSISTENT_TASK)));
-			task_data.add("task_id", String(id));
+			task_data.add("task_id", Integer(id));
 			task_data.add("task_data", pers_task_data);
 			return task_data;
 		}
@@ -89,7 +88,7 @@ namespace mcu_factory_uts {
 			using namespace mcu_server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::EXECUTE_PERSISTENT_TASK)));
-			task_data.add("task_id", String(id));
+			task_data.add("task_id", Integer(id));
 			return task_data;
 		}
 
@@ -105,7 +104,7 @@ namespace mcu_factory_uts {
 			using namespace mcu_server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELETE_PERSISTENT_TASK)));
-			task_data.add("task_id", String(id));
+			task_data.add("task_id", Integer(id));
 			return task_data;
 		}
 
