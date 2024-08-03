@@ -32,7 +32,7 @@ namespace mcu_factory {
 	};
 
 	template <class Ttask_id>
-	inline CreatePersistentTask<Ttask_id>::CreatePersistentTask(PersistentTaskInventory *inventory, const Ttask_id& id, const TaskCreator& task_ctor, const mcu_server::Data& data, const ReportCreator& report_ctor): m_inventory(inventory), m_id(id), m_task_ctor(task_ctor.clone()), m_report_ctor(report_ctor.clone()) {
+	inline CreatePersistentTask<Ttask_id>::CreatePersistentTask(PersistentTaskInventory *inventory, const Ttask_id& id, const TaskCreator& task_ctor, const mcu_server::Data& data, const ReportCreator& report_ctor): m_inventory(inventory), m_id(id), m_task_ctor(task_ctor.clone()), m_data(data.clone()), m_report_ctor(report_ctor.clone()) {
 		if (!m_inventory) {
 			throw std::invalid_argument("invalid inventory ptr received");
 		}
