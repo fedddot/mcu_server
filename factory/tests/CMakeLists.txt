@@ -5,7 +5,7 @@ target_link_libraries(
 	INTERFACE
     data_lib
     custom_creator
-    default_mcu_factory
+    mcu_factory_parsers
     default_mcu_factory_parsers
     gpio
     mcu_factory
