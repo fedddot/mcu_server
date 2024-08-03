@@ -81,6 +81,16 @@ target_link_libraries(
     task
 )
 
+add_library(execute_persistent_tasks INTERFACE)
+target_include_directories(execute_persistent_tasks INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    execute_persistent_tasks
+    INTERFACE
+    data_lib
+    inventory
+    task
+)
+
 add_library(sequence_task INTERFACE)
 target_include_directories(sequence_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
