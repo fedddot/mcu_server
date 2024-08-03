@@ -4,16 +4,14 @@
 
 using namespace mcu_platform_uts;
 
-using GpioId = int;
-
 TEST(ut_test_platform, ctor_dtor_sanity) {
 	// WHEN
-	TestPlatform *instance_ptr(nullptr);
+	TestPlatform<int, int> *instance_ptr(nullptr);
 
 	// THEN
 	ASSERT_NO_THROW(
 		(
-			instance_ptr = new TestPlatform()
+			instance_ptr = new TestPlatform<int, int>()
 		)
 	);
 	ASSERT_NE(nullptr, instance_ptr);

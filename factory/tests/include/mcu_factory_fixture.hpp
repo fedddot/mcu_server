@@ -8,60 +8,34 @@
 
 #include "array.hpp"
 #include "custom_creator.hpp"
-#include "custom_parser.hpp"
 #include "data.hpp"
+#include "default_mcu_factory_parsers.hpp"
 #include "gpio.hpp"
 #include "integer.hpp"
 #include "mcu_factory.hpp"
+#include "mcu_factory_parsers.hpp"
 #include "object.hpp"
-#include "string.hpp"
 #include "test_platform.hpp"
 
 namespace mcu_factory_uts {
 	class McuFactoryFixture: public testing::Test {
 	public:
 		using GpioId = int;
-		using TaskId = std::string;
+		using TaskId = int;
 		using TestFactory = mcu_factory::McuFactory<GpioId, TaskId>;
+		using TestPlatform = typename TestFactory::FactoryPlatform;
+		using TestParsers = typename TestFactory::Parsers;
 
 		McuFactoryFixture();
 		McuFactoryFixture(const McuFactoryFixture&) = delete;
 		McuFactoryFixture& operator=(const McuFactoryFixture&) = delete;
 		
-		mcu_platform_uts::TestPlatform *platform() const {
+		TestPlatform *platform() const {
 			return &m_platform;
 		}
 
-		const TestFactory::TaskTypeParser& task_type_parser() const {
-			return *m_task_type_parser;
-		}
-
-		const TestFactory::GpioIdParser& gpio_id_parser() const {
-			return *m_gpio_id_parser;
-		}
-
-		const TestFactory::GpioDirParser& gpio_dir_parser() const {
-			return *m_gpio_dir_parser;
-		}
-
-		const TestFactory::GpioStateParser& gpio_state_parser() const {
-			return *m_gpio_state_parser;
-		}
-
-		const TestFactory::PersistentTaskIdParser& task_id_parser() const {
-			return *m_task_id_parser;
-		}
-
-		const TestFactory::PersistentTaskDataParser& task_data_parser() const {
-			return *m_task_data_parser;
-		}
-
-		const TestFactory::TasksParser& tasks_parser() const {
-			return *m_tasks_parser;
-		}
-
-		const TestFactory::DelayParser& delay_parser() const {
-			return *m_delay_parser;
+		const TestParsers& parsers() const {
+			return *m_parsers;
 		}
 
 		const TestFactory::ResultReporter& result_reporter() const {
@@ -89,7 +63,7 @@ namespace mcu_factory_uts {
 			using namespace mcu_server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::CREATE_PERSISTENT_TASK)));
-			task_data.add("task_id", String(id));
+			task_data.add("task_id", Integer(id));
 			task_data.add("task_data", pers_task_data);
 			return task_data;
 		}
@@ -115,7 +89,7 @@ namespace mcu_factory_uts {
 			using namespace mcu_server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::EXECUTE_PERSISTENT_TASK)));
-			task_data.add("task_id", String(id));
+			task_data.add("task_id", Integer(id));
 			return task_data;
 		}
 
@@ -131,7 +105,7 @@ namespace mcu_factory_uts {
 			using namespace mcu_server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELETE_PERSISTENT_TASK)));
-			task_data.add("task_id", String(id));
+			task_data.add("task_id", Integer(id));
 			return task_data;
 		}
 
@@ -158,15 +132,8 @@ namespace mcu_factory_uts {
 		}
 
 	private:
-		mutable mcu_platform_uts::TestPlatform m_platform;
-		std::unique_ptr<TestFactory::TaskTypeParser> m_task_type_parser;
-		std::unique_ptr<TestFactory::GpioIdParser> m_gpio_id_parser;
-		std::unique_ptr<TestFactory::GpioDirParser> m_gpio_dir_parser;
-		std::unique_ptr<TestFactory::GpioStateParser> m_gpio_state_parser;
-		std::unique_ptr<TestFactory::PersistentTaskIdParser> m_task_id_parser;
-		std::unique_ptr<TestFactory::PersistentTaskDataParser> m_task_data_parser;
-		std::unique_ptr<TestFactory::TasksParser> m_tasks_parser;
-		std::unique_ptr<TestFactory::DelayParser> m_delay_parser;
+		mutable mcu_platform_uts::TestPlatform<GpioId, TaskId> m_platform;
+		std::unique_ptr<TestParsers> m_parsers;
 		std::unique_ptr<TestFactory::ResultReporter> m_result_reporter;
 		std::unique_ptr<TestFactory::ResultStateReporter> m_result_state_reporter;
 		std::unique_ptr<TestFactory::TasksResultsReporter> m_tasks_results_reporter;
@@ -179,62 +146,8 @@ namespace mcu_factory_uts {
 		using namespace mcu_platform;
 		using McuTaskType = typename TestFactory::TaskType;
 		
-		m_task_type_parser = std::unique_ptr<TestFactory::TaskTypeParser>(
-			new CustomParser<McuTaskType(const Data&)>(
-				[](const Data& data) {
-					return static_cast<McuTaskType>(Data::cast<Integer>(Data::cast<Object>(data).access("task_type")).get());
-				}
-			)
-		);
-		m_gpio_id_parser = std::unique_ptr<TestFactory::GpioIdParser>(
-			new CustomParser<GpioId(const Data&)>(
-				[](const Data& data) {
-					return static_cast<GpioId>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_id")).get());
-				}
-			)
-		);
-		m_gpio_dir_parser = std::unique_ptr<TestFactory::GpioDirParser>(
-			new CustomParser<Gpio::Direction(const Data&)>(
-				[](const Data& data) {
-					return static_cast<Gpio::Direction>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_dir")).get());
-				}
-			)
-		);
-		m_gpio_state_parser = std::unique_ptr<TestFactory::GpioStateParser>(
-			new CustomParser<Gpio::State(const Data&)>(
-				[](const Data& data) {
-					return static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get());
-				}
-			)
-		);
-		m_task_id_parser = std::unique_ptr<TestFactory::PersistentTaskIdParser>(
-			new CustomParser<TaskId(const Data&)>(
-				[](const Data& data) {
-					return Data::cast<String>(Data::cast<Object>(data).access("task_id")).get();
-				}
-			)
-		);
-		m_task_data_parser = std::unique_ptr<TestFactory::PersistentTaskDataParser>(
-			new CustomParser<Data *(const Data&)>(
-				[](const Data& data) {
-					return Data::cast<Object>(data).access("task_data").clone();
-				}
-			)
-		);
-		m_tasks_parser = std::unique_ptr<TestFactory::TasksParser>(
-			new CustomParser<Array(const Data&)>(
-				[](const Data& data) {
-					return Array(Data::cast<Array>(Data::cast<Object>(data).access("tasks")));
-				}
-			)
-		);
-		m_delay_parser = std::unique_ptr<TestFactory::DelayParser>(
-			new CustomParser<unsigned int(const Data&)>(
-				[](const Data& data) {
-					return static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("delay_ms")).get());
-				}
-			)
-		);
+		m_parsers = std::unique_ptr<TestParsers>(new DefaultMcuFactoryParsers<GpioId, TaskId, McuTaskType>());
+
 		m_result_reporter = std::unique_ptr<TestFactory::ResultReporter>(
 			new CustomCreator<Data *(int)>(
 				[](int result) {
