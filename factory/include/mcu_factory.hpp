@@ -19,7 +19,6 @@
 #include "get_gpio_task.hpp"
 #include "gpio.hpp"
 #include "mcu_factory_parsers.hpp"
-#include "parser.hpp"
 #include "platform.hpp"
 #include "sequence_task.hpp"
 #include "set_gpio_task.hpp"
@@ -127,7 +126,7 @@ namespace mcu_factory {
 
 	template <typename Tgpio_id, typename Ttask_id>
 	inline mcu_server::Task<mcu_server::Data *(void)> *McuFactory<Tgpio_id, Ttask_id>::create(const mcu_server::Data& data) const {
-		auto task_type = m_parsers->task_type_parser()->parse(data);
+		auto task_type = (m_parsers->task_type_parser()).parse(data);
 		auto task_ctor_iter = m_ctors.find(task_type);
 		if (m_ctors.end() == task_ctor_iter) {
 			throw std::invalid_argument("task ctor with specified id is not registered");
@@ -171,8 +170,8 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							const Ttask_id task_id(m_persistent_task_id_parser->parse(data));
-							std::unique_ptr<Data> task_data(m_persistent_task_data_parser->parse(data));
+							const Ttask_id task_id((m_parsers->persistent_task_id_parser()).parse(data));
+							std::unique_ptr<Data> task_data((m_parsers->persistent_task_data_parser()).parse(data));
 							return new CreatePersistentTask<Ttask_id>(
 								m_platform->task_inventory(),
 								task_id,
@@ -191,7 +190,7 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							auto gpio_id = m_gpio_id_parser->parse(data);
+							auto gpio_id = (m_parsers->gpio_id_parser()).parse(data);
 							return new DeleteGpioTask<Tgpio_id>(
 								m_platform->gpio_inventory(),
 								gpio_id,
@@ -208,7 +207,7 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							const Ttask_id task_id(m_persistent_task_id_parser->parse(data));
+							const Ttask_id task_id((m_parsers->persistent_task_id_parser()).parse(data));
 							return new DeletePersistentTask<Ttask_id>(
 								m_platform->task_inventory(),
 								task_id,
@@ -225,8 +224,8 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							auto gpio_id = m_gpio_id_parser->parse(data);
-							auto gpio_state = m_gpio_state_parser->parse(data);
+							auto gpio_id = (m_parsers->gpio_id_parser()).parse(data);
+							auto gpio_state = (m_parsers->gpio_state_parser()).parse(data);
 							return new SetGpioTask<Tgpio_id>(
 								m_platform->gpio_inventory(),
 								gpio_id,
@@ -244,7 +243,7 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							auto gpio_id = m_gpio_id_parser->parse(data);
+							auto gpio_id = (m_parsers->gpio_id_parser()).parse(data);
 							return new GetGpioTask<Tgpio_id>(
 								m_platform->gpio_inventory(),
 								gpio_id,
@@ -261,7 +260,7 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							const Ttask_id task_id(m_persistent_task_id_parser->parse(data));
+							const Ttask_id task_id((m_parsers->persistent_task_id_parser()).parse(data));
 							return new ExecutePersistentTask<Ttask_id>(
 								m_platform->task_inventory(),
 								task_id
@@ -277,7 +276,7 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							auto tasks = m_tasks_parser->parse(data);
+							auto tasks = (m_parsers->tasks_parser()).parse(data);
 							return new SequenceTask(
 								*this,
 								tasks,
@@ -294,7 +293,7 @@ namespace mcu_factory {
 				std::unique_ptr<TaskCtor>(
 					new CustomCreator<FactoryTask *(const Data&)>(
 						[this](const Data& data) {
-							auto delay_ms = m_delay_parser->parse(data);
+							auto delay_ms = (m_parsers->delay_parser()).parse(data);
 							return new DelayTask(
 								m_delay_ctor,
 								delay_ms,
