@@ -90,6 +90,12 @@ namespace mcu_factory {
 		const std::unique_ptr<ResultStateReporter> m_result_state_reporter;
 		const std::unique_ptr<TasksResultsReporter> m_tasks_results_reporter;
 
+		using GpioCtor = mcu_server_utl::CustomCreator<mcu_platform::Gpio *(const Tgpio_id&, const mcu_platform::Gpio::Direction&)>;
+		using DelayCtor = mcu_server_utl::CustomCreator<mcu_platform::Delay *(void)>;
+		
+		GpioCtor m_gpio_ctor;
+		DelayCtor m_delay_ctor;
+
 		using FactoryTask = mcu_server::Task<mcu_server::Data *(void)>;
 		using TaskCtor = mcu_server::Creator<FactoryTask *(const mcu_server::Data&)>;
 		
@@ -124,7 +130,17 @@ namespace mcu_factory {
 		m_delay_parser(delay_parser.clone()),
 		m_result_reporter(result_reporter.clone()),
 		m_result_state_reporter(result_state_reporter.clone()),
-		m_tasks_results_reporter(tasks_results_reporter.clone()) {
+		m_tasks_results_reporter(tasks_results_reporter.clone()),
+		m_gpio_ctor(
+			[this](const Tgpio_id& id, const mcu_platform::Gpio::Direction& dir) {
+				return m_platform->create_gpio(id, dir);
+			}
+		),
+		m_delay_ctor(
+			[this](void) {
+				return m_platform->create_delay();
+			}
+		) {
 		
 		if (!m_platform) {
 			throw std::invalid_argument("invalid platform pointer received");
@@ -146,7 +162,9 @@ namespace mcu_factory {
 		m_delay_parser(other.m_delay_parser->clone()),
 		m_result_reporter(other.m_result_reporter->clone()),
 		m_result_state_reporter(other.m_result_state_reporter->clone()),
-		m_tasks_results_reporter(other.m_tasks_results_reporter->clone()) {
+		m_tasks_results_reporter(other.m_tasks_results_reporter->clone()),
+		m_gpio_ctor(other.m_gpio_ctor),
+		m_delay_ctor(other.m_delay_ctor) {
 		
 		init_factory();
 	}
@@ -170,6 +188,7 @@ namespace mcu_factory {
 	inline void McuFactory<Tgpio_id, Ttask_id>::init_factory() {
 		using namespace mcu_server;
 		using namespace mcu_server_utl;
+
 		m_ctors.insert(
 			{
 				TaskType::CREATE_GPIO,
@@ -178,16 +197,11 @@ namespace mcu_factory {
 						[this](const Data& data) {
 							const Tgpio_id gpio_id(m_gpio_id_parser->parse(data));
 							const GpioDirection gpio_dir(m_gpio_dir_parser->parse(data));
-							const CustomCreator<mcu_platform::Gpio *(const Tgpio_id&, const mcu_platform::Gpio::Direction&)> gpio_ctor(
-								[this](const Tgpio_id& id, const mcu_platform::Gpio::Direction& dir) {
-									return m_platform->create_gpio(id, dir);
-								}
-							);
 							return new CreateGpioTask<Tgpio_id>(
 								m_platform->gpio_inventory(),
 								gpio_id,
 								gpio_dir,
-								gpio_ctor,
+								m_gpio_ctor,
 								*m_result_reporter
 							);
 						}
@@ -326,10 +340,7 @@ namespace mcu_factory {
 						[this](const Data& data) {
 							auto delay_ms = m_delay_parser->parse(data);
 							return new DelayTask(
-								[this](unsigned int delay_ms) {
-									std::unique_ptr<mcu_platform::Delay> delay(m_platform->create_delay());
-									delay->delay(delay_ms);
-								},
+								m_delay_ctor,
 								delay_ms,
 								*m_result_reporter
 							);

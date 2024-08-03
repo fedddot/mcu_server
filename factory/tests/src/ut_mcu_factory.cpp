@@ -83,9 +83,18 @@ TEST_F(McuFactoryFixture, create_sanity) {
 	auto check_get_report = [](const Data& data, const Gpio::State& expected_state) {
 		auto result = Data::cast<Integer>(Data::cast<Object>(data).access("result")).get();
 		ASSERT_EQ(0, result);
-		ASSERT_EQ(0, result);
 		auto state = static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get());
 		ASSERT_EQ(expected_state, state);
+	};
+	auto check_report_and_task_added = [this](const Data& data, const TaskId& expected_task) {
+		auto result = Data::cast<Integer>(Data::cast<Object>(data).access("result")).get();
+		ASSERT_EQ(0, result);
+		ASSERT_TRUE(platform()->task_inventory()->contains(expected_task));
+	};
+	auto check_report_and_task_deleted = [this](const Data& data, const TaskId& expected_task) {
+		auto result = Data::cast<Integer>(Data::cast<Object>(data).access("result")).get();
+		ASSERT_EQ(0, result);
+		ASSERT_FALSE(platform()->task_inventory()->contains(expected_task));
 	};
 	using TestCase = std::pair<std::string, std::pair<Object, CheckReportFunction>>;
 	const std::vector<TestCase> test_cases{
@@ -94,8 +103,48 @@ TEST_F(McuFactoryFixture, create_sanity) {
 			{create_gpio_data(1, Gpio::Direction::IN), check_report}
 		},
 		{
-			"persistent task creation",
-			{create_persistent_task_data("create gpi task", create_gpio_data(1, Gpio::Direction::IN)), check_report}
+			"persistent task creation (create gpi task)",
+			{
+				create_persistent_task_data("create gpi task", create_gpio_data(100, Gpio::Direction::IN)),
+				[check_report_and_task_added](const Data& data) {
+					check_report_and_task_added(data, "create gpi task");
+				}
+			}
+		},
+		{
+			"persistent task creation (delete gpi task)",
+			{
+				create_persistent_task_data("delete gpi task", delete_gpio_data(100)),
+				[check_report_and_task_added](const Data& data) {
+					check_report_and_task_added(data, "delete gpi task");
+				}
+			}
+		},
+		{
+			"persistent task execution (create gpi task)",
+			{execute_persistent_task_data("create gpi task"), check_report}
+		},
+		{
+			"persistent task execution (delete gpi task)",
+			{execute_persistent_task_data("delete gpi task"), check_report}
+		},
+		{
+			"persistent task deletion (create gpi task)",
+			{
+				delete_persistent_task_data("create gpi task"),
+				[check_report_and_task_deleted](const Data& data) {
+					check_report_and_task_deleted(data, "create gpi task");
+				}
+			}
+		},
+		{
+			"persistent task deletion (delete gpi task)",
+			{
+				delete_persistent_task_data("delete gpi task"),
+				[check_report_and_task_deleted](const Data& data) {
+					check_report_and_task_deleted(data, "delete gpi task");
+				}
+			}
 		},
 		{
 			"gpo creation",
