@@ -74,6 +74,8 @@ TEST_F(McuServerFixture, run_sanity) {
 		auto state = static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("gpio_state")).get());
 		ASSERT_EQ(expected_state, state);
 	};
+	const auto create_task_id = 0;
+	const auto delete_task_id = 1;
 	using TestCase = std::pair<std::string, std::pair<McuServerFixture::McuData, CheckReportFunction>>;
 	const std::vector<TestCase> test_cases{
 		{
@@ -84,44 +86,44 @@ TEST_F(McuServerFixture, run_sanity) {
 			}
 		},
 		{
-			"persistent task creation (create gpi task)",
+			"persistent task creation (" + std::to_string(create_task_id) + ")",
 			{
-				serializer().serialize(create_persistent_task_data("create gpi task", create_gpio_data(100, Gpio::Direction::IN))),
+				serializer().serialize(create_persistent_task_data(create_task_id, create_gpio_data(100, Gpio::Direction::IN))),
 				check_report
 			}
 		},
 		{
-			"persistent task creation (delete gpi task)",
+			"persistent task creation (" + std::to_string(delete_task_id) + ")",
 			{
-				serializer().serialize(create_persistent_task_data("delete gpi task", delete_gpio_data(100))),
+				serializer().serialize(create_persistent_task_data(delete_task_id, delete_gpio_data(100))),
 				check_report
 			}
 		},
 		{
-			"persistent task execution (create gpi task)",
+			"persistent task execution (" + std::to_string(create_task_id) + ")",
 			{
-				serializer().serialize(execute_persistent_task_data("create gpi task")),
+				serializer().serialize(execute_persistent_task_data(create_task_id)),
 				check_report
 			}
 		},
 		{
-			"persistent task execution (delete gpi task)",
+			"persistent task execution (" + std::to_string(delete_task_id) + ")",
 			{
-				serializer().serialize(execute_persistent_task_data("delete gpi task")),
+				serializer().serialize(execute_persistent_task_data(delete_task_id)),
 				check_report
 			}
 		},
 		{
-			"persistent task deletion (create gpi task)",
+			"persistent task deletion (" + std::to_string(create_task_id) + ")",
 			{
-				serializer().serialize(delete_persistent_task_data("create gpi task")),
+				serializer().serialize(delete_persistent_task_data(create_task_id)),
 				check_report
 			}
 		},
 		{
-			"persistent task deletion (delete gpi task)",
+			"persistent task deletion (" + std::to_string(delete_task_id) + ")",
 			{
-				serializer().serialize(delete_persistent_task_data("delete gpi task")),
+				serializer().serialize(delete_persistent_task_data(delete_task_id)),
 				check_report
 			}
 		},
