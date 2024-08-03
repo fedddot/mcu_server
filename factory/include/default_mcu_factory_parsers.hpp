@@ -7,6 +7,7 @@
 #include "integer.hpp"
 #include "mcu_factory_parsers.hpp"
 #include "object.hpp"
+#include <vector>
 
 namespace mcu_factory {
 	template <typename Tgpio_id, typename Ttask_id, typename Ttask_type>
@@ -21,6 +22,7 @@ namespace mcu_factory {
 		using TasksParser = typename Base::TasksParser;
 		using PersistentTaskIdParser = typename Base::PersistentTaskIdParser;
 		using PersistentTaskDataParser = typename Base::PersistentTaskDataParser;
+		using PersistentTasksIdsParser = typename Base::PersistentTasksIdsParser;
 
 		DefaultMcuFactoryParsers();
 		DefaultMcuFactoryParsers(const DefaultMcuFactoryParsers& other);
@@ -51,6 +53,9 @@ namespace mcu_factory {
 		const PersistentTaskDataParser& persistent_task_data_parser() const override {
 			return *m_persistent_task_data_parser;
 		}
+		const PersistentTasksIdsParser& persistent_tasks_ids_parser() const override {
+
+		}
 		Base *clone() const override {
 			return new DefaultMcuFactoryParsers(*this);
 		}
@@ -61,6 +66,7 @@ namespace mcu_factory {
 		std::unique_ptr<GpioStateParser> m_gpio_state_parser;
 		std::unique_ptr<PersistentTaskIdParser> m_persistent_task_id_parser;
 		std::unique_ptr<PersistentTaskDataParser> m_persistent_task_data_parser;
+		std::unique_ptr<PersistentTasksIdsParser> m_persistent_tasks_ids_parser;
 		std::unique_ptr<TasksParser> m_tasks_parser;
 		std::unique_ptr<DelayParser> m_delay_parser;
 	};
@@ -110,6 +116,19 @@ namespace mcu_factory {
 			new CustomParser<Data *(const Data&)>(
 				[](const Data& data) {
 					return Data::cast<Object>(data).access("task_data").clone();
+				}
+			)
+		);
+		m_persistent_tasks_ids_parser = std::unique_ptr<PersistentTasksIdsParser>(
+			new CustomParser<std::vector<Ttask_id>(const Data&)>(
+				[](const Data& data) {
+					std::vector<Ttask_id> tasks_ids;
+					Data::cast<Array>(Data::cast<Object>(data).access("tasks")).for_each(
+						[&tasks_ids](int task_index, const Data& task_data) {
+							tasks_ids.push_back(static_cast<Ttask_id>(Data::cast<Integer>(task_data).get()));
+						}
+					);
+					return tasks_ids;
 				}
 			)
 		);
