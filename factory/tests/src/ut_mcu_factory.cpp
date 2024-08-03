@@ -19,14 +19,7 @@ TEST_F(McuFactoryFixture, ctor_dtor_sanity) {
 		(
 			instance_ptr = new TestFactory(
 				platform(),
-				task_type_parser(),
-				gpio_id_parser(),
-				gpio_dir_parser(),
-				gpio_state_parser(),
-				task_id_parser(),
-				task_data_parser(),
-				tasks_parser(),
-				delay_parser(),
+				parsers(),
 				result_reporter(),
 				result_state_reporter(),
 				tasks_results_reporter()
@@ -193,14 +186,7 @@ TEST_F(McuFactoryFixture, create_sanity) {
 	// WHEN
 	TestFactory instance(
 		platform(),
-		task_type_parser(),
-		gpio_id_parser(),
-		gpio_dir_parser(),
-		gpio_state_parser(),
-		task_id_parser(),
-		task_data_parser(),
-		tasks_parser(),
-		delay_parser(),
+		parsers(),
 		result_reporter(),
 		result_state_reporter(),
 		tasks_results_reporter()
