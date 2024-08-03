@@ -214,6 +214,13 @@ namespace mcu_factory_uts {
 				}
 			)
 		);
+		m_task_data_parser = std::unique_ptr<TestFactory::PersistentTaskDataParser>(
+			new CustomParser<Data *(const Data&)>(
+				[](const Data& data) {
+					return Data::cast<Object>(data).access("task_data").clone();
+				}
+			)
+		);
 		m_tasks_parser = std::unique_ptr<TestFactory::TasksParser>(
 			new CustomParser<Array(const Data&)>(
 				[](const Data& data) {
