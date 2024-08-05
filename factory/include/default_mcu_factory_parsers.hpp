@@ -155,6 +155,7 @@ namespace mcu_factory {
 		m_gpio_dir_parser(other.m_gpio_dir_parser->clone()),
 		m_gpio_state_parser(other.m_gpio_state_parser->clone()),
 		m_persistent_task_id_parser(other.m_persistent_task_id_parser->clone()),
+		m_persistent_tasks_ids_parser(other.m_persistent_tasks_ids_parser->clone()),
 		m_persistent_task_data_parser(other.m_persistent_task_data_parser->clone()),
 		m_tasks_parser(other.m_tasks_parser->clone()),
 		m_delay_parser(other.m_delay_parser->clone()) {
