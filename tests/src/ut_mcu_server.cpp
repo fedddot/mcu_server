@@ -7,11 +7,15 @@
 
 #include "gtest/gtest.h"
 
+#include "array.hpp"
 #include "data.hpp"
 #include "gpio.hpp"
+#include "gpo.hpp"
 #include "integer.hpp"
 #include "mcu_server_fixture.hpp"
 #include "object.hpp"
+#include "string.hpp"
+#include "test_gpo.hpp"
 
 using namespace mcu_server;
 using namespace mcu_server_utl;
@@ -74,56 +78,12 @@ TEST_F(McuServerFixture, run_sanity) {
 		auto state = static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("gpio_state")).get());
 		ASSERT_EQ(expected_state, state);
 	};
-	const auto create_task_id = 0;
-	const auto delete_task_id = 1;
 	using TestCase = std::pair<std::string, std::pair<McuServerFixture::McuData, CheckReportFunction>>;
 	const std::vector<TestCase> test_cases{
 		{
 			"gpi creation",
 			{
 				serializer().serialize(create_gpio_data(1, Gpio::Direction::IN)),
-				check_report
-			}
-		},
-		{
-			"persistent task creation (" + std::to_string(create_task_id) + ")",
-			{
-				serializer().serialize(create_persistent_task_data(create_task_id, create_gpio_data(100, Gpio::Direction::IN))),
-				check_report
-			}
-		},
-		{
-			"persistent task creation (" + std::to_string(delete_task_id) + ")",
-			{
-				serializer().serialize(create_persistent_task_data(delete_task_id, delete_gpio_data(100))),
-				check_report
-			}
-		},
-		{
-			"persistent task execution (" + std::to_string(create_task_id) + ")",
-			{
-				serializer().serialize(execute_persistent_task_data(create_task_id)),
-				check_report
-			}
-		},
-		{
-			"persistent task execution (" + std::to_string(delete_task_id) + ")",
-			{
-				serializer().serialize(execute_persistent_task_data(delete_task_id)),
-				check_report
-			}
-		},
-		{
-			"persistent task deletion (" + std::to_string(create_task_id) + ")",
-			{
-				serializer().serialize(delete_persistent_task_data(create_task_id)),
-				check_report
-			}
-		},
-		{
-			"persistent task deletion (" + std::to_string(delete_task_id) + ")",
-			{
-				serializer().serialize(delete_persistent_task_data(delete_task_id)),
 				check_report
 			}
 		},
@@ -188,6 +148,104 @@ TEST_F(McuServerFixture, run_sanity) {
 			}
 		}
 	};
+
+	// THEN
+	for (auto test_case: test_cases) {
+		run_create_sanity_tc(test_case.first, test_case.second.first, test_case.second.second, this);
+	}
+}
+
+TEST_F(McuServerFixture, create_and_run_persistent_tasks_sanity) {
+	// GIVEN
+	auto check_report = [this](const McuData& data) {
+		std::unique_ptr<Data> parsed_data(parser().parse(data));
+		auto result = Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("result")).get();
+		if (0 != result) {
+			std::cout << "failure report received (what: " << Data::cast<String>(Data::cast<Object>(*parsed_data).access("what")).get() << ")" << std::endl;
+		}
+		ASSERT_EQ(0, result);
+	};
+
+	auto check_report_and_gpio_state = [check_report, this](const McuData& data, const GpioId& gpio_id, const Gpio::State& expected_state) {
+		check_report(data);
+		ASSERT_TRUE(platform()->gpio_inventory()->contains(gpio_id));
+		const auto& gpio_casted = Gpio::cast<Gpo>(*(platform()->gpio_inventory()->access(gpio_id)));
+		ASSERT_EQ(expected_state, gpio_casted.state());
+	};
+
+	const GpioId test_gpio_id(14);
+	
+	const TaskId test_set_high_task_id(17);
+	const auto set_high_data(set_gpio_data(test_gpio_id, Gpio::State::HIGH));
+
+	const TaskId test_set_low_task_id(18);
+	const auto set_low_data(set_gpio_data(test_gpio_id, Gpio::State::LOW));
+
+	const TaskId test_delay_task_id(20);
+	const int test_delay_ms(1000);
+	const auto test_delay_data(delay_data(test_delay_ms));
+
+	Array tasks_ids;
+	tasks_ids.push_back(Integer(test_set_high_task_id));
+	tasks_ids.push_back(Integer(test_delay_task_id));
+	tasks_ids.push_back(Integer(test_set_low_task_id));
+	
+	using TestCase = std::pair<std::string, std::pair<McuServerFixture::McuData, CheckReportFunction>>;
+	
+	const std::vector<TestCase> test_cases{
+		{
+			"create persistent set gpio task (to HIGH state)",
+			{
+				serializer().serialize(create_persistent_task_data(test_set_high_task_id, set_high_data)),
+				check_report
+			}
+		},
+		{
+			"create persistent set gpio task (to LOW state)",
+			{
+				serializer().serialize(create_persistent_task_data(test_set_low_task_id, set_low_data)),
+				check_report
+			}
+		},
+		{
+			"create persistent delay task",
+			{
+				serializer().serialize(create_persistent_task_data(test_delay_task_id, test_delay_data)),
+				check_report
+			}
+		},
+		{
+			"execute tasks",
+			{
+				serializer().serialize(execute_persistent_tasks_data(tasks_ids)),
+				check_report
+			}
+		},
+		{
+			"delete persistent set gpio task (to HIGH state)",
+			{
+				serializer().serialize(delete_persistent_task_data(test_set_high_task_id)),
+				check_report
+			}
+		},
+		{
+			"delete persistent set gpio task (to LOW state)",
+			{
+				serializer().serialize(delete_persistent_task_data(test_set_low_task_id)),
+				check_report
+			}
+		},
+		{
+			"delete persistent delay task",
+			{
+				serializer().serialize(delete_persistent_task_data(test_delay_task_id)),
+				check_report
+			}
+		}
+	};
+
+	// WHEN
+	platform()->gpio_inventory()->put(test_gpio_id, new mcu_platform_uts::TestGpo());
 
 	// THEN
 	for (auto test_case: test_cases) {
