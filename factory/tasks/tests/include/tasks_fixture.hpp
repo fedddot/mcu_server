@@ -5,12 +5,15 @@
 
 #include "creator.hpp"
 #include "custom_creator.hpp"
+#include "data.hpp"
+#include "integer.hpp"
 #include "mcu_factory_fixture.hpp"
+#include "object.hpp"
 
 namespace mcu_factory_uts {
 	class TasksFixture: public McuFactoryFixture {
 	public:
-		using TaskIdCreator = mcu_server::Creator<int(void)>;
+		using TaskReportCreator = mcu_server::Creator<mcu_server::Data *(int)>;
 		TasksFixture():
 			m_factory(
 				platform(),
@@ -19,11 +22,12 @@ namespace mcu_factory_uts {
 				result_state_reporter(),
 				tasks_results_reporter()
 			),
-			m_task_id_ctor(
-				new mcu_server_utl::CustomCreator<int(void)>(
-					[]() {
-						static int counter = 0;
-						return counter++;
+			m_report_ctor(
+				new mcu_server_utl::CustomCreator<mcu_server::Data *(int)>(
+					[](int result) {
+						mcu_server::Object report;
+						report.add("result", mcu_server::Integer(result));
+						return report.clone();
 					}
 				)
 			) {
@@ -36,13 +40,13 @@ namespace mcu_factory_uts {
 			return m_factory;
 		}
 
-		const TaskIdCreator& task_id_ctor() const {
-			return *m_task_id_ctor;
+		const TaskReportCreator& task_id_ctor() const {
+			return *m_report_ctor;
 		}
 		
 	private:
 		TestFactory m_factory;
-		std::unique_ptr<TaskIdCreator> m_task_id_ctor;
+		std::unique_ptr<TaskReportCreator> m_report_ctor;
 	};
 
 }
