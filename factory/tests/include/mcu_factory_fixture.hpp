@@ -13,7 +13,6 @@
 #include "gpio.hpp"
 #include "integer.hpp"
 #include "mcu_factory.hpp"
-#include "mcu_factory_parsers.hpp"
 #include "object.hpp"
 #include "test_platform.hpp"
 
@@ -90,6 +89,14 @@ namespace mcu_factory_uts {
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::EXECUTE_PERSISTENT_TASK)));
 			task_data.add("task_id", Integer(id));
+			return task_data;
+		}
+
+		mcu_server::Object execute_persistent_tasks_data(const mcu_server::Array& ids) const {
+			using namespace mcu_server;
+			Object task_data;
+			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::EXECUTE_PERSISTENT_TASKS)));
+			task_data.add("tasks", ids);
 			return task_data;
 		}
 

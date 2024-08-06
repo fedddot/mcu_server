@@ -22,6 +22,7 @@ uts = [
     "ipc_util_tests",
     "mcu_server_tests",
     "mcu_server_util_tests",
+    "tasks_tests",
     "test_platform_tests"
 ]
 
