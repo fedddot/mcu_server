@@ -9,7 +9,7 @@ using namespace mcu_factory;
 using namespace mcu_factory_uts;
 using namespace mcu_platform;
 
-TEST_F(TasksFixture, ctor_dtor_sanity) {
+TEST_F(TasksFixture, persistent_task_sanity) {
 	// GIVEN
 	const TaskId test_task_id(10);
 	const GpioId test_gpio_id(12);
@@ -31,6 +31,8 @@ TEST_F(TasksFixture, ctor_dtor_sanity) {
 		)
 	);
 	ASSERT_NE(nullptr, instance_ptr);
+	ASSERT_NO_THROW(instance_ptr->execute());
+	ASSERT_TRUE(platform()->task_inventory()->contains(test_task_id));
 	ASSERT_NO_THROW(delete instance_ptr);
 	instance_ptr = nullptr;
 }
