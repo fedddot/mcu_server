@@ -251,4 +251,7 @@ TEST_F(McuServerFixture, create_and_run_persistent_tasks_sanity) {
 	for (auto test_case: test_cases) {
 		run_create_sanity_tc(test_case.first, test_case.second.first, test_case.second.second, this);
 	}
+
+	// CLEAN UP
+	delete platform()->gpio_inventory()->pull(test_gpio_id);
 }
