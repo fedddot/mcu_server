@@ -112,3 +112,5 @@ target_link_libraries(
     delay
     task
 )
+
+add_subdirectory(tests EXCLUDE_FROM_ALL)
