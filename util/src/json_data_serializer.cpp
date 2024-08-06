@@ -17,7 +17,7 @@ using namespace mcu_server_utl;
 
 std::string JsonDataSerializer::serialize(const Data& data) const {
 	Json::StreamWriterBuilder wbuilder;
-	wbuilder["indentation"] = "\t";
+	wbuilder["indentation"] = "";
 	return Json::writeString(wbuilder, parseJsonValue(data));	
 }
 
