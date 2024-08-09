@@ -41,13 +41,11 @@ namespace mcu_factory {
 	template <class Ttask_id>
 	inline mcu_server::Data *ExecutePersistentTasks<Ttask_id>::execute() const {
 		using namespace mcu_server;
-		Array reports;
 		for (auto task_id: m_tasks_list) {
 			auto task_ptr = m_inventory->access(task_id);
 			std::unique_ptr<Data> report(task_ptr->execute());
-			reports.push_back(*report);
 		}
-		return m_reporter->create(reports);
+		return m_reporter->create(Array());
 	}
 }
 #endif // EXECUTE_PERSISTENT_TASKS_HPP
