@@ -8,6 +8,9 @@ target_link_libraries(
 	stepper_motor_tests
 	PRIVATE
     stepper_motor
+	custom_creator
+	test_gpo
+	test_delay
 
 	gtest
 )
