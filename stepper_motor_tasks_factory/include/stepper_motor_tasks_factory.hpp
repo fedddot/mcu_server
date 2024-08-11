@@ -69,8 +69,13 @@ namespace mcu_factory {
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::StepperMotorTasksFactory(const StepperMotorTasksFactory& other) {
-		throw std::runtime_error("");
+	inline StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::StepperMotorTasksFactory(const StepperMotorTasksFactory& other):
+		m_inventory(other.m_inventory),
+		m_task_type_parser(other.m_task_type_parser->clone()),
+		m_stepper_id_parser(other.m_stepper_id_parser->clone()),
+		m_states_parser(other.m_states_parser->clone()),
+		m_shoulders_parser(other.m_shoulders_parser->clone()) {
+		
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>

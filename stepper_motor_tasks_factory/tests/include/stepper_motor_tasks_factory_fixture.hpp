@@ -109,7 +109,7 @@ namespace mcu_factory_uts {
 				[](const Data& data) {
 					States states;
 					Data::cast<Array>(Data::cast<Object>(data).access("states")).for_each(
-						[](int index, const Data& state_data) {
+						[&states](int index, const Data& state_data) {
 							using State = typename mcu_platform::StepperMotor<GpioId>::State;
 							using GpioState = typename Gpio::State;
 							State state;
@@ -118,9 +118,30 @@ namespace mcu_factory_uts {
 									state.insert({cast_shoulder(shoulder), static_cast<GpioState>(Data::cast<Integer>(gpio_state).get())});
 								}
 							);
+							states.push_back(state);
 						}
 					);
 					return states;
+				}
+			)
+		);
+
+		using Shoulders = mcu_platform::StepperMotor<GpioId>::Shoulders;
+		m_shoulders_parser = std::unique_ptr<ShouldersParser>(
+			new CustomParser<Shoulders(const Data&)>(
+				[](const Data& data) {
+					Shoulders shoulders;
+					Data::cast<Object>(Data::cast<Object>(data).access("shoulders")).for_each(
+						[&shoulders](const std::string& shoulder, const Data& gpio_id) {
+							shoulders.insert(
+								{
+									cast_shoulder(shoulder),
+									static_cast<GpioId>(Data::cast<Integer>(gpio_id).get())
+								}
+							);
+						}
+					);
+					return shoulders;
 				}
 			)
 		);
