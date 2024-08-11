@@ -1,16 +1,26 @@
 #include "gtest/gtest.h"
+#include <memory>
+#include <stdexcept>
 #include <string>
 
+#include "array.hpp"
+#include "custom_parser.hpp"
+#include "data.hpp"
+#include "integer.hpp"
+#include "object.hpp"
+#include "stepper_motor.hpp"
 #include "stepper_motor_tasks_factory.hpp"
+#include "stepper_motor_tasks_factory_fixture.hpp"
 
 using namespace mcu_server;
+using namespace mcu_server_utl;
 using namespace mcu_factory;
 using namespace mcu_factory_uts;
-using namespace mcu_platform;
+
+TEST_F(StepperMotorTasksFactoryFixture, ctor_dtor_sanity) {
+	// GIVEN
 
 
-
-TEST(ut_stepper_motor_tasks_factory, ctor_dtor_sanity) {
 	// WHEN
 	TestFactory *instance_ptr(nullptr);
 	TestFactory *instance_ptr_copy(nullptr);
@@ -19,11 +29,7 @@ TEST(ut_stepper_motor_tasks_factory, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		(
 			instance_ptr = new TestFactory(
-				platform(),
-				parsers(),
-				result_reporter(),
-				result_state_reporter(),
-				tasks_results_reporter()
+
 			)
 		)
 	);

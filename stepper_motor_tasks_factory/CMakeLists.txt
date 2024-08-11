@@ -7,6 +7,9 @@ target_link_libraries(
     delete_stepper_motor_task
     steps_task
     stepper_motor
+    data_lib
+    task
+    creator
 )
 
 add_subdirectory(tasks)
