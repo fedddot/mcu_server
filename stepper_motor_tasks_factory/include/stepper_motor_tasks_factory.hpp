@@ -4,6 +4,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "create_stepper_motor_task.hpp"
 #include "creator.hpp"
 #include "data.hpp"
 #include "inventory.hpp"
@@ -80,7 +81,17 @@ namespace mcu_factory {
 
 	template <typename Tstepper_id, typename Tgpio_id>
 	inline mcu_server::Task<mcu_server::Data *(void)> *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::create(const mcu_server::Data& data) const {
-		throw std::runtime_error("");
+		auto task_type = m_task_type_parser->parse(data);
+		switch (task_type) {
+		case TaskType::CREATE_STEPPER_MOTOR:
+			return new CreateStepperMotorTask<Tstepper_id>();
+		// case TaskType::DELETE_STEPPER_MOTOR:
+		// 	return new DeleteStepperMotorTask();
+		// case TaskType::STEPS:
+		// 	return new StepsTask();
+		default:
+			throw std::invalid_argument("invalid task type received");
+		}
 	}
 	
 	template <typename Tstepper_id, typename Tgpio_id>
