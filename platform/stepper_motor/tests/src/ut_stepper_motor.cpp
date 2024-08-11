@@ -34,27 +34,27 @@ TEST(ut_stepper_motor, ctor_dtor_sanity) {
 	States states {
 		{
 			{ Shoulder::IN0, GpioState::HIGH },
-			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::LOW }
+			{ Shoulder::IN1, GpioState::LOW },
+			{ Shoulder::IN2, GpioState::LOW },
+			{ Shoulder::IN3, GpioState::LOW }
 		},
 		{
 			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::HIGH },
-			{ Shoulder::IN0, GpioState::LOW }
+			{ Shoulder::IN1, GpioState::LOW },
+			{ Shoulder::IN2, GpioState::HIGH },
+			{ Shoulder::IN3, GpioState::LOW }
 		},
 		{
 			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::HIGH },
-			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::LOW }
+			{ Shoulder::IN1, GpioState::HIGH },
+			{ Shoulder::IN2, GpioState::LOW },
+			{ Shoulder::IN3, GpioState::LOW }
 		},
 		{
 			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN0, GpioState::HIGH }
+			{ Shoulder::IN1, GpioState::LOW },
+			{ Shoulder::IN2, GpioState::LOW },
+			{ Shoulder::IN3, GpioState::HIGH }
 		}
 	};
 

@@ -2,6 +2,7 @@
 #define STEPPER_MOTOR_TASKS_FACTORY_FIXTURE_HPP
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -26,6 +27,10 @@ namespace mcu_factory_uts {
 		using StepperIdParser = typename TestFactory::StepperIdParser;
 		using StatesParser = typename TestFactory::StatesParser;
 		using ShouldersParser = typename TestFactory::ShouldersParser;
+		using States = mcu_platform::StepperMotor<GpioId>::States;
+		using Shoulders = mcu_platform::StepperMotor<GpioId>::Shoulders;
+		using TaskType = typename TestFactory::TaskType;
+		using Shoulder = mcu_platform::StepperMotor<GpioId>::Shoulder;
 
 		StepperMotorTasksFactoryFixture();
 		StepperMotorTasksFactoryFixture(const StepperMotorTasksFactoryFixture&) = delete;
@@ -50,6 +55,30 @@ namespace mcu_factory_uts {
 		const ShouldersParser& shoulders_parser() const {
 			return *m_shoulders_parser;
 		}
+
+		const mcu_server::Object create_data(const Shoulders& shoulders, const States& states) const {
+			using namespace mcu_server;
+			Object shoulders_data;
+			for (auto [shoulder, gpio_id]: shoulders) {
+				shoulders_data.add(shoulder_to_str(shoulder), Integer(static_cast<int>(gpio_id)));
+			}
+
+			Array states_data;
+			for (auto state: states) {
+				Object shoulders_states;
+				for (auto [shoulder, gpio_state]: state) {
+					shoulders_states.add(shoulder_to_str(shoulder),	Integer(static_cast<int>(gpio_state)));
+				}
+				states_data.push_back(shoulders_states);
+			}
+
+			Object create_data;
+			create_data.add("task_type", Integer(static_cast<int>(TaskType::CREATE_STEPPER_MOTOR)));
+			create_data.add("shoulders", shoulders_data);
+			create_data.add("states", states_data);
+
+			return create_data;
+		}
 	private:
 		mutable StepperMotorInventory m_inventory;
 		std::unique_ptr<TaskTypeParser> m_task_type_parser;
@@ -57,8 +86,7 @@ namespace mcu_factory_uts {
 		std::unique_ptr<StatesParser> m_states_parser;
 		std::unique_ptr<ShouldersParser> m_shoulders_parser;
 
-		using Shoulder = mcu_platform::StepperMotor<GpioId>::Shoulder;
-		static Shoulder cast_shoulder(const std::string& shoulder_str) {
+		static Shoulder str_to_shoulder(const std::string& shoulder_str) {
 			const std::string prefix("IN");
 			auto prefix_pos = shoulder_str.find(prefix);
 			if (0 != prefix_pos) {
@@ -78,6 +106,10 @@ namespace mcu_factory_uts {
 				throw std::invalid_argument("invalid shoulder number");
 			}
 		}
+
+		static std::string shoulder_to_str(const Shoulder& shoulder_str) {
+			throw std::runtime_error("");
+		}
 	};
 
 	inline StepperMotorTasksFactoryFixture::StepperMotorTasksFactoryFixture() {
@@ -85,7 +117,6 @@ namespace mcu_factory_uts {
 		using namespace mcu_server;
 		using namespace mcu_server_utl;
 		using namespace mcu_platform;
-		using TaskType = typename TestFactory::TaskType;
 		
 		m_task_type_parser = std::unique_ptr<TaskTypeParser>(
 			new CustomParser<TaskType(const Data&)>(
@@ -103,7 +134,7 @@ namespace mcu_factory_uts {
 			)
 		);
 
-		using States = mcu_platform::StepperMotor<GpioId>::States;
+		
 		m_states_parser = std::unique_ptr<StatesParser>(
 			new CustomParser<States(const Data&)>(
 				[](const Data& data) {
@@ -115,7 +146,7 @@ namespace mcu_factory_uts {
 							State state;
 							Data::cast<Object>(state_data).for_each(
 								[&state](const std::string& shoulder, const Data& gpio_state) {
-									state.insert({cast_shoulder(shoulder), static_cast<GpioState>(Data::cast<Integer>(gpio_state).get())});
+									state.insert({str_to_shoulder(shoulder), static_cast<GpioState>(Data::cast<Integer>(gpio_state).get())});
 								}
 							);
 							states.push_back(state);
@@ -135,7 +166,7 @@ namespace mcu_factory_uts {
 						[&shoulders](const std::string& shoulder, const Data& gpio_id) {
 							shoulders.insert(
 								{
-									cast_shoulder(shoulder),
+									str_to_shoulder(shoulder),
 									static_cast<GpioId>(Data::cast<Integer>(gpio_id).get())
 								}
 							);
