@@ -27,4 +27,5 @@ target_link_libraries(
     task
 )
 
+add_subdirectory(stepper_motor)
 add_subdirectory(tests EXCLUDE_FROM_ALL)
