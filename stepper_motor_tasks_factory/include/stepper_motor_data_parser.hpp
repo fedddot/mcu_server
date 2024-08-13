@@ -14,7 +14,7 @@ namespace mcu_factory {
 		using Shoulders = typename mcu_platform::StepperMotor<Tgpio_id>::Shoulders;
 		using States = typename mcu_platform::StepperMotor<Tgpio_id>::States;
 		
-		virtual ~StepperMotorDataParser() noexcept = 0;
+		virtual ~StepperMotorDataParser() noexcept = default;
 		virtual StepperMotorDataParser *clone() const = 0;
 
 		virtual Ttask_type parse_task_type(const mcu_server::Data& data) const = 0;

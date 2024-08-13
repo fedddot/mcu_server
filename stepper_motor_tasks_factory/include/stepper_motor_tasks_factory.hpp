@@ -74,7 +74,7 @@ namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id>
 	inline StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::StepperMotorTasksFactory(const StepperMotorTasksFactory& other):
 		m_inventory(other.m_inventory),
-		m_stepper_motor_data_parser(other.stepper_motor_data_parser->clone()),
+		m_stepper_motor_data_parser(other.m_stepper_motor_data_parser->clone()),
 		m_gpo_creator(other.m_gpo_creator->clone()),
 		m_delay(other.m_delay->clone()),
 		m_report_creator(other.m_report_creator->clone()) {

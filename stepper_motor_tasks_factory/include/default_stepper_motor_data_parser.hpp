@@ -7,7 +7,7 @@
 #include "stepper_motor_tasks_factory.hpp"
 
 namespace mcu_factory {
-	class DefaultStepperMotorDataParser: StepperMotorDataParser<int, int, typename StepperMotorTasksFactory<int, int>::TaskType> {
+	class DefaultStepperMotorDataParser: public StepperMotorDataParser<int, int, typename StepperMotorTasksFactory<int, int>::TaskType> {
 	public:
 		using TaskType = typename StepperMotorTasksFactory<int, int>::TaskType;
 		DefaultStepperMotorDataParser() = default;

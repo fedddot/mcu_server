@@ -27,10 +27,7 @@ TEST_F(StepperMotorTasksFactoryFixture, ctor_dtor_sanity) {
 		(
 			instance_ptr = new TestFactory(
 				inventory(),
-				task_type_parser(),
-				stepper_id_parser(),
-				states_parser(),
-				shoulders_parser(),
+				data_parser(),
 				CustomCreator<mcu_platform::Gpo *(const GpioId&)>(
 					[](const GpioId& gpio_id) {
 						return new mcu_platform_uts::TestGpo();
@@ -91,10 +88,7 @@ TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
 	// WHEN
 	TestFactory instance(
 		inventory(),
-		task_type_parser(),
-		stepper_id_parser(),
-		states_parser(),
-		shoulders_parser(),
+		data_parser(),
 		CustomCreator<mcu_platform::Gpo *(const GpioId&)>(
 			[](const GpioId& gpio_id) {
 				return new mcu_platform_uts::TestGpo();
