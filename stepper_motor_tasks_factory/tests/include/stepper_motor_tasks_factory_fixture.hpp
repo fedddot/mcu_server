@@ -23,10 +23,7 @@ namespace mcu_factory_uts {
 		using StepperId = int;
 		using TestFactory = mcu_factory::StepperMotorTasksFactory<StepperId, GpioId>;
 		using StepperMotorInventory = typename TestFactory::StepperMotorInventory;
-		using TaskTypeParser = typename TestFactory::TaskTypeParser;
-		using StepperIdParser = typename TestFactory::StepperIdParser;
-		using StatesParser = typename TestFactory::StatesParser;
-		using ShouldersParser = typename TestFactory::ShouldersParser;
+		using TestDataParser = typename TestFactory::DataParser;
 		using States = mcu_platform::StepperMotor<GpioId>::States;
 		using Shoulders = mcu_platform::StepperMotor<GpioId>::Shoulders;
 		using TaskType = typename TestFactory::TaskType;
@@ -40,20 +37,8 @@ namespace mcu_factory_uts {
 			return &m_inventory;
 		}
 
-		const TaskTypeParser& task_type_parser() const {
-			return *m_task_type_parser;
-		}
-
-		const StepperIdParser& stepper_id_parser() const {
-			return *m_stepper_id_parser;
-		}
-
-		const StatesParser& states_parser() const {
-			return *m_states_parser;
-		}
-
-		const ShouldersParser& shoulders_parser() const {
-			return *m_shoulders_parser;
+		const TestDataParser& data_parser() const {
+			return *m_data_parser;
 		}
 
 		const mcu_server::Object create_data(const StepperId& stepper_id, const Shoulders& shoulders, const States& states) const {
@@ -81,11 +66,8 @@ namespace mcu_factory_uts {
 		}
 	private:
 		mutable StepperMotorInventory m_inventory;
-		std::unique_ptr<TaskTypeParser> m_task_type_parser;
-		std::unique_ptr<StepperIdParser> m_stepper_id_parser;
-		std::unique_ptr<StatesParser> m_states_parser;
-		std::unique_ptr<ShouldersParser> m_shoulders_parser;
-
+		std::unique_ptr<TestDataParser> m_data_parser;
+		
 		static Shoulder str_to_shoulder(const std::string& shoulder_str) {
 			const std::string prefix("IN");
 			auto prefix_pos = shoulder_str.find(prefix);

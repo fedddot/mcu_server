@@ -10,8 +10,9 @@
 #include "delay.hpp"
 #include "delete_stepper_motor_task.hpp"
 #include "inventory.hpp"
-#include "parser.hpp"
 #include "stepper_motor.hpp"
+#include "stepper_motor_data_parser.hpp"
+#include "steps_task.hpp"
 #include "task.hpp"
 
 namespace mcu_factory {
@@ -24,19 +25,13 @@ namespace mcu_factory {
 			STEPS
 		};
 		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
-		using TaskTypeParser = mcu_server::Parser<TaskType(const mcu_server::Data&)>;
-		using StepperIdParser = mcu_server::Parser<Tstepper_id(const mcu_server::Data&)>;
-		using StatesParser = mcu_server::Parser<typename mcu_platform::StepperMotor<Tgpio_id>::States(const mcu_server::Data&)>;
-		using ShouldersParser = mcu_server::Parser<typename mcu_platform::StepperMotor<Tgpio_id>::Shoulders(const mcu_server::Data&)>;
+		using DataParser = StepperMotorDataParser<Tstepper_id, Tgpio_id, TaskType>;
 		using GpoCreator = typename mcu_server::Creator<mcu_platform::Gpo *(const Tgpio_id&)>;
 		using ReportCreator = typename mcu_server::Creator<mcu_server::Data *(int)>;
 		
 		StepperMotorTasksFactory(
 			StepperMotorInventory *inventory,
-			const TaskTypeParser& task_type_parser,
-			const StepperIdParser& stepper_id_parser,
-			const StatesParser& states_parser,
-			const ShouldersParser& shoulders_parser,
+			const DataParser& stepper_motor_data_parser,
 			const GpoCreator& gpo_creator,
 			const mcu_platform::Delay& delay,
 			const ReportCreator& report_creator
@@ -48,10 +43,7 @@ namespace mcu_factory {
 		mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *clone() const override;
 	private:
 		StepperMotorInventory *m_inventory;
-		std::unique_ptr<TaskTypeParser> m_task_type_parser;
-		std::unique_ptr<StepperIdParser> m_stepper_id_parser;
-		std::unique_ptr<StatesParser> m_states_parser;
-		std::unique_ptr<ShouldersParser> m_shoulders_parser;
+		std::unique_ptr<DataParser> m_stepper_motor_data_parser;
 		std::unique_ptr<GpoCreator> m_gpo_creator;
 		std::unique_ptr<mcu_platform::Delay> m_delay;
 		std::unique_ptr<ReportCreator> m_report_creator;
@@ -63,19 +55,13 @@ namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id>
 	inline StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::StepperMotorTasksFactory(
 		StepperMotorInventory *inventory,
-		const TaskTypeParser& task_type_parser,
-		const StepperIdParser& stepper_id_parser,
-		const StatesParser& states_parser,
-		const ShouldersParser& shoulders_parser,
+		const DataParser& stepper_motor_data_parser,
 		const GpoCreator& gpo_creator,
 		const mcu_platform::Delay& delay,
 		const ReportCreator& report_creator
 	):
 		m_inventory(inventory),
-		m_task_type_parser(task_type_parser.clone()),
-		m_stepper_id_parser(stepper_id_parser.clone()),
-		m_states_parser(states_parser.clone()),
-		m_shoulders_parser(shoulders_parser.clone()),
+		m_stepper_motor_data_parser(stepper_motor_data_parser.clone()),
 		m_gpo_creator(gpo_creator.clone()),
 		m_delay(delay.clone()),
 		m_report_creator(report_creator.clone()) {
@@ -88,10 +74,7 @@ namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id>
 	inline StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::StepperMotorTasksFactory(const StepperMotorTasksFactory& other):
 		m_inventory(other.m_inventory),
-		m_task_type_parser(other.m_task_type_parser->clone()),
-		m_stepper_id_parser(other.m_stepper_id_parser->clone()),
-		m_states_parser(other.m_states_parser->clone()),
-		m_shoulders_parser(other.m_shoulders_parser->clone()),
+		m_stepper_motor_data_parser(other.stepper_motor_data_parser->clone()),
 		m_gpo_creator(other.m_gpo_creator->clone()),
 		m_delay(other.m_delay->clone()),
 		m_report_creator(other.m_report_creator->clone()) {
@@ -100,14 +83,14 @@ namespace mcu_factory {
 
 	template <typename Tstepper_id, typename Tgpio_id>
 	inline mcu_server::Task<mcu_server::Data *(void)> *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::create(const mcu_server::Data& data) const {
-		auto task_type = m_task_type_parser->parse(data);
+		auto task_type = m_stepper_motor_data_parser->parse_task_type(data);
 		switch (task_type) {
 		case TaskType::CREATE_STEPPER_MOTOR:
 			return new CreateStepperMotorTask<Tstepper_id, Tgpio_id>(
 				m_inventory,
-				m_stepper_id_parser->parse(data),
-				m_shoulders_parser->parse(data),
-				m_states_parser->parse(data),
+				m_stepper_motor_data_parser->parse_stepper_id(data),
+				m_stepper_motor_data_parser->parse_shoulders(data),
+				m_stepper_motor_data_parser->parse_states(data),
 				*m_gpo_creator,
 				*m_delay,
 				*m_report_creator
@@ -115,7 +98,16 @@ namespace mcu_factory {
 		case TaskType::DELETE_STEPPER_MOTOR:
 			return new DeleteStepperMotorTask<Tstepper_id, Tgpio_id>(
 				m_inventory,
-				m_stepper_id_parser->parse(data),
+				m_stepper_motor_data_parser->parse_stepper_id(data),
+				*m_report_creator
+			);
+		case TaskType::STEPS:
+			return new StepsTask<Tstepper_id, Tgpio_id>(
+				m_inventory,
+				m_stepper_motor_data_parser->parse_stepper_id(data),
+				m_stepper_motor_data_parser->parse_steps_direction(data),
+				m_stepper_motor_data_parser->parse_steps_number(data),
+				m_stepper_motor_data_parser->parse_step_duration(data),
 				*m_report_creator
 			);
 		default:
