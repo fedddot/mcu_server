@@ -32,5 +32,6 @@ target_link_libraries(
     creator
     data
     inventory
+    stepper_motor
     task
 )
