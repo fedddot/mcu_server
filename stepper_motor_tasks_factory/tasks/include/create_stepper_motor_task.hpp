@@ -1,8 +1,12 @@
 #ifndef	CREATE_STEPPER_MOTOR_TASK_HPP
 #define	CREATE_STEPPER_MOTOR_TASK_HPP
 
+#include <memory>
+
+#include "creator.hpp"
 #include "data.hpp"
-#include "gpio.hpp"
+#include "delay.hpp"
+#include "gpo.hpp"
 #include "inventory.hpp"
 #include "stepper_motor.hpp"
 #include "task.hpp"
@@ -14,8 +18,18 @@ namespace mcu_factory {
 		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
 		using Shoulders = typename mcu_platform::StepperMotor<Tgpio_id>::Shoulders;
 		using States = typename mcu_platform::StepperMotor<Tgpio_id>::States;
+		using GpoCreator = typename mcu_server::Creator<mcu_platform::Gpo *(const Tgpio_id&)>;
+		using ReportCreator = typename mcu_server::Creator<mcu_server::Data *(int)>;
 		
-		CreateStepperMotorTask(StepperMotorInventory *inventory, const Tstepper_id& id, const Shoulders& shoulders, const States& states);
+		CreateStepperMotorTask(
+			StepperMotorInventory *inventory,
+			const Tstepper_id& id,
+			const Shoulders& shoulders,
+			const States& states,
+			const GpoCreator& gpo_ctor,
+			const mcu_platform::Delay& delay,
+			const ReportCreator& report_ctor
+		);
 		CreateStepperMotorTask(const CreateStepperMotorTask& other) = delete;
 		CreateStepperMotorTask& operator=(const CreateStepperMotorTask& other) = delete;
 		
@@ -23,26 +37,40 @@ namespace mcu_factory {
 	private:
 		StepperMotorInventory * const m_inventory;
 		const Tstepper_id m_id;
-		const Shoulders m_sh;
-		const std::unique_ptr<GpioCreator> m_gpio_ctor;
+		const Shoulders m_shoulders;
+		const States m_states;
+		const std::unique_ptr<GpoCreator> m_gpo_ctor;
 		const std::unique_ptr<ReportCreator> m_report_ctor;
+		const std::unique_ptr<mcu_platform::Delay> m_delay;
 	};
 
-	template <class Tstepper_id>
-	inline CreateStepperMotorTask<Tstepper_id>::CreateStepperMotorTask(GpioInventory *inventory, const Tstepper_id& id, const mcu_platform::Gpio::Direction& dir, const GpioCreator& gpio_ctor, const ReportCreator& report_ctor): m_inventory(inventory), m_id(id), m_dir(dir), m_gpio_ctor(gpio_ctor.clone()), m_report_ctor(report_ctor.clone()) {
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline CreateStepperMotorTask<Tstepper_id, Tgpio_id>::CreateStepperMotorTask(
+		StepperMotorInventory *inventory,
+		const Tstepper_id& id,
+		const Shoulders& shoulders,
+		const States& states,
+		const GpoCreator& gpo_ctor,
+		const mcu_platform::Delay& delay,
+		const ReportCreator& report_ctor
+	): m_inventory(inventory), m_id(id), m_shoulders(shoulders), m_states(states), m_gpo_ctor(gpo_ctor.clone()), m_delay(delay.clone()), m_report_ctor(report_ctor.clone()) {
 		if (!m_inventory) {
 			throw std::invalid_argument("invalid inventory ptr received");
 		}
 	}
 
-	template <class Tstepper_id>
-	inline mcu_server::Data *CreateStepperMotorTask<Tstepper_id>::execute() const {
-		auto gpio_ptr = m_gpio_ctor->create(m_id, m_dir);
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline mcu_server::Data *CreateStepperMotorTask<Tstepper_id, Tgpio_id>::execute() const {
+		auto motor = new mcu_platform::StepperMotor<Tgpio_id>(
+			m_shoulders,
+			m_states,
+			*m_gpo_ctor,
+			*m_delay
+		);
 		try {
-			m_inventory->put(m_id, gpio_ptr);
+			m_inventory->put(m_id, motor);
 		} catch (...) {
-			delete gpio_ptr;
-			gpio_ptr = nullptr;
+			delete motor;
 			throw;
 		}
 		return m_report_ctor->create(0);

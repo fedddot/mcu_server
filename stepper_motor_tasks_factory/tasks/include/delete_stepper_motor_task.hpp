@@ -5,40 +5,46 @@
 
 #include "creator.hpp"
 #include "data.hpp"
-#include "gpio.hpp"
 #include "inventory.hpp"
+#include "stepper_motor.hpp"
 #include "task.hpp"
 
 namespace mcu_factory {
-	template <typename Tgpio_id>
-	class DeleteGpioTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	template <typename Tstepper_id, typename Tgpio_id>
+	class DeleteStepperMotorTask: public mcu_server::Task<mcu_server::Data *(void)> {
 	public:
-		using GpioInventory = mcu_platform::Inventory<Tgpio_id, mcu_platform::Gpio>;
-		using ReportCreator = mcu_server::Creator<mcu_server::Data *(int)>;
+		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
+		using ReportCreator = typename mcu_server::Creator<mcu_server::Data *(int)>;
 		
-		DeleteGpioTask(GpioInventory *inventory, const Tgpio_id& id, const ReportCreator& report_ctor);
-		DeleteGpioTask(const DeleteGpioTask& other) = delete;
-		DeleteGpioTask& operator=(const DeleteGpioTask& other) = delete;
+		DeleteStepperMotorTask(
+			StepperMotorInventory *inventory,
+			const Tstepper_id& id,
+			const ReportCreator& report_ctor
+		);
+		DeleteStepperMotorTask(const DeleteStepperMotorTask& other) = delete;
+		DeleteStepperMotorTask& operator=(const DeleteStepperMotorTask& other) = delete;
 		
 		mcu_server::Data *execute() const override;
 	private:
-		GpioInventory * const m_inventory;
-		const Tgpio_id m_id;
+		StepperMotorInventory * const m_inventory;
+		const Tstepper_id m_id;
 		const std::unique_ptr<ReportCreator> m_report_ctor;
 	};
 
-	template <class Tgpio_id>
-	inline DeleteGpioTask<Tgpio_id>::DeleteGpioTask(GpioInventory *inventory, const Tgpio_id& id, const ReportCreator& report_ctor): m_inventory(inventory), m_id(id), m_report_ctor(report_ctor.clone()) {
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline DeleteStepperMotorTask<Tstepper_id, Tgpio_id>::DeleteStepperMotorTask(
+		StepperMotorInventory *inventory,
+		const Tstepper_id& id,
+		const ReportCreator& report_ctor
+	): m_inventory(inventory), m_id(id), m_report_ctor(report_ctor.clone()) {
 		if (!m_inventory) {
 			throw std::invalid_argument("invalid inventory ptr received");
 		}
 	}
 
-	template <class Tgpio_id>
-	inline mcu_server::Data *DeleteGpioTask<Tgpio_id>::execute() const {
-		auto gpio_ptr = m_inventory->pull(m_id);
-		delete gpio_ptr;
-		gpio_ptr = nullptr;
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline mcu_server::Data *DeleteStepperMotorTask<Tstepper_id, Tgpio_id>::execute() const {
+		delete m_inventory->pull(m_id);
 		return m_report_ctor->create(0);
 	}
 }

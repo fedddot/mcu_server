@@ -5,8 +5,10 @@ target_link_libraries(
     INTERFACE
     creator
     data
-    gpio
+    delay
+    gpo
     inventory
+    stepper_motor
     task
 )
 
@@ -18,6 +20,7 @@ target_link_libraries(
     creator
     data
     inventory
+    stepper_motor
     task
 )
 
