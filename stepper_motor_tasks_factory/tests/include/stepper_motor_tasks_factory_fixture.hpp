@@ -8,11 +8,7 @@
 #include "gtest/gtest.h"
 
 #include "array.hpp"
-#include "data.hpp"
-#include "custom_parser.hpp"
-#include "data.hpp"
 #include "default_stepper_motor_data_parser.hpp"
-#include "gpio.hpp"
 #include "integer.hpp"
 #include "object.hpp"
 #include "stepper_motor_tasks_factory.hpp"
@@ -86,11 +82,7 @@ namespace mcu_factory_uts {
 	};
 
 	inline StepperMotorTasksFactoryFixture::StepperMotorTasksFactoryFixture() {
-		using namespace mcu_factory;
-		using namespace mcu_server;
-		using namespace mcu_server_utl;
-		using namespace mcu_platform;
-		
+		using namespace mcu_factory;		
 		m_data_parser = std::unique_ptr<TestDataParser>(new DefaultStepperMotorDataParser());
 	}
 }
