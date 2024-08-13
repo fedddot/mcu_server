@@ -14,6 +14,6 @@ target_link_libraries(
     stepper_motor_tasks_factory
 	custom_parser
 	stepper_motor_tasks_factory_fixture
-
+	test_gpo
 	gtest
 )

@@ -56,7 +56,7 @@ namespace mcu_factory_uts {
 			return *m_shoulders_parser;
 		}
 
-		const mcu_server::Object create_data(const Shoulders& shoulders, const States& states) const {
+		const mcu_server::Object create_data(const StepperId& stepper_id, const Shoulders& shoulders, const States& states) const {
 			using namespace mcu_server;
 			Object shoulders_data;
 			for (auto [shoulder, gpio_id]: shoulders) {
@@ -76,7 +76,7 @@ namespace mcu_factory_uts {
 			create_data.add("task_type", Integer(static_cast<int>(TaskType::CREATE_STEPPER_MOTOR)));
 			create_data.add("shoulders", shoulders_data);
 			create_data.add("states", states_data);
-
+			create_data.add("stepper_id", Integer(stepper_id));
 			return create_data;
 		}
 	private:
@@ -93,22 +93,12 @@ namespace mcu_factory_uts {
 				throw std::invalid_argument("shoulder tag doesn't start with " + prefix);
 			}
 			auto shoulder_number = std::stoi(std::string(shoulder_str.begin() + prefix.size(), shoulder_str.end()));
-			switch (shoulder_number) {
-			case 0:
-				return Shoulder::IN0;
-			case 1:
-				return Shoulder::IN1;
-			case 2:
-				return Shoulder::IN2;
-			case 3:
-				return Shoulder::IN3;
-			default:
-				throw std::invalid_argument("invalid shoulder number");
-			}
+			return static_cast<Shoulder>(shoulder_number);
 		}
 
-		static std::string shoulder_to_str(const Shoulder& shoulder_str) {
-			throw std::runtime_error("");
+		static std::string shoulder_to_str(const Shoulder& shoulder) {
+			const std::string prefix("IN");
+			return prefix + std::to_string(static_cast<int>(shoulder));
 		}
 	};
 
