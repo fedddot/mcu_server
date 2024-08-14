@@ -24,7 +24,8 @@ uts = [
     "mcu_server_util_tests",
     "tasks_tests",
     "test_platform_tests",
-    "stepper_motor_tests"
+    "stepper_motor_tests",
+    "stepper_motor_tasks_factory_tests"
 ]
 
 def find_executable(name, path):
