@@ -7,6 +7,9 @@ target_include_directories(default_stepper_motor_data_parser INTERFACE ${CMAKE_C
 target_link_libraries(
     default_stepper_motor_data_parser
     INTERFACE
+    data_lib
+    gpo
+    stepper_motor
     stepper_motor_data_parser
     stepper_motor_tasks_factory
 )
