@@ -32,20 +32,7 @@ namespace mcu_factory {
 	private:
 		using Shoulder = typename mcu_platform::StepperMotor<int>::Shoulder;
 		using State = typename mcu_platform::StepperMotor<int>::State;
-		static Shoulder str_to_shoulder(const std::string& shoulder_str) {
-			const std::string prefix("IN");
-			auto prefix_pos = shoulder_str.find(prefix);
-			if (0 != prefix_pos) {
-				throw std::invalid_argument("shoulder tag doesn't start with " + prefix);
-			}
-			auto shoulder_number = std::stoi(std::string(shoulder_str.begin() + prefix.size(), shoulder_str.end()));
-			return static_cast<Shoulder>(shoulder_number);
-		}
-
-		static std::string shoulder_to_str(const Shoulder& shoulder) {
-			const std::string prefix("IN");
-			return prefix + std::to_string(static_cast<int>(shoulder));
-		}
+		static Shoulder str_to_shoulder(const std::string& shoulder_str);
 	};
 
 	inline DefaultStepperMotorDataParser *DefaultStepperMotorDataParser::clone() const {
@@ -104,6 +91,16 @@ namespace mcu_factory {
 			}
 		);
 		return states;
+	}
+
+	inline typename DefaultStepperMotorDataParser::Shoulder DefaultStepperMotorDataParser::str_to_shoulder(const std::string& shoulder_str) {
+		const std::string prefix("IN");
+		auto prefix_pos = shoulder_str.find(prefix);
+		if (0 != prefix_pos) {
+			throw std::invalid_argument("shoulder tag doesn't start with " + prefix);
+		}
+		auto shoulder_number = std::stoi(std::string(shoulder_str.begin() + prefix.size(), shoulder_str.end()));
+		return static_cast<Shoulder>(shoulder_number);
 	}
 }
 #endif // DEFAULT_STEPPER_MOTOR_DATA_PARSER_HPP
