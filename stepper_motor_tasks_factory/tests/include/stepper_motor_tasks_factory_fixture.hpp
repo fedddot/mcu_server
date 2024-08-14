@@ -2,7 +2,6 @@
 #define STEPPER_MOTOR_TASKS_FACTORY_FIXTURE_HPP
 
 #include <memory>
-#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -65,16 +64,6 @@ namespace mcu_factory_uts {
 		mutable StepperMotorInventory m_inventory;
 		std::unique_ptr<TestDataParser> m_data_parser;
 		
-		static Shoulder str_to_shoulder(const std::string& shoulder_str) {
-			const std::string prefix("IN");
-			auto prefix_pos = shoulder_str.find(prefix);
-			if (0 != prefix_pos) {
-				throw std::invalid_argument("shoulder tag doesn't start with " + prefix);
-			}
-			auto shoulder_number = std::stoi(std::string(shoulder_str.begin() + prefix.size(), shoulder_str.end()));
-			return static_cast<Shoulder>(shoulder_number);
-		}
-
 		static std::string shoulder_to_str(const Shoulder& shoulder) {
 			const std::string prefix("IN");
 			return prefix + std::to_string(static_cast<int>(shoulder));
