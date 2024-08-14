@@ -94,16 +94,16 @@ namespace mcu_platform {
 	template <typename Tgpio_id>
 	inline std::size_t StepperMotor<Tgpio_id>::next_state(const Direction& direction) const {
 		auto next_cw = [this](void) {
-			if (m_states.size() <= m_current_state + 1) {
+			if (m_states.size() <= m_current_state + 1UL) {
 				return 0UL;
 			}
-			return m_current_state + 1;
+			return m_current_state + 1UL;
 		};
 		auto next_ccw = [this](void) {
 			if (0 == m_current_state) {
-				return m_states.size() - 1;
+				return m_states.size() - 1UL;
 			}
-			return m_current_state - 1;
+			return m_current_state - 1UL;
 		};
 		switch (direction) {
 		case Direction::CCW:
