@@ -1,5 +1,6 @@
-#include "gtest/gtest.h"
 #include <memory>
+
+#include "gtest/gtest.h"
 
 #include "custom_creator.hpp"
 #include "data.hpp"
@@ -193,10 +194,10 @@ TEST_F(StepperMotorTasksFactoryFixture, create_steps_sequence_task_sanity) {
 		)
 	);
 	StepsSequence sequence {
-		Steps(id_x, Direction::CCW, 40, 10),
-		Steps(id_y, Direction::CCW, 30, 20),
-		Steps(id_x, Direction::CW, 40, 10),
-		Steps(id_y, Direction::CW, 30, 20)
+		Steps(id_x, Direction::CCW, 40, 1),
+		Steps(id_y, Direction::CCW, 30, 2),
+		Steps(id_x, Direction::CW, 40, 1),
+		Steps(id_y, Direction::CW, 30, 2)
 	};
 	
 	using Task = Task<Data *(void)>;
