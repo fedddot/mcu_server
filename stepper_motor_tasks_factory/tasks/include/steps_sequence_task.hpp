@@ -74,5 +74,35 @@ namespace mcu_factory {
 		}
 		return m_report_ctor->create(0);
 	}
+
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline StepsSequenceTask<Tstepper_id, Tgpio_id>::Steps::Steps(
+		const Tstepper_id& stepper_id,
+		const Direction& direction,
+		const unsigned int steps_number,
+		const unsigned int step_duration_ms
+	): m_stepper_id(stepper_id), m_direction(direction), m_steps_number(steps_number), m_step_duration_ms(step_duration_ms) {
+
+	}
+
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline Tstepper_id StepsSequenceTask<Tstepper_id, Tgpio_id>::Steps::stepper_id() const {
+		return m_stepper_id;
+	}
+
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline typename StepsSequenceTask<Tstepper_id, Tgpio_id>::Steps::Direction StepsSequenceTask<Tstepper_id, Tgpio_id>::Steps::direction() const {
+		return m_direction;
+	}
+
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline unsigned int StepsSequenceTask<Tstepper_id, Tgpio_id>::Steps::steps_number() const {
+		return m_steps_number;
+	}
+
+	template <typename Tstepper_id, typename Tgpio_id>
+	inline unsigned int StepsSequenceTask<Tstepper_id, Tgpio_id>::Steps::step_duration_ms() const {
+		return m_step_duration_ms;
+	}
 }
 #endif // STEPS_SEQUENCE_TASK_HPP
