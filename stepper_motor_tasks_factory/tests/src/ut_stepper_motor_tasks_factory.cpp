@@ -62,7 +62,7 @@ TEST_F(StepperMotorTasksFactoryFixture, ctor_dtor_sanity) {
 
 TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
 	// GIVEN
-	using GpioState = typename mcu_platform::Gpio::State;
+	using GpoState = typename mcu_platform::Gpio::State;
 	Shoulders shoulders {
 		{ Shoulder::IN0, 10 },
 		{ Shoulder::IN1, 11 },
@@ -71,16 +71,16 @@ TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
 	};
 	States states {
 		{
-			{ Shoulder::IN0, GpioState::HIGH },
-			{ Shoulder::IN1, GpioState::LOW },
-			{ Shoulder::IN2, GpioState::LOW },
-			{ Shoulder::IN3, GpioState::LOW }
+			{ Shoulder::IN0, GpoState::HIGH },
+			{ Shoulder::IN1, GpoState::LOW },
+			{ Shoulder::IN2, GpoState::LOW },
+			{ Shoulder::IN3, GpoState::LOW }
 		},
 		{
-			{ Shoulder::IN0, GpioState::LOW },
-			{ Shoulder::IN1, GpioState::LOW },
-			{ Shoulder::IN2, GpioState::HIGH },
-			{ Shoulder::IN3, GpioState::LOW }
+			{ Shoulder::IN0, GpoState::LOW },
+			{ Shoulder::IN1, GpoState::LOW },
+			{ Shoulder::IN2, GpoState::HIGH },
+			{ Shoulder::IN3, GpoState::LOW }
 		}
 	};
 	const StepperId id(12);
@@ -141,4 +141,105 @@ TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
 	ASSERT_NE(nullptr, report_ptr);
 	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
 	ASSERT_FALSE(inventory()->contains(id));
+}
+
+TEST_F(StepperMotorTasksFactoryFixture, create_steps_sequence_task_sanity) {
+	// GIVEN	
+	Shoulders shoulders_x {
+		{ Shoulder::IN0, 10 },
+		{ Shoulder::IN1, 11 },
+		{ Shoulder::IN2, 12 },
+		{ Shoulder::IN3, 13 }
+	};
+	Shoulders shoulders_y {
+		{ Shoulder::IN0, 14 },
+		{ Shoulder::IN1, 15 },
+		{ Shoulder::IN2, 16 },
+		{ Shoulder::IN3, 17 }
+	};
+	States states {
+		{
+			{ Shoulder::IN0, GpoState::HIGH },
+			{ Shoulder::IN1, GpoState::LOW },
+			{ Shoulder::IN2, GpoState::LOW },
+			{ Shoulder::IN3, GpoState::LOW }
+		},
+		{
+			{ Shoulder::IN0, GpoState::LOW },
+			{ Shoulder::IN1, GpoState::LOW },
+			{ Shoulder::IN2, GpoState::HIGH },
+			{ Shoulder::IN3, GpoState::LOW }
+		}
+	};
+	const StepperId id_x(0);
+	const StepperId id_y(1);
+
+	// WHEN
+	TestFactory instance(
+		inventory(),
+		data_parser(),
+		CustomCreator<mcu_platform::Gpo *(const GpioId&)>(
+			[](const GpioId& gpio_id) {
+				return new mcu_platform_uts::TestGpo();
+			}
+		),
+		mcu_platform_uts::TestDelay(),
+		CustomCreator<Data *(int)>(
+			[](int result) {
+				Object report;
+				report.add("result", Integer(result));
+				return report.clone();
+			} 
+		)
+	);
+	StepsSequence sequence {
+		Steps(id_x, Direction::CCW, 40, 10),
+		Steps(id_y, Direction::CCW, 30, 20),
+		Steps(id_x, Direction::CW, 40, 10),
+		Steps(id_y, Direction::CW, 30, 20)
+	};
+	
+	using Task = Task<Data *(void)>;
+	std::unique_ptr<Task> task_ptr(nullptr);
+	std::unique_ptr<Data> report_ptr(nullptr);
+
+	// THEN
+	// Motor X creation
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(create_data(id_x, shoulders_x, states))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+	ASSERT_TRUE(inventory()->contains(id_x));
+	
+	// Motor Y creation
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(create_data(id_y, shoulders_y, states))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+	ASSERT_TRUE(inventory()->contains(id_y));
+
+	// Sequence motion
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(steps_sequence_data(sequence))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+
+	// Motor X deletion
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(delete_data(id_x))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+	ASSERT_FALSE(inventory()->contains(id_x));
+
+	// Motor Y deletion
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(delete_data(id_y))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+	ASSERT_FALSE(inventory()->contains(id_y));
 }

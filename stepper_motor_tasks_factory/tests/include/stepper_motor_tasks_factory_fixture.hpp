@@ -8,6 +8,7 @@
 
 #include "array.hpp"
 #include "default_stepper_motor_data_parser.hpp"
+#include "gpo.hpp"
 #include "integer.hpp"
 #include "object.hpp"
 #include "stepper_motor_tasks_factory.hpp"
@@ -21,11 +22,13 @@ namespace mcu_factory_uts {
 		using TestFactory = mcu_factory::StepperMotorTasksFactory<StepperId, GpioId>;
 		using StepperMotorInventory = typename TestFactory::StepperMotorInventory;
 		using TestDataParser = typename TestFactory::DataParser;
+		using GpoState = typename mcu_platform::Gpo::State;
 		using States = typename mcu_platform::StepperMotor<GpioId>::States;
 		using Direction = typename mcu_platform::StepperMotor<GpioId>::Direction;
 		using Shoulders = typename mcu_platform::StepperMotor<GpioId>::Shoulders;
 		using TaskType = typename TestFactory::TaskType;
 		using Shoulder = typename mcu_platform::StepperMotor<GpioId>::Shoulder;
+		using Steps = typename mcu_factory::StepsSequenceTask<StepperId, GpioId>::Steps;
 		using StepsSequence = typename mcu_factory::StepsSequenceTask<StepperId, GpioId>::StepsSequence;
 
 		StepperMotorTasksFactoryFixture();
