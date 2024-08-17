@@ -3,6 +3,7 @@
 
 #include "data.hpp"
 #include "stepper_motor.hpp"
+#include "steps_sequence_task.hpp"
 
 namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id, typename Ttask_type>
@@ -13,6 +14,7 @@ namespace mcu_factory {
 		using Direction = typename mcu_platform::StepperMotor<Tgpio_id>::Direction;
 		using Shoulders = typename mcu_platform::StepperMotor<Tgpio_id>::Shoulders;
 		using States = typename mcu_platform::StepperMotor<Tgpio_id>::States;
+		using StepsSequence = typename StepsSequenceTask<Tstepper_id, Tgpio_id>::StepsSequence;
 		
 		virtual ~StepperMotorDataParser() noexcept = default;
 		virtual StepperMotorDataParser *clone() const = 0;
@@ -24,6 +26,7 @@ namespace mcu_factory {
 		virtual Direction parse_steps_direction(const mcu_server::Data& data) const = 0;
 		virtual Shoulders parse_shoulders(const mcu_server::Data& data) const = 0;
 		virtual States parse_states(const mcu_server::Data& data) const = 0;
+		virtual StepsSequence parse_steps_sequence(const mcu_server::Data& data) const = 0;
 	};
 }
 #endif // STEPPER_MOTOR_DATA_PARSER_HPP

@@ -29,6 +29,7 @@ namespace mcu_factory {
 		Direction parse_steps_direction(const mcu_server::Data& data) const override;
 		Shoulders parse_shoulders(const mcu_server::Data& data) const override;
 		States parse_states(const mcu_server::Data& data) const override;
+		StepsSequence parse_steps_sequence(const mcu_server::Data& data) const override;
 	private:
 		using Shoulder = typename mcu_platform::StepperMotor<int>::Shoulder;
 		using State = typename mcu_platform::StepperMotor<int>::State;
@@ -101,6 +102,25 @@ namespace mcu_factory {
 		}
 		auto shoulder_number = std::stoi(std::string(shoulder_str.begin() + prefix.size(), shoulder_str.end()));
 		return static_cast<Shoulder>(shoulder_number);
+	}
+
+	inline typename DefaultStepperMotorDataParser::StepsSequence DefaultStepperMotorDataParser::parse_steps_sequence(const mcu_server::Data& data) const {
+		StepsSequence sequence;
+		using namespace mcu_server;
+		using Steps = typename StepsSequenceTask<int, int>::Steps;
+		Data::cast<Array>(Data::cast<Object>(data).access("sequence")).for_each(
+			[&sequence, this](int index, const Data& steps_data) {
+				sequence.push_back(
+					Steps(
+						parse_stepper_id(steps_data),
+						parse_steps_direction(steps_data),
+						parse_steps_number(steps_data),
+						parse_step_duration(steps_data)
+					)
+				);
+			}
+		);
+		return sequence;
 	}
 }
 #endif // DEFAULT_STEPPER_MOTOR_DATA_PARSER_HPP

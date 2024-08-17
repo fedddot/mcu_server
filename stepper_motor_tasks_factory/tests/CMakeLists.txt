@@ -6,6 +6,7 @@ target_link_libraries(
     data_lib
     default_stepper_motor_data_parser
     stepper_motor_tasks_factory
+    steps_sequence_task
 )
 
 add_executable(

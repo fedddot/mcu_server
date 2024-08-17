@@ -13,6 +13,7 @@
 #include "stepper_motor.hpp"
 #include "stepper_motor_data_parser.hpp"
 #include "steps_task.hpp"
+#include "steps_sequence_task.hpp"
 #include "task.hpp"
 
 namespace mcu_factory {
@@ -22,7 +23,8 @@ namespace mcu_factory {
 		enum class TaskType: int {
 			CREATE_STEPPER_MOTOR,
 			DELETE_STEPPER_MOTOR,
-			STEPS
+			STEPS,
+			STEPS_SEQUENCE
 		};
 		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
 		using DataParser = StepperMotorDataParser<Tstepper_id, Tgpio_id, TaskType>;
@@ -108,6 +110,12 @@ namespace mcu_factory {
 				m_stepper_motor_data_parser->parse_steps_direction(data),
 				m_stepper_motor_data_parser->parse_steps_number(data),
 				m_stepper_motor_data_parser->parse_step_duration(data),
+				*m_report_creator
+			);
+		case TaskType::STEPS_SEQUENCE:
+			return new StepsSequenceTask<Tstepper_id, Tgpio_id>(
+				m_inventory,
+				m_stepper_motor_data_parser->parse_steps_sequence(data),
 				*m_report_creator
 			);
 		default:
