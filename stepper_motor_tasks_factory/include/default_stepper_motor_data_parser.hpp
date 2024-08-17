@@ -105,7 +105,22 @@ namespace mcu_factory {
 	}
 
 	inline typename DefaultStepperMotorDataParser::StepsSequence DefaultStepperMotorDataParser::parse_steps_sequence(const mcu_server::Data& data) const {
-		throw std::runtime_error("NOT IMPLEMENTED!");
+		StepsSequence sequence;
+		using namespace mcu_server;
+		using Steps = typename StepsSequenceTask<int, int>::Steps;
+		Data::cast<Array>(Data::cast<Object>(data).access("sequence")).for_each(
+			[&sequence, this](int index, const Data& steps_data) {
+				sequence.push_back(
+					Steps(
+						parse_stepper_id(steps_data),
+						parse_steps_direction(steps_data),
+						parse_steps_number(steps_data),
+						parse_step_duration(steps_data)
+					)
+				);
+			}
+		);
+		return sequence;
 	}
 }
 #endif // DEFAULT_STEPPER_MOTOR_DATA_PARSER_HPP
