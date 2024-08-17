@@ -35,3 +35,15 @@ target_link_libraries(
     stepper_motor
     task
 )
+
+add_library(steps_sequence_task INTERFACE)
+target_include_directories(steps_sequence_task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    steps_sequence_task
+    INTERFACE
+    creator
+    data
+    inventory
+    stepper_motor
+    task
+)
