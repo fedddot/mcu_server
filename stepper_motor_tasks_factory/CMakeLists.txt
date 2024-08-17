@@ -12,6 +12,7 @@ target_link_libraries(
     stepper_motor
     stepper_motor_data_parser
     stepper_motor_tasks_factory
+    steps_sequence_task
 )
 
 add_library(stepper_motor_tasks_factory INTERFACE)
@@ -27,6 +28,7 @@ target_link_libraries(
     task
     creator
     stepper_motor_data_parser
+    steps_sequence_task
 )
 
 add_subdirectory(tasks)
