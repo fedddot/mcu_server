@@ -11,6 +11,7 @@
 #include "integer.hpp"
 #include "object.hpp"
 #include "stepper_motor_tasks_factory.hpp"
+#include "steps_sequence_task.hpp"
 
 namespace mcu_factory_uts {
 	class StepperMotorTasksFactoryFixture: public testing::Test {
@@ -20,11 +21,12 @@ namespace mcu_factory_uts {
 		using TestFactory = mcu_factory::StepperMotorTasksFactory<StepperId, GpioId>;
 		using StepperMotorInventory = typename TestFactory::StepperMotorInventory;
 		using TestDataParser = typename TestFactory::DataParser;
-		using States = mcu_platform::StepperMotor<GpioId>::States;
-		using Direction = mcu_platform::StepperMotor<GpioId>::Direction;
-		using Shoulders = mcu_platform::StepperMotor<GpioId>::Shoulders;
+		using States = typename mcu_platform::StepperMotor<GpioId>::States;
+		using Direction = typename mcu_platform::StepperMotor<GpioId>::Direction;
+		using Shoulders = typename mcu_platform::StepperMotor<GpioId>::Shoulders;
 		using TaskType = typename TestFactory::TaskType;
-		using Shoulder = mcu_platform::StepperMotor<GpioId>::Shoulder;
+		using Shoulder = typename mcu_platform::StepperMotor<GpioId>::Shoulder;
+		using StepsSequence = typename mcu_factory::StepsSequenceTask<StepperId, GpioId>::StepsSequence;
 
 		StepperMotorTasksFactoryFixture();
 		StepperMotorTasksFactoryFixture(const StepperMotorTasksFactoryFixture&) = delete;
@@ -71,6 +73,23 @@ namespace mcu_factory_uts {
 			steps_data.add("steps_number", Integer(steps_num));
 			steps_data.add("step_duration_ms", Integer(step_duration_ms));
 			return steps_data;
+		}
+
+		const mcu_server::Object steps_sequence_data(const StepsSequence& sequence) const {
+			using namespace mcu_server;
+			Array sequence_array;
+			for (auto steps: sequence) {
+				Object steps_object;
+				steps_object.add("stepper_id", Integer(static_cast<int>(steps.stepper_id())));
+				steps_object.add("direction", Integer(static_cast<int>(steps.direction())));
+				steps_object.add("steps_number", Integer(static_cast<int>(steps.steps_number())));
+				steps_object.add("step_duration_ms", Integer(static_cast<int>(steps.step_duration_ms())));
+				sequence_array.push_back(steps_object);
+			}
+			Object steps_sequence_data;
+			steps_sequence_data.add("task_type", Integer(static_cast<int>(TaskType::STEPS_SEQUENCE)));
+			steps_sequence_data.add("sequence", sequence_array);
+			return steps_sequence_data;
 		}
 
 		const mcu_server::Object delete_data(const StepperId& stepper_id) const {
