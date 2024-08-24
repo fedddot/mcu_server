@@ -10,5 +10,6 @@ target_link_libraries(
     gpio_tasks_factory
 	default_gpio_tasks_data_retriever
 	custom_creator
+	test_platform
 	gtest
 )

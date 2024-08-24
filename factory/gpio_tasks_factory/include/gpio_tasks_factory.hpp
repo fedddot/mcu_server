@@ -1,6 +1,9 @@
 #ifndef	GPIO_TASKS_FACTORY_HPP
 #define	GPIO_TASKS_FACTORY_HPP
 
+#include <memory>
+#include <stdexcept>
+
 #include "custom_task.hpp"
 #include "data.hpp"
 #include "gpio.hpp"
@@ -9,8 +12,6 @@
 #include "platform.hpp"
 #include "task.hpp"
 #include "task_creator.hpp"
-#include <memory>
-#include <stdexcept>
 
 namespace mcu_factory {
 	template <typename Tgpio_id>
@@ -46,11 +47,14 @@ namespace mcu_factory {
 		server::Creator<GpioTask *(const server::Data&)> *clone() const override;
 		TaskCreator *clone_task_creator() const override;
 	private:
-		GpioInventory *m_inventory;
-		FactoryPlatform *m_platform;
+		mutable GpioInventory *m_inventory;
+		const FactoryPlatform *m_platform;
 		const std::unique_ptr<DataRetriever> m_retriever;
 		const std::unique_ptr<ResultReporter> m_result_reporter;
 		const std::unique_ptr<ResultStateReporter> m_result_state_reporter;
+
+		using GpioDirection = typename mcu_platform::Gpio::Direction;
+		GpioTask *create_task(const Tgpio_id& id, const GpioDirection& dir) const;
 	};
 
 	template <typename Tgpio_id>
@@ -89,6 +93,20 @@ namespace mcu_factory {
 	inline typename GpioTasksFactory<Tgpio_id>::GpioTask *GpioTasksFactory<Tgpio_id>::create(const server::Data& data) const {
 		switch (m_retriever->retrieve_task_type(data)) {
 		case TaskType::CREATE_GPIO:
+			return create_task(m_retriever->retrieve_gpio_id(data), m_retriever->retrieve_gpio_dir(data));
+		case TaskType::DELETE_GPIO:
+			return new server_utl::CustomTask<server::Data *(void)>(
+				[](void)-> server::Data * {
+					throw std::invalid_argument("NOT IMPLEMENTED");
+				}
+			);
+		case TaskType::SET_GPIO:
+			return new server_utl::CustomTask<server::Data *(void)>(
+				[](void)-> server::Data * {
+					throw std::invalid_argument("NOT IMPLEMENTED");
+				}
+			);
+		case TaskType::GET_GPIO:
 			return new server_utl::CustomTask<server::Data *(void)>(
 				[](void)-> server::Data * {
 					throw std::invalid_argument("NOT IMPLEMENTED");
@@ -97,6 +115,11 @@ namespace mcu_factory {
 		default:
 			throw std::invalid_argument("unsupported task type received");
 		}
+	}
+
+	template <typename Tgpio_id>
+	inline bool GpioTasksFactory<Tgpio_id>::is_creatable(const server::Data& data) const {
+		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 	
 	template <typename Tgpio_id>
@@ -107,6 +130,29 @@ namespace mcu_factory {
 	template <typename Tgpio_id>
 	inline TaskCreator *GpioTasksFactory<Tgpio_id>::clone_task_creator() const {
 		return new GpioTasksFactory(*this);
+	}
+
+	template <typename Tgpio_id>
+	inline typename GpioTasksFactory<Tgpio_id>::GpioTask *GpioTasksFactory<Tgpio_id>::create_task(const Tgpio_id& id, const GpioDirection& dir) const {
+		using namespace server;
+		using namespace server_utl;
+		using namespace mcu_platform;
+		auto inventory(m_inventory);
+		auto platform(m_platform);
+		std::shared_ptr<ResultReporter> reporter(m_result_reporter->clone());
+		return new CustomTask<Data *(void)>(
+			[id, dir, inventory, platform, reporter](void)-> Data * {
+				Gpio *gpio_ptr(nullptr);
+				try {
+					gpio_ptr = platform->create_gpio(id, dir);
+					inventory->put(id, gpio_ptr);
+					return reporter->create(0);
+				} catch (...) {
+					delete gpio_ptr;
+					throw;
+				}
+			}
+		);
 	}
 }
 #endif // GPIO_TASKS_FACTORY_HPP

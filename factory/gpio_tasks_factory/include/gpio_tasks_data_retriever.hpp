@@ -16,7 +16,7 @@ namespace mcu_factory {
 		virtual Tgpio_id retrieve_gpio_id(const server::Data& data) const = 0;
 		virtual GpioDirection retrieve_gpio_dir(const server::Data& data) const = 0;
 		virtual GpioState retrieve_gpio_state(const server::Data& data) const = 0;
-		GpioTasksDataRetriever *clone() const = 0;
+		virtual GpioTasksDataRetriever *clone() const = 0;
 	};
 }
 #endif // GPIO_TASKS_DATA_RETRIEVER_HPP
