@@ -28,5 +28,5 @@ target_link_libraries(
     task_creator
 )
 
-add_subdirectory(tasks)
+add_subdirectory(gpio_tasks_factory)
 add_subdirectory(tests EXCLUDE_FROM_ALL)

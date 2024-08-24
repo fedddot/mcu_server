@@ -1,312 +1,112 @@
 #ifndef	GPIO_TASKS_FACTORY_HPP
 #define	GPIO_TASKS_FACTORY_HPP
 
-#include <map>
+#include "custom_task.hpp"
+#include "data.hpp"
+#include "gpio.hpp"
+#include "gpio_tasks_data_retriever.hpp"
+#include "inventory.hpp"
+#include "platform.hpp"
+#include "task.hpp"
+#include "task_creator.hpp"
 #include <memory>
 #include <stdexcept>
 
-
 namespace mcu_factory {
-	template <typename Tgpio_id, typename Ttask_id>
-	class GpioTasksFactory: public Tas {
+	template <typename Tgpio_id>
+	class GpioTasksFactory: public TaskCreator {
 	public:
 		enum class TaskType: int {
 			CREATE_GPIO,
-			CREATE_PERSISTENT_TASK,
 			DELETE_GPIO,
-			DELETE_PERSISTENT_TASK,
 			SET_GPIO,
-			GET_GPIO,
-			EXECUTE_PERSISTENT_TASK,
-			EXECUTE_PERSISTENT_TASKS,
-			SEQUENCE,
-			DELAY
+			GET_GPIO
 		};
 		
-		using GpioDirection = typename mcu_platform::Gpio::Direction;
-		using GpioState = typename mcu_platform::Gpio::State;
-		
+		using FactoryPlatform = mcu_platform::Platform<Tgpio_id>;
+		using DataRetriever = GpioTasksDataRetriever<TaskType, Tgpio_id>;
 		using ResultReporter = server::Creator<server::Data *(int)>;
-		using ResultStateReporter = server::Creator<server::Data *(int, const mcu_platform::Gpio::State&)>;
-		using TasksResultsReporter = server::Creator<server::Data *(const server::Array&)>;
-
-		using FactoryPlatform = mcu_platform::Platform<Tgpio_id, Ttask_id>;
-		using Parsers = GpioTasksFactoryParsers<Tgpio_id, Ttask_id, TaskType>;
-
+		using GpioState = typename mcu_platform::Gpio::State;
+		using ResultStateReporter = server::Creator<server::Data *(int, const GpioState&)>;
+		using GpioTask = server::Task<server::Data *(void)>;
+		using GpioInventory = mcu_platform::Inventory<Tgpio_id, mcu_platform::Gpio>;
+		
 		GpioTasksFactory(
-			FactoryPlatform *platform,
-			const Parsers& parsers, 
+			GpioInventory *inventory,
+			const FactoryPlatform *platform,
+			const DataRetriever& retriever,
 			const ResultReporter& result_reporter,
-			const ResultStateReporter& result_state_reporter,
-			const TasksResultsReporter& tasks_results_reporter
+			const ResultStateReporter& result_state_reporter
 		);
 		GpioTasksFactory(const GpioTasksFactory& other);
 		GpioTasksFactory& operator=(const GpioTasksFactory& other) = delete;
 
-		server::Task<server::Data *(void)> *create(const server::Data& data) const override;
-		server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> *clone() const override;
+		GpioTask *create(const server::Data& data) const override;
+		bool is_creatable(const server::Data& data) const override;
+		server::Creator<GpioTask *(const server::Data&)> *clone() const override;
+		TaskCreator *clone_task_creator() const override;
 	private:
+		GpioInventory *m_inventory;
 		FactoryPlatform *m_platform;
-		const std::unique_ptr<Parsers> m_parsers;
+		const std::unique_ptr<DataRetriever> m_retriever;
 		const std::unique_ptr<ResultReporter> m_result_reporter;
 		const std::unique_ptr<ResultStateReporter> m_result_state_reporter;
-		const std::unique_ptr<TasksResultsReporter> m_tasks_results_reporter;
-
-		using GpioCtor = server_utl::CustomCreator<mcu_platform::Gpio *(const Tgpio_id&, const mcu_platform::Gpio::Direction&)>;
-		using DelayCtor = server_utl::CustomCreator<mcu_platform::Delay *(void)>;
-		
-		GpioCtor m_gpio_ctor;
-		DelayCtor m_delay_ctor;
-
-		using FactoryTask = server::Task<server::Data *(void)>;
-		using TaskCtor = server::Creator<FactoryTask *(const server::Data&)>;
-		
-		std::map<TaskType, std::unique_ptr<TaskCtor>> m_ctors;
-
-		void init_factory();
 	};
 
-	template <typename Tgpio_id, typename Ttask_id>
-	inline GpioTasksFactory<Tgpio_id, Ttask_id>::GpioTasksFactory(
-		FactoryPlatform *platform,
-		const Parsers& parsers, 
+	template <typename Tgpio_id>
+	inline GpioTasksFactory<Tgpio_id>::GpioTasksFactory(
+		GpioInventory *inventory,
+		const FactoryPlatform *platform,
+		const DataRetriever& retriever,
 		const ResultReporter& result_reporter,
-		const ResultStateReporter& result_state_reporter,
-		const TasksResultsReporter& tasks_results_reporter
+		const ResultStateReporter& result_state_reporter
 	):
+		m_inventory(inventory),
 		m_platform(platform),
-		m_parsers(parsers.clone()),
+		m_retriever(retriever.clone()),
 		m_result_reporter(result_reporter.clone()),
-		m_result_state_reporter(result_state_reporter.clone()),
-		m_tasks_results_reporter(tasks_results_reporter.clone()),
-		m_gpio_ctor(
-			[this](const Tgpio_id& id, const mcu_platform::Gpio::Direction& dir) {
-				return m_platform->create_gpio(id, dir);
-			}
-		),
-		m_delay_ctor(
-			[this](void) {
-				return m_platform->create_delay();
-			}
-		) {
+		m_result_state_reporter(result_state_reporter.clone()) {
 		
+		if (!m_inventory) {
+			throw std::invalid_argument("invalid inventory pointer received");
+		}
 		if (!m_platform) {
 			throw std::invalid_argument("invalid platform pointer received");
 		}
-		
-		init_factory();
 	}
 
-	template <typename Tgpio_id, typename Ttask_id>
-	inline GpioTasksFactory<Tgpio_id, Ttask_id>::GpioTasksFactory(const GpioTasksFactory& other):
+	template <typename Tgpio_id>
+	inline GpioTasksFactory<Tgpio_id>::GpioTasksFactory(const GpioTasksFactory& other):
+		m_inventory(other.m_inventory),
 		m_platform(other.m_platform),
-		m_parsers(other.m_parsers->clone()),
+		m_retriever(other.m_retriever->clone()),
 		m_result_reporter(other.m_result_reporter->clone()),
-		m_result_state_reporter(other.m_result_state_reporter->clone()),
-		m_tasks_results_reporter(other.m_tasks_results_reporter->clone()),
-		m_gpio_ctor(other.m_gpio_ctor),
-		m_delay_ctor(other.m_delay_ctor) {
+		m_result_state_reporter(other.m_result_state_reporter->clone()) {
 		
-		init_factory();
 	}
 
-	template <typename Tgpio_id, typename Ttask_id>
-	inline server::Task<server::Data *(void)> *GpioTasksFactory<Tgpio_id, Ttask_id>::create(const server::Data& data) const {
-		auto task_type = (m_parsers->task_type_parser()).parse(data);
-		auto task_ctor_iter = m_ctors.find(task_type);
-		if (m_ctors.end() == task_ctor_iter) {
-			throw std::invalid_argument("task ctor with specified id is not registered");
+	template <typename Tgpio_id>
+	inline typename GpioTasksFactory<Tgpio_id>::GpioTask *GpioTasksFactory<Tgpio_id>::create(const server::Data& data) const {
+		switch (m_retriever->retrieve_task_type(data)) {
+		case TaskType::CREATE_GPIO:
+			return new server_utl::CustomTask<server::Data *(void)>(
+				[](void)-> server::Data * {
+					throw std::invalid_argument("NOT IMPLEMENTED");
+				}
+			);
+		default:
+			throw std::invalid_argument("unsupported task type received");
 		}
-		return task_ctor_iter->second->create(data);
 	}
 	
-	template <typename Tgpio_id, typename Ttask_id>
-	inline server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> *GpioTasksFactory<Tgpio_id, Ttask_id>::clone() const {
-		return new GpioTasksFactory(*this);
+	template <typename Tgpio_id>
+	inline server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> *GpioTasksFactory<Tgpio_id>::clone() const {
+		return clone_task_creator();
 	}
 
-	template <typename Tgpio_id, typename Ttask_id>
-	inline void GpioTasksFactory<Tgpio_id, Ttask_id>::init_factory() {
-		using namespace server;
-		using namespace server_utl;
-
-		m_ctors.insert(
-			{
-				TaskType::CREATE_GPIO,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							const Tgpio_id gpio_id((m_parsers->gpio_id_parser()).parse(data));
-							const GpioDirection gpio_dir((m_parsers->gpio_dir_parser()).parse(data));
-							return new CreateGpioTask<Tgpio_id>(
-								m_platform->gpio_inventory(),
-								gpio_id,
-								gpio_dir,
-								m_gpio_ctor,
-								*m_result_reporter
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::CREATE_PERSISTENT_TASK,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							const Ttask_id task_id((m_parsers->persistent_task_id_parser()).parse(data));
-							std::unique_ptr<Data> task_data((m_parsers->persistent_task_data_parser()).parse(data));
-							return new CreatePersistentTask<Ttask_id>(
-								m_platform->task_inventory(),
-								task_id,
-								*this,
-								*task_data,
-								*m_result_reporter
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::DELETE_GPIO,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							auto gpio_id = (m_parsers->gpio_id_parser()).parse(data);
-							return new DeleteGpioTask<Tgpio_id>(
-								m_platform->gpio_inventory(),
-								gpio_id,
-								*m_result_reporter
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::DELETE_PERSISTENT_TASK,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							const Ttask_id task_id((m_parsers->persistent_task_id_parser()).parse(data));
-							return new DeletePersistentTask<Ttask_id>(
-								m_platform->task_inventory(),
-								task_id,
-								*m_result_reporter
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::SET_GPIO,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							auto gpio_id = (m_parsers->gpio_id_parser()).parse(data);
-							auto gpio_state = (m_parsers->gpio_state_parser()).parse(data);
-							return new SetGpioTask<Tgpio_id>(
-								m_platform->gpio_inventory(),
-								gpio_id,
-								gpio_state,
-								*m_result_reporter
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::GET_GPIO,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							auto gpio_id = (m_parsers->gpio_id_parser()).parse(data);
-							return new GetGpioTask<Tgpio_id>(
-								m_platform->gpio_inventory(),
-								gpio_id,
-								*m_result_state_reporter
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::EXECUTE_PERSISTENT_TASK,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							const Ttask_id task_id((m_parsers->persistent_task_id_parser()).parse(data));
-							return new ExecutePersistentTask<Ttask_id>(
-								m_platform->task_inventory(),
-								task_id
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::EXECUTE_PERSISTENT_TASKS,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							const auto task_ids((m_parsers->persistent_tasks_ids_parser()).parse(data));
-							return new ExecutePersistentTasks<Ttask_id>(
-								m_platform->task_inventory(),
-								task_ids,
-								*m_tasks_results_reporter
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::SEQUENCE,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							auto tasks = (m_parsers->tasks_parser()).parse(data);
-							return new SequenceTask(
-								*this,
-								tasks,
-								*m_tasks_results_reporter
-							);
-						}
-					)
-				)
-			}
-		);
-		m_ctors.insert(
-			{
-				TaskType::DELAY,
-				std::unique_ptr<TaskCtor>(
-					new CustomCreator<FactoryTask *(const Data&)>(
-						[this](const Data& data) {
-							auto delay_ms = (m_parsers->delay_parser()).parse(data);
-							return new DelayTask(
-								m_delay_ctor,
-								delay_ms,
-								*m_result_reporter
-							);
-						}
-					)
-				)
-			}
-		);
+	template <typename Tgpio_id>
+	inline TaskCreator *GpioTasksFactory<Tgpio_id>::clone_task_creator() const {
+		return new GpioTasksFactory(*this);
 	}
 }
 #endif // GPIO_TASKS_FACTORY_HPP
