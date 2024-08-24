@@ -5,8 +5,10 @@
 #include <utility>
 
 #include "data.hpp"
+#include "gpio.hpp"
 #include "gpio_tasks_factory.hpp"
 #include "gpio_tasks_factory_fixture.hpp"
+#include "gpo.hpp"
 #include "integer.hpp"
 #include "object.hpp"
 
@@ -14,6 +16,7 @@ using namespace server;
 using namespace server_utl;
 using namespace mcu_factory;
 using namespace mcu_factory_uts;
+using namespace mcu_platform;
 
 TEST_F(GpioTasksFactoryFixture, ctor_dtor_sanity) {
 	// WHEN
@@ -78,6 +81,16 @@ TEST_F(GpioTasksFactoryFixture, create_sanity) {
 				[this, test_gpio_id](const Data& data) {
 					ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
 					ASSERT_TRUE(inventory()->contains(test_gpio_id));
+				}
+			}
+		},
+		{
+			"gpo set high",
+			{
+				set_gpio_data(test_gpio_id, GpioState::HIGH),
+				[this, test_gpio_id](const Data& data) {
+					ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
+					ASSERT_EQ(GpioState::HIGH, Gpio::cast<Gpo>(*(inventory()->access(test_gpio_id))).state());
 				}
 			}
 		},
