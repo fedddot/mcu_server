@@ -1,19 +1,3 @@
-add_library(mcu_factory_fixture INTERFACE)
-target_include_directories(mcu_factory_fixture INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(
-	mcu_factory_fixture
-	INTERFACE
-    data_lib
-    custom_creator
-    mcu_factory_parsers
-    default_mcu_factory_parsers
-    gpio
-    mcu_factory
-    object
-    platform
-    test_platform
-)
-
 add_executable(
 	factory_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
