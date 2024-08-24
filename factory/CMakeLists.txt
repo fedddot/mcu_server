@@ -1,3 +1,12 @@
+add_library(parser INTERFACE)
+target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
+add_library(serializer INTERFACE)
+target_include_directories(serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
+add_library(transformer INTERFACE)
+target_include_directories(transformer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
 add_library(mcu_factory_parsers INTERFACE)
 target_include_directories(mcu_factory_parsers INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
