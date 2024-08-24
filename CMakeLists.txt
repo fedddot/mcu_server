@@ -16,6 +16,9 @@ target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 add_library(serializer INTERFACE)
 target_include_directories(serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(transformer INTERFACE)
+target_include_directories(transformer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
 add_library(task INTERFACE)
 target_include_directories(task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
