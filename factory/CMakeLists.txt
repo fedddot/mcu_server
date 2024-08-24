@@ -7,6 +7,16 @@ target_include_directories(serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/includ
 add_library(transformer INTERFACE)
 target_include_directories(transformer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(mcu_task_creator INTERFACE)
+target_include_directories(mcu_task_creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    mcu_task_creator
+    INTERFACE
+    data
+    task
+    creator
+)
+
 add_library(mcu_factory_parsers INTERFACE)
 target_include_directories(mcu_factory_parsers INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
