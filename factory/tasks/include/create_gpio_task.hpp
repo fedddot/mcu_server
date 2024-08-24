@@ -12,17 +12,17 @@
 
 namespace mcu_factory {
 	template <typename Tgpio_id>
-	class CreateGpioTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class CreateGpioTask: public server::Task<server::Data *(void)> {
 	public:
 		using GpioInventory = mcu_platform::Inventory<Tgpio_id, mcu_platform::Gpio>;
-		using GpioCreator = mcu_server::Creator<mcu_platform::Gpio *(const Tgpio_id&, const mcu_platform::Gpio::Direction&)>;
-		using ReportCreator = mcu_server::Creator<mcu_server::Data *(int)>;
+		using GpioCreator = server::Creator<mcu_platform::Gpio *(const Tgpio_id&, const mcu_platform::Gpio::Direction&)>;
+		using ReportCreator = server::Creator<server::Data *(int)>;
 		
 		CreateGpioTask(GpioInventory *inventory, const Tgpio_id& id, const mcu_platform::Gpio::Direction& dir, const GpioCreator& gpio_ctor, const ReportCreator& report_ctor);
 		CreateGpioTask(const CreateGpioTask& other) = delete;
 		CreateGpioTask& operator=(const CreateGpioTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		GpioInventory * const m_inventory;
 		const Tgpio_id m_id;
@@ -39,7 +39,7 @@ namespace mcu_factory {
 	}
 
 	template <class Tgpio_id>
-	inline mcu_server::Data *CreateGpioTask<Tgpio_id>::execute() const {
+	inline server::Data *CreateGpioTask<Tgpio_id>::execute() const {
 		auto gpio_ptr = m_gpio_ctor->create(m_id, m_dir);
 		try {
 			m_inventory->put(m_id, gpio_ptr);

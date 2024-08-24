@@ -6,7 +6,7 @@
 #include "zlib_decompressor.hpp"
 #include "zlib_compressor.hpp"
 
-using namespace mcu_server_utl;
+using namespace server_utl;
 
 
 TEST(ut_zlib_compressor, some_sanity) {

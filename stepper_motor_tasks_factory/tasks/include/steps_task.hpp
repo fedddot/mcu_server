@@ -11,11 +11,11 @@
 
 namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id>
-	class StepsTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class StepsTask: public server::Task<server::Data *(void)> {
 	public:
 		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
 		using Direction = typename mcu_platform::StepperMotor<Tgpio_id>::Direction;
-		using ReportCreator = typename mcu_server::Creator<mcu_server::Data *(int)>;
+		using ReportCreator = typename server::Creator<server::Data *(int)>;
 		
 		StepsTask(
 			StepperMotorInventory *inventory,
@@ -28,7 +28,7 @@ namespace mcu_factory {
 		StepsTask(const StepsTask& other) = delete;
 		StepsTask& operator=(const StepsTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		StepperMotorInventory * const m_inventory;
 		const Tstepper_id m_id;
@@ -53,7 +53,7 @@ namespace mcu_factory {
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline mcu_server::Data *StepsTask<Tstepper_id, Tgpio_id>::execute() const {
+	inline server::Data *StepsTask<Tstepper_id, Tgpio_id>::execute() const {
 		m_inventory->access(m_id)->steps(m_direction, m_steps_number, m_step_duration_ms);
 		return m_report_ctor->create(0);
 	}

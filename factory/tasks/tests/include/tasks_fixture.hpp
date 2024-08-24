@@ -13,7 +13,7 @@
 namespace mcu_factory_uts {
 	class TasksFixture: public McuFactoryFixture {
 	public:
-		using TaskReportCreator = mcu_server::Creator<mcu_server::Data *(int)>;
+		using TaskReportCreator = server::Creator<server::Data *(int)>;
 		TasksFixture():
 			m_factory(
 				platform(),
@@ -23,10 +23,10 @@ namespace mcu_factory_uts {
 				tasks_results_reporter()
 			),
 			m_report_ctor(
-				new mcu_server_utl::CustomCreator<mcu_server::Data *(int)>(
+				new server_utl::CustomCreator<server::Data *(int)>(
 					[](int result) {
-						mcu_server::Object report;
-						report.add("result", mcu_server::Integer(result));
+						server::Object report;
+						report.add("result", server::Integer(result));
 						return report.clone();
 					}
 				)

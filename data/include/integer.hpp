@@ -3,7 +3,7 @@
 
 #include "data.hpp"
 
-namespace mcu_server {
+namespace server {
 	class Integer: public Data {
 	public:
 		Integer(int val);

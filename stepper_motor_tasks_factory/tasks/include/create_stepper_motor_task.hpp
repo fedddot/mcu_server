@@ -13,13 +13,13 @@
 
 namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id>
-	class CreateStepperMotorTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class CreateStepperMotorTask: public server::Task<server::Data *(void)> {
 	public:
 		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
 		using Shoulders = typename mcu_platform::StepperMotor<Tgpio_id>::Shoulders;
 		using States = typename mcu_platform::StepperMotor<Tgpio_id>::States;
-		using GpoCreator = typename mcu_server::Creator<mcu_platform::Gpo *(const Tgpio_id&)>;
-		using ReportCreator = typename mcu_server::Creator<mcu_server::Data *(int)>;
+		using GpoCreator = typename server::Creator<mcu_platform::Gpo *(const Tgpio_id&)>;
+		using ReportCreator = typename server::Creator<server::Data *(int)>;
 		
 		CreateStepperMotorTask(
 			StepperMotorInventory *inventory,
@@ -33,7 +33,7 @@ namespace mcu_factory {
 		CreateStepperMotorTask(const CreateStepperMotorTask& other) = delete;
 		CreateStepperMotorTask& operator=(const CreateStepperMotorTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		StepperMotorInventory * const m_inventory;
 		const Tstepper_id m_id;
@@ -60,7 +60,7 @@ namespace mcu_factory {
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline mcu_server::Data *CreateStepperMotorTask<Tstepper_id, Tgpio_id>::execute() const {
+	inline server::Data *CreateStepperMotorTask<Tstepper_id, Tgpio_id>::execute() const {
 		auto motor = new mcu_platform::StepperMotor<Tgpio_id>(
 			m_shoulders,
 			m_states,

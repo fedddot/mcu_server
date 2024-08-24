@@ -13,18 +13,18 @@
 
 namespace mcu_factory {
 	template <typename Ttask_id>
-	class ExecutePersistentTasks: public mcu_server::Task<mcu_server::Data *(void)> {
+	class ExecutePersistentTasks: public server::Task<server::Data *(void)> {
 	public:
-		using PersistentTask = mcu_server::Task<mcu_server::Data *(void)>;
+		using PersistentTask = server::Task<server::Data *(void)>;
 		using PersistentTaskInventory = mcu_platform::Inventory<Ttask_id, PersistentTask>;
 		using PersistentTasksList = std::vector<Ttask_id>;
-		using ReportCreator = mcu_server::Creator<mcu_server::Data *(const mcu_server::Array&)>;
+		using ReportCreator = server::Creator<server::Data *(const server::Array&)>;
 		
 		ExecutePersistentTasks(PersistentTaskInventory *inventory, const PersistentTasksList& tasks_list, const ReportCreator& reporter);
 		ExecutePersistentTasks(const ExecutePersistentTasks& other) = delete;
 		ExecutePersistentTasks& operator=(const ExecutePersistentTasks& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		PersistentTaskInventory * const m_inventory;
 		const PersistentTasksList m_tasks_list;
@@ -39,8 +39,8 @@ namespace mcu_factory {
 	}
 
 	template <class Ttask_id>
-	inline mcu_server::Data *ExecutePersistentTasks<Ttask_id>::execute() const {
-		using namespace mcu_server;
+	inline server::Data *ExecutePersistentTasks<Ttask_id>::execute() const {
+		using namespace server;
 		for (auto task_id: m_tasks_list) {
 			auto task_ptr = m_inventory->access(task_id);
 			std::unique_ptr<Data> report(task_ptr->execute());

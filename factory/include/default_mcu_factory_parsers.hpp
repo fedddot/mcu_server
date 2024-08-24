@@ -73,9 +73,9 @@ namespace mcu_factory {
 
 	template <typename Tgpio_id, typename Ttask_id, typename Ttask_type>
 	inline DefaultMcuFactoryParsers<Tgpio_id, Ttask_id, Ttask_type>::DefaultMcuFactoryParsers() {
-		using namespace mcu_server;
+		using namespace server;
 		using namespace mcu_platform;
-		using namespace mcu_server_utl;
+		using namespace server_utl;
 		
 		m_task_type_parser = std::unique_ptr<TaskTypeParser>(
 			new CustomParser<Ttask_type(const Data&)>(

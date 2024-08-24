@@ -1,7 +1,7 @@
 #ifndef	SERIALIZER_HPP
 #define	SERIALIZER_HPP
 
-namespace mcu_server {
+namespace server {
 	template <typename Signature>
 	class Serializer;
 	

@@ -6,12 +6,12 @@
 
 #include "creator.hpp"
 
-namespace mcu_server_utl {
+namespace server_utl {
 	template <typename Signature>
 	class CustomCreator;
 
 	template <typename Tproduct, typename... Args>
-	class CustomCreator<Tproduct(Args...)>: public mcu_server::Creator<Tproduct(Args...)> {
+	class CustomCreator<Tproduct(Args...)>: public server::Creator<Tproduct(Args...)> {
 	public:
 		using CreateFunction = std::function<Tproduct(Args...)>;
 		
@@ -20,7 +20,7 @@ namespace mcu_server_utl {
 		CustomCreator& operator=(const CustomCreator& other) = default;
 				
 		Tproduct create(Args... args) const override;
-		mcu_server::Creator<Tproduct(Args...)> *clone() const override;
+		server::Creator<Tproduct(Args...)> *clone() const override;
 	private:
 		CreateFunction m_create_function;
 	};
@@ -38,7 +38,7 @@ namespace mcu_server_utl {
 	}
 
 	template <typename Tproduct, typename... Args>
-	inline mcu_server::Creator<Tproduct(Args...)> *CustomCreator<Tproduct(Args...)>::clone() const {
+	inline server::Creator<Tproduct(Args...)> *CustomCreator<Tproduct(Args...)>::clone() const {
 		return new CustomCreator(*this);
 	}
 }

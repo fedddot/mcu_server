@@ -19,14 +19,14 @@ namespace mcu_factory {
 		virtual ~StepperMotorDataParser() noexcept = default;
 		virtual StepperMotorDataParser *clone() const = 0;
 
-		virtual Ttask_type parse_task_type(const mcu_server::Data& data) const = 0;
-		virtual Tstepper_id parse_stepper_id(const mcu_server::Data& data) const = 0;
-		virtual Duration parse_step_duration(const mcu_server::Data& data) const = 0;
-		virtual StepsNumber parse_steps_number(const mcu_server::Data& data) const = 0;
-		virtual Direction parse_steps_direction(const mcu_server::Data& data) const = 0;
-		virtual Shoulders parse_shoulders(const mcu_server::Data& data) const = 0;
-		virtual States parse_states(const mcu_server::Data& data) const = 0;
-		virtual StepsSequence parse_steps_sequence(const mcu_server::Data& data) const = 0;
+		virtual Ttask_type parse_task_type(const server::Data& data) const = 0;
+		virtual Tstepper_id parse_stepper_id(const server::Data& data) const = 0;
+		virtual Duration parse_step_duration(const server::Data& data) const = 0;
+		virtual StepsNumber parse_steps_number(const server::Data& data) const = 0;
+		virtual Direction parse_steps_direction(const server::Data& data) const = 0;
+		virtual Shoulders parse_shoulders(const server::Data& data) const = 0;
+		virtual States parse_states(const server::Data& data) const = 0;
+		virtual StepsSequence parse_steps_sequence(const server::Data& data) const = 0;
 	};
 }
 #endif // STEPPER_MOTOR_DATA_PARSER_HPP

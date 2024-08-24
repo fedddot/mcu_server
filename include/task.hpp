@@ -1,7 +1,7 @@
 #ifndef	TASK_HPP
 #define	TASK_HPP
 
-namespace mcu_server {
+namespace server {
 	template <typename Signature>
 	class Task;
 

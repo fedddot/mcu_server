@@ -6,12 +6,12 @@
 
 #include "parser.hpp"
 
-namespace mcu_server_utl {
+namespace server_utl {
 	template <typename Signature>
 	class CustomParser;
 
 	template <typename Tparsed, typename... Args>
-	class CustomParser<Tparsed(Args...)>: public mcu_server::Parser<Tparsed(Args...)> {
+	class CustomParser<Tparsed(Args...)>: public server::Parser<Tparsed(Args...)> {
 	public:
 		using CreateFunction = std::function<Tparsed(Args...)>;
 		
@@ -20,7 +20,7 @@ namespace mcu_server_utl {
 		CustomParser& operator=(const CustomParser& other) = default;
 				
 		Tparsed parse(Args... args) const override;
-		mcu_server::Parser<Tparsed(Args...)> *clone() const override;
+		server::Parser<Tparsed(Args...)> *clone() const override;
 	private:
 		CreateFunction m_parse_function;
 	};
@@ -38,7 +38,7 @@ namespace mcu_server_utl {
 	}
 
 	template <typename Tparsed, typename... Args>
-	inline mcu_server::Parser<Tparsed(Args...)> *CustomParser<Tparsed(Args...)>::clone() const {
+	inline server::Parser<Tparsed(Args...)> *CustomParser<Tparsed(Args...)>::clone() const {
 		return new CustomParser(*this);
 	}
 }

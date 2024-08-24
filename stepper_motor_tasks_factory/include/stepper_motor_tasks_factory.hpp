@@ -18,7 +18,7 @@
 
 namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id>
-	class StepperMotorTasksFactory: public mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> {
+	class StepperMotorTasksFactory: public server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> {
 	public:
 		enum class TaskType: int {
 			CREATE_STEPPER_MOTOR,
@@ -28,8 +28,8 @@ namespace mcu_factory {
 		};
 		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
 		using DataParser = StepperMotorDataParser<Tstepper_id, Tgpio_id, TaskType>;
-		using GpoCreator = typename mcu_server::Creator<mcu_platform::Gpo *(const Tgpio_id&)>;
-		using ReportCreator = typename mcu_server::Creator<mcu_server::Data *(int)>;
+		using GpoCreator = typename server::Creator<mcu_platform::Gpo *(const Tgpio_id&)>;
+		using ReportCreator = typename server::Creator<server::Data *(int)>;
 		
 		StepperMotorTasksFactory(
 			StepperMotorInventory *inventory,
@@ -41,8 +41,8 @@ namespace mcu_factory {
 		StepperMotorTasksFactory(const StepperMotorTasksFactory& other);
 		StepperMotorTasksFactory& operator=(const StepperMotorTasksFactory& other) = delete;
 
-		mcu_server::Task<mcu_server::Data *(void)> *create(const mcu_server::Data& data) const override;
-		mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *clone() const override;
+		server::Task<server::Data *(void)> *create(const server::Data& data) const override;
+		server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> *clone() const override;
 	private:
 		StepperMotorInventory *m_inventory;
 		std::unique_ptr<DataParser> m_stepper_motor_data_parser;
@@ -50,7 +50,7 @@ namespace mcu_factory {
 		std::unique_ptr<mcu_platform::Delay> m_delay;
 		std::unique_ptr<ReportCreator> m_report_creator;
 		
-		using TaskCtor = mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)>;
+		using TaskCtor = server::Creator<server::Task<server::Data *(void)> *(const server::Data&)>;
 		const std::map<TaskType, std::unique_ptr<TaskCtor>> m_ctors;
 	};
 
@@ -84,7 +84,7 @@ namespace mcu_factory {
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline mcu_server::Task<mcu_server::Data *(void)> *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::create(const mcu_server::Data& data) const {
+	inline server::Task<server::Data *(void)> *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::create(const server::Data& data) const {
 		auto task_type = m_stepper_motor_data_parser->parse_task_type(data);
 		switch (task_type) {
 		case TaskType::CREATE_STEPPER_MOTOR:
@@ -124,7 +124,7 @@ namespace mcu_factory {
 	}
 	
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::clone() const {
+	inline server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::clone() const {
 		return new StepperMotorTasksFactory(*this);
 	}
 }

@@ -12,7 +12,7 @@
 
 namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id>
-	class StepsSequenceTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class StepsSequenceTask: public server::Task<server::Data *(void)> {
 	public:
 		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
 		class Steps {
@@ -39,7 +39,7 @@ namespace mcu_factory {
 			unsigned int m_step_duration_ms;
 		};
 		using StepsSequence = std::vector<Steps>;
-		using ReportCreator = typename mcu_server::Creator<mcu_server::Data *(int)>;
+		using ReportCreator = typename server::Creator<server::Data *(int)>;
 		
 		StepsSequenceTask(
 			StepperMotorInventory *inventory,
@@ -49,7 +49,7 @@ namespace mcu_factory {
 		StepsSequenceTask(const StepsSequenceTask& other) = delete;
 		StepsSequenceTask& operator=(const StepsSequenceTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		StepperMotorInventory * const m_inventory;
 		const StepsSequence m_steps_sequence;
@@ -68,7 +68,7 @@ namespace mcu_factory {
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline mcu_server::Data *StepsSequenceTask<Tstepper_id, Tgpio_id>::execute() const {
+	inline server::Data *StepsSequenceTask<Tstepper_id, Tgpio_id>::execute() const {
 		for (const auto& steps: m_steps_sequence) {
 			m_inventory->access(steps.stepper_id())->steps(steps.direction(), steps.steps_number(), steps.step_duration_ms());
 		}

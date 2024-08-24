@@ -11,16 +11,16 @@
 
 namespace mcu_factory {
 	template <typename Tgpio_id>
-	class DeleteGpioTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class DeleteGpioTask: public server::Task<server::Data *(void)> {
 	public:
 		using GpioInventory = mcu_platform::Inventory<Tgpio_id, mcu_platform::Gpio>;
-		using ReportCreator = mcu_server::Creator<mcu_server::Data *(int)>;
+		using ReportCreator = server::Creator<server::Data *(int)>;
 		
 		DeleteGpioTask(GpioInventory *inventory, const Tgpio_id& id, const ReportCreator& report_ctor);
 		DeleteGpioTask(const DeleteGpioTask& other) = delete;
 		DeleteGpioTask& operator=(const DeleteGpioTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		GpioInventory * const m_inventory;
 		const Tgpio_id m_id;
@@ -35,7 +35,7 @@ namespace mcu_factory {
 	}
 
 	template <class Tgpio_id>
-	inline mcu_server::Data *DeleteGpioTask<Tgpio_id>::execute() const {
+	inline server::Data *DeleteGpioTask<Tgpio_id>::execute() const {
 		auto gpio_ptr = m_inventory->pull(m_id);
 		delete gpio_ptr;
 		gpio_ptr = nullptr;

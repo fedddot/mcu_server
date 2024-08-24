@@ -23,7 +23,7 @@ namespace mcu_platform {
 		using Shoulders = std::map<Shoulder, Tgpio_id>;
 		using State = std::map<Shoulder, Gpio::State>;
 		using States = std::vector<State>;
-		using GpoCreator = mcu_server::Creator<Gpo *(const Tgpio_id&)>;
+		using GpoCreator = server::Creator<Gpo *(const Tgpio_id&)>;
 		
 		StepperMotor(
 			const Shoulders& shoulders,

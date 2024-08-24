@@ -14,16 +14,16 @@
 
 namespace mcu_factory {
 	template <typename Tgpio_id>
-	class GetGpioTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class GetGpioTask: public server::Task<server::Data *(void)> {
 	public:
 		using GpioInventory = mcu_platform::Inventory<Tgpio_id, mcu_platform::Gpio>;
-		using ReportCreator = mcu_server::Creator<mcu_server::Data *(int, const mcu_platform::Gpio::State&)>;
+		using ReportCreator = server::Creator<server::Data *(int, const mcu_platform::Gpio::State&)>;
 		
 		GetGpioTask(GpioInventory *inventory, const Tgpio_id& id, const ReportCreator& report_ctor);
 		GetGpioTask(const GetGpioTask& other) = delete;
 		GetGpioTask& operator=(const GetGpioTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		GpioInventory * const m_inventory;
 		const Tgpio_id m_id;
@@ -38,7 +38,7 @@ namespace mcu_factory {
 	}
 
 	template <class Tgpio_id>
-	inline mcu_server::Data *GetGpioTask<Tgpio_id>::execute() const {
+	inline server::Data *GetGpioTask<Tgpio_id>::execute() const {
 		mcu_platform::Gpio::State retrieved_state(mcu_platform::Gpio::State::LOW);
 		auto gpio_ptr = m_inventory->access(m_id);
 		switch (gpio_ptr->direction()) {

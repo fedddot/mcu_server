@@ -1,7 +1,7 @@
 #ifndef	PARSER_HPP
 #define	PARSER_HPP
 
-namespace mcu_server {
+namespace server {
 	template <typename Signature>
 	class Parser;
 	

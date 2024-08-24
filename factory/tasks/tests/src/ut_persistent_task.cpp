@@ -4,7 +4,7 @@
 #include "gpio.hpp"
 #include "tasks_fixture.hpp"
 
-using namespace mcu_server;
+using namespace server;
 using namespace mcu_factory;
 using namespace mcu_factory_uts;
 using namespace mcu_platform;

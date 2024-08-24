@@ -13,10 +13,10 @@ target_include_directories(creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 add_library(task INTERFACE)
 target_include_directories(task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(mcu_server INTERFACE)
-target_include_directories(mcu_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(server INTERFACE)
+target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-    mcu_server
+    server
     INTERFACE
     creator
     data

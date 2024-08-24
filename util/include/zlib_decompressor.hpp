@@ -9,15 +9,15 @@
 #include "transformer.hpp"
 #include "zlib.h"
 
-namespace mcu_server_utl {
-	class ZlibDecompressor: public mcu_server::Transformer<std::vector<char>(const std::vector<char>&, const std::size_t&)> {
+namespace server_utl {
+	class ZlibDecompressor: public server::Transformer<std::vector<char>(const std::vector<char>&, const std::size_t&)> {
 	public:
 		ZlibDecompressor() = default;
 		ZlibDecompressor(const ZlibDecompressor& other) = default;
 		ZlibDecompressor& operator=(const ZlibDecompressor& other) = default;
 
 		std::vector<char> transform(const std::vector<char>& data, const std::size_t& decompressed_data_size) const override;
-		mcu_server::Transformer<std::vector<char>(const std::vector<char>&, const std::size_t&)> *clone() const override;
+		server::Transformer<std::vector<char>(const std::vector<char>&, const std::size_t&)> *clone() const override;
 	};
 
 	inline std::vector<char> ZlibDecompressor::transform(const std::vector<char>& data, const std::size_t& decompressed_data_size) const {
@@ -34,7 +34,7 @@ namespace mcu_server_utl {
 		return std::vector<char>(decompressed_data_buff.get(), decompressed_data_buff.get() + actual_decompressed_data_size);
 	}
 
-	inline mcu_server::Transformer<std::vector<char>(const std::vector<char>&, const std::size_t&)> *ZlibDecompressor::clone() const {
+	inline server::Transformer<std::vector<char>(const std::vector<char>&, const std::size_t&)> *ZlibDecompressor::clone() const {
 		return new ZlibDecompressor(*this);
 	}
 }

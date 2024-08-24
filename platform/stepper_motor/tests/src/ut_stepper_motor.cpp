@@ -9,7 +9,7 @@
 
 using namespace mcu_platform;
 using namespace mcu_platform_uts;
-using namespace mcu_server_utl;
+using namespace server_utl;
 
 using GpoId = int;
 using Shoulder = typename StepperMotor<int>::Shoulder;

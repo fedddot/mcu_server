@@ -11,7 +11,7 @@ namespace mcu_platform {
 	template <typename Tgpio_id, typename Ttask_id>
 	class Platform {
 	public:
-		using PersistentTask = mcu_server::Task<mcu_server::Data *(void)>;
+		using PersistentTask = server::Task<server::Data *(void)>;
 
 		virtual ~Platform() noexcept = default;
 

@@ -27,7 +27,7 @@
 
 namespace mcu_factory {
 	template <typename Tgpio_id, typename Ttask_id>
-	class McuFactory: public mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> {
+	class McuFactory: public server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> {
 	public:
 		enum class TaskType: int {
 			CREATE_GPIO,
@@ -45,9 +45,9 @@ namespace mcu_factory {
 		using GpioDirection = typename mcu_platform::Gpio::Direction;
 		using GpioState = typename mcu_platform::Gpio::State;
 		
-		using ResultReporter = mcu_server::Creator<mcu_server::Data *(int)>;
-		using ResultStateReporter = mcu_server::Creator<mcu_server::Data *(int, const mcu_platform::Gpio::State&)>;
-		using TasksResultsReporter = mcu_server::Creator<mcu_server::Data *(const mcu_server::Array&)>;
+		using ResultReporter = server::Creator<server::Data *(int)>;
+		using ResultStateReporter = server::Creator<server::Data *(int, const mcu_platform::Gpio::State&)>;
+		using TasksResultsReporter = server::Creator<server::Data *(const server::Array&)>;
 
 		using FactoryPlatform = mcu_platform::Platform<Tgpio_id, Ttask_id>;
 		using Parsers = McuFactoryParsers<Tgpio_id, Ttask_id, TaskType>;
@@ -62,8 +62,8 @@ namespace mcu_factory {
 		McuFactory(const McuFactory& other);
 		McuFactory& operator=(const McuFactory& other) = delete;
 
-		mcu_server::Task<mcu_server::Data *(void)> *create(const mcu_server::Data& data) const override;
-		mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *clone() const override;
+		server::Task<server::Data *(void)> *create(const server::Data& data) const override;
+		server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> *clone() const override;
 	private:
 		FactoryPlatform *m_platform;
 		const std::unique_ptr<Parsers> m_parsers;
@@ -71,14 +71,14 @@ namespace mcu_factory {
 		const std::unique_ptr<ResultStateReporter> m_result_state_reporter;
 		const std::unique_ptr<TasksResultsReporter> m_tasks_results_reporter;
 
-		using GpioCtor = mcu_server_utl::CustomCreator<mcu_platform::Gpio *(const Tgpio_id&, const mcu_platform::Gpio::Direction&)>;
-		using DelayCtor = mcu_server_utl::CustomCreator<mcu_platform::Delay *(void)>;
+		using GpioCtor = server_utl::CustomCreator<mcu_platform::Gpio *(const Tgpio_id&, const mcu_platform::Gpio::Direction&)>;
+		using DelayCtor = server_utl::CustomCreator<mcu_platform::Delay *(void)>;
 		
 		GpioCtor m_gpio_ctor;
 		DelayCtor m_delay_ctor;
 
-		using FactoryTask = mcu_server::Task<mcu_server::Data *(void)>;
-		using TaskCtor = mcu_server::Creator<FactoryTask *(const mcu_server::Data&)>;
+		using FactoryTask = server::Task<server::Data *(void)>;
+		using TaskCtor = server::Creator<FactoryTask *(const server::Data&)>;
 		
 		std::map<TaskType, std::unique_ptr<TaskCtor>> m_ctors;
 
@@ -130,7 +130,7 @@ namespace mcu_factory {
 	}
 
 	template <typename Tgpio_id, typename Ttask_id>
-	inline mcu_server::Task<mcu_server::Data *(void)> *McuFactory<Tgpio_id, Ttask_id>::create(const mcu_server::Data& data) const {
+	inline server::Task<server::Data *(void)> *McuFactory<Tgpio_id, Ttask_id>::create(const server::Data& data) const {
 		auto task_type = (m_parsers->task_type_parser()).parse(data);
 		auto task_ctor_iter = m_ctors.find(task_type);
 		if (m_ctors.end() == task_ctor_iter) {
@@ -140,14 +140,14 @@ namespace mcu_factory {
 	}
 	
 	template <typename Tgpio_id, typename Ttask_id>
-	inline mcu_server::Creator<mcu_server::Task<mcu_server::Data *(void)> *(const mcu_server::Data&)> *McuFactory<Tgpio_id, Ttask_id>::clone() const {
+	inline server::Creator<server::Task<server::Data *(void)> *(const server::Data&)> *McuFactory<Tgpio_id, Ttask_id>::clone() const {
 		return new McuFactory(*this);
 	}
 
 	template <typename Tgpio_id, typename Ttask_id>
 	inline void McuFactory<Tgpio_id, Ttask_id>::init_factory() {
-		using namespace mcu_server;
-		using namespace mcu_server_utl;
+		using namespace server;
+		using namespace server_utl;
 
 		m_ctors.insert(
 			{

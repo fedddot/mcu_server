@@ -13,16 +13,16 @@
 
 namespace mcu_factory {
 	template <typename Tgpio_id>
-	class SetGpioTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class SetGpioTask: public server::Task<server::Data *(void)> {
 	public:
 		using GpioInventory = mcu_platform::Inventory<Tgpio_id, mcu_platform::Gpio>;
-		using ReportCreator = mcu_server::Creator<mcu_server::Data *(int)>;
+		using ReportCreator = server::Creator<server::Data *(int)>;
 		
 		SetGpioTask(GpioInventory *inventory, const Tgpio_id& id, const mcu_platform::Gpio::State& state, const ReportCreator& report_ctor);
 		SetGpioTask(const SetGpioTask& other) = delete;
 		SetGpioTask& operator=(const SetGpioTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		GpioInventory * const m_inventory;
 		const Tgpio_id m_id;
@@ -38,7 +38,7 @@ namespace mcu_factory {
 	}
 
 	template <class Tgpio_id>
-	inline mcu_server::Data *SetGpioTask<Tgpio_id>::execute() const {
+	inline server::Data *SetGpioTask<Tgpio_id>::execute() const {
 		auto gpio_ptr = m_inventory->access(m_id);
 		if (mcu_platform::Gpio::Direction::OUT != gpio_ptr->direction()) {
 			throw std::runtime_error("gpio with specified ID is not an output");

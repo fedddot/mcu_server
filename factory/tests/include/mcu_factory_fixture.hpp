@@ -49,8 +49,8 @@ namespace mcu_factory_uts {
 			return *m_tasks_results_reporter;
 		}
 
-		mcu_server::Object create_gpio_data(const GpioId& id, const mcu_platform::Gpio::Direction& dir) const {
-			using namespace mcu_server;
+		server::Object create_gpio_data(const GpioId& id, const mcu_platform::Gpio::Direction& dir) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::CREATE_GPIO)));
 			task_data.add("gpio_id", Integer(id));
@@ -58,8 +58,8 @@ namespace mcu_factory_uts {
 			return task_data;
 		}
 
-		mcu_server::Object create_persistent_task_data(const TaskId& id, const mcu_server::Data& pers_task_data) const {
-			using namespace mcu_server;
+		server::Object create_persistent_task_data(const TaskId& id, const server::Data& pers_task_data) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::CREATE_PERSISTENT_TASK)));
 			task_data.add("task_id", Integer(id));
@@ -67,8 +67,8 @@ namespace mcu_factory_uts {
 			return task_data;
 		}
 
-		mcu_server::Object set_gpio_data(const GpioId& id, const mcu_platform::Gpio::State& state) const {
-			using namespace mcu_server;
+		server::Object set_gpio_data(const GpioId& id, const mcu_platform::Gpio::State& state) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::SET_GPIO)));
 			task_data.add("gpio_id", Integer(id));
@@ -76,48 +76,48 @@ namespace mcu_factory_uts {
 			return task_data;
 		}
 
-		mcu_server::Object get_gpio_data(const GpioId& id) const {
-			using namespace mcu_server;
+		server::Object get_gpio_data(const GpioId& id) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::GET_GPIO)));
 			task_data.add("gpio_id", Integer(id));
 			return task_data;
 		}
 
-		mcu_server::Object execute_persistent_task_data(const TaskId& id) const {
-			using namespace mcu_server;
+		server::Object execute_persistent_task_data(const TaskId& id) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::EXECUTE_PERSISTENT_TASK)));
 			task_data.add("task_id", Integer(id));
 			return task_data;
 		}
 
-		mcu_server::Object execute_persistent_tasks_data(const mcu_server::Array& ids) const {
-			using namespace mcu_server;
+		server::Object execute_persistent_tasks_data(const server::Array& ids) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::EXECUTE_PERSISTENT_TASKS)));
 			task_data.add("tasks", ids);
 			return task_data;
 		}
 
-		mcu_server::Object delete_gpio_data(const GpioId& id) const {
-			using namespace mcu_server;
+		server::Object delete_gpio_data(const GpioId& id) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELETE_GPIO)));
 			task_data.add("gpio_id", Integer(id));
 			return task_data;
 		}
 
-		mcu_server::Object delete_persistent_task_data(const TaskId& id) const {
-			using namespace mcu_server;
+		server::Object delete_persistent_task_data(const TaskId& id) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELETE_PERSISTENT_TASK)));
 			task_data.add("task_id", Integer(id));
 			return task_data;
 		}
 
-		mcu_server::Object sequence_data(const GpioId& id) const {
-			using namespace mcu_server;
+		server::Object sequence_data(const GpioId& id) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::SEQUENCE)));
 			Array tasks;
@@ -130,8 +130,8 @@ namespace mcu_factory_uts {
 			return task_data;
 		}
 
-		mcu_server::Object delay_data(int delay_ms) const {
-			using namespace mcu_server;
+		server::Object delay_data(int delay_ms) const {
+			using namespace server;
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELAY)));
 			task_data.add("delay_ms", Integer(delay_ms));
@@ -148,8 +148,8 @@ namespace mcu_factory_uts {
 
 	inline McuFactoryFixture::McuFactoryFixture() {
 		using namespace mcu_factory;
-		using namespace mcu_server;
-		using namespace mcu_server_utl;
+		using namespace server;
+		using namespace server_utl;
 		using namespace mcu_platform;
 		using McuTaskType = typename TestFactory::TaskType;
 		

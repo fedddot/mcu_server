@@ -1,7 +1,7 @@
 #ifndef	DATA_HPP
 #define	DATA_HPP
 
-namespace mcu_server {
+namespace server {
 	class Data {
 	public:
 		enum class Type : int {

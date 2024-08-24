@@ -1,7 +1,7 @@
 #ifndef	TRANSFORMER_HPP
 #define	TRANSFORMER_HPP
 
-namespace mcu_server {
+namespace server {
 	template <typename Signature>
 	class Transformer;
 	

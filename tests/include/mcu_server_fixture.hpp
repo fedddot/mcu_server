@@ -10,21 +10,19 @@
 #include "json_data_parser.hpp"
 #include "json_data_serializer.hpp"
 #include "mcu_factory_fixture.hpp"
-#include "mcu_server.hpp"
+#include "server.hpp"
 #include "object.hpp"
 #include "parser.hpp"
 #include "serializer.hpp"
 #include "string.hpp"
 #include "task.hpp"
 
-namespace mcu_server_uts {
-	class McuServerFixture: public mcu_factory_uts::McuFactoryFixture {
+namespace server_uts {
+	class ServerFixture: public mcu_factory_uts::McuFactoryFixture {
 	public:
-		using McuData = std::string;
-		using TestMcuServer = mcu_server::McuServer<McuData>;
-		using McuTask = mcu_server::Task<mcu_server::Data *(void)>;
+		using ServerTask = typename server::Server::ServerTask;
 		
-		McuServerFixture():
+		ServerFixture():
 			m_factory(
 				platform(),
 				parsers(),
@@ -34,37 +32,37 @@ namespace mcu_server_uts {
 			),
 			m_fail_report_creator(
 				[](const std::exception& e) {
-					mcu_server::Object report;
-					report.add("result", mcu_server::Integer(-1));
-					report.add("what", mcu_server::String(e.what()));
+					server::Object report;
+					report.add("result", server::Integer(-1));
+					report.add("what", server::String(e.what()));
 					return report.clone();
 				}
 			) {
 		
 		}
-		McuServerFixture(const McuServerFixture& other) = delete;
-		McuServerFixture& operator=(const McuServerFixture& other) = delete;
+		ServerFixture(const ServerFixture& other) = delete;
+		ServerFixture& operator=(const ServerFixture& other) = delete;
 	
 		const TestFactory& factory() const {
 			return m_factory;
 		}
 
-		const mcu_server::Creator<mcu_server::Data *(const std::exception&)>& fail_report_creator() const {
+		const server::Creator<server::Data *(const std::exception&)>& fail_report_creator() const {
 			return m_fail_report_creator;
 		}
 
-		const mcu_server::Parser<mcu_server::Data *(const McuData&)>& parser() const {
+		const server::Parser<server::Data *(const McuData&)>& parser() const {
 			return m_parser;
 		}
 
-		const mcu_server::Serializer<McuData(const mcu_server::Data&)>& serializer() const {
+		const server::Serializer<McuData(const server::Data&)>& serializer() const {
 			return m_serializer;
 		}
 	private:
 		TestFactory m_factory;
-		mcu_server_utl::CustomCreator<mcu_server::Data *(const std::exception&)> m_fail_report_creator;
-		mcu_server_utl::JsonDataParser m_parser;
-		mcu_server_utl::JsonDataSerializer m_serializer;
+		server_utl::CustomCreator<server::Data *(const std::exception&)> m_fail_report_creator;
+		server_utl::JsonDataParser m_parser;
+		server_utl::JsonDataSerializer m_serializer;
 	};
 }
 

@@ -13,8 +13,8 @@
 #include "test_delay.hpp"
 #include "test_gpo.hpp"
 
-using namespace mcu_server;
-using namespace mcu_server_utl;
+using namespace server;
+using namespace server_utl;
 using namespace mcu_factory;
 using namespace mcu_factory_uts;
 

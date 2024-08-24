@@ -9,16 +9,16 @@
 #include "task.hpp"
 
 namespace mcu_factory {
-	class DelayTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class DelayTask: public server::Task<server::Data *(void)> {
 	public:
-		using DelayCreator = mcu_server::Creator<mcu_platform::Delay *(void)>;
-		using ReportCreator = mcu_server::Creator<mcu_server::Data *(int)>;
+		using DelayCreator = server::Creator<mcu_platform::Delay *(void)>;
+		using ReportCreator = server::Creator<server::Data *(int)>;
 		
 		DelayTask(const DelayCreator& delay_ctor, unsigned int delay_ms, const ReportCreator& report_ctor);
 		DelayTask(const DelayTask& other) = delete;
 		DelayTask& operator=(const DelayTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		const std::unique_ptr<DelayCreator> m_delay_ctor;
 		const unsigned int m_delay_ms;
@@ -29,7 +29,7 @@ namespace mcu_factory {
 
 	}
 
-	inline mcu_server::Data *DelayTask::execute() const {
+	inline server::Data *DelayTask::execute() const {
 		std::unique_ptr<mcu_platform::Delay> delay(m_delay_ctor->create());
 		delay->delay(m_delay_ms);
 		return m_report_ctor->create(0);

@@ -43,8 +43,8 @@ namespace mcu_factory_uts {
 			return *m_data_parser;
 		}
 
-		const mcu_server::Object create_data(const StepperId& stepper_id, const Shoulders& shoulders, const States& states) const {
-			using namespace mcu_server;
+		const server::Object create_data(const StepperId& stepper_id, const Shoulders& shoulders, const States& states) const {
+			using namespace server;
 			Object shoulders_data;
 			for (auto [shoulder, gpio_id]: shoulders) {
 				shoulders_data.add(shoulder_to_str(shoulder), Integer(static_cast<int>(gpio_id)));
@@ -67,8 +67,8 @@ namespace mcu_factory_uts {
 			return create_data;
 		}
 
-		const mcu_server::Object steps_data(const StepperId& stepper_id, const Direction& direction, unsigned int steps_num, unsigned int step_duration_ms) const {
-			using namespace mcu_server;
+		const server::Object steps_data(const StepperId& stepper_id, const Direction& direction, unsigned int steps_num, unsigned int step_duration_ms) const {
+			using namespace server;
 			Object steps_data;
 			steps_data.add("task_type", Integer(static_cast<int>(TaskType::STEPS)));
 			steps_data.add("stepper_id", Integer(stepper_id));
@@ -78,8 +78,8 @@ namespace mcu_factory_uts {
 			return steps_data;
 		}
 
-		const mcu_server::Object steps_sequence_data(const StepsSequence& sequence) const {
-			using namespace mcu_server;
+		const server::Object steps_sequence_data(const StepsSequence& sequence) const {
+			using namespace server;
 			Array sequence_array;
 			for (auto steps: sequence) {
 				Object steps_object;
@@ -95,8 +95,8 @@ namespace mcu_factory_uts {
 			return steps_sequence_data;
 		}
 
-		const mcu_server::Object delete_data(const StepperId& stepper_id) const {
-			using namespace mcu_server;
+		const server::Object delete_data(const StepperId& stepper_id) const {
+			using namespace server;
 			Object delete_data;
 			delete_data.add("task_type", Integer(static_cast<int>(TaskType::DELETE_STEPPER_MOTOR)));
 			delete_data.add("stepper_id", Integer(stepper_id));

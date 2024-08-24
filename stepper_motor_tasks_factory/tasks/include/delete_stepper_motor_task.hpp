@@ -11,10 +11,10 @@
 
 namespace mcu_factory {
 	template <typename Tstepper_id, typename Tgpio_id>
-	class DeleteStepperMotorTask: public mcu_server::Task<mcu_server::Data *(void)> {
+	class DeleteStepperMotorTask: public server::Task<server::Data *(void)> {
 	public:
 		using StepperMotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
-		using ReportCreator = typename mcu_server::Creator<mcu_server::Data *(int)>;
+		using ReportCreator = typename server::Creator<server::Data *(int)>;
 		
 		DeleteStepperMotorTask(
 			StepperMotorInventory *inventory,
@@ -24,7 +24,7 @@ namespace mcu_factory {
 		DeleteStepperMotorTask(const DeleteStepperMotorTask& other) = delete;
 		DeleteStepperMotorTask& operator=(const DeleteStepperMotorTask& other) = delete;
 		
-		mcu_server::Data *execute() const override;
+		server::Data *execute() const override;
 	private:
 		StepperMotorInventory * const m_inventory;
 		const Tstepper_id m_id;
@@ -43,7 +43,7 @@ namespace mcu_factory {
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline mcu_server::Data *DeleteStepperMotorTask<Tstepper_id, Tgpio_id>::execute() const {
+	inline server::Data *DeleteStepperMotorTask<Tstepper_id, Tgpio_id>::execute() const {
 		delete m_inventory->pull(m_id);
 		return m_report_ctor->create(0);
 	}

@@ -12,24 +12,24 @@
 #include "gpio.hpp"
 #include "gpo.hpp"
 #include "integer.hpp"
-#include "mcu_server_fixture.hpp"
+#include "server_fixture.hpp"
 #include "object.hpp"
 #include "string.hpp"
 #include "test_gpo.hpp"
 
-using namespace mcu_server;
-using namespace mcu_server_utl;
-using namespace mcu_server_uts;
+using namespace server;
+using namespace server_utl;
+using namespace server_uts;
 using namespace mcu_platform;
 
-TEST_F(McuServerFixture, ctor_dtor_sanity) {
+TEST_F(ServerFixture, ctor_dtor_sanity) {
 	// WHEN
-	TestMcuServer *instance_ptr(nullptr);
+	TestServer *instance_ptr(nullptr);
 
 	// THEN
 	ASSERT_NO_THROW(
 		(
-			instance_ptr = new TestMcuServer(
+			instance_ptr = new TestServer(
 				parser(),
 				serializer(),
 				factory(),
@@ -43,15 +43,15 @@ TEST_F(McuServerFixture, ctor_dtor_sanity) {
 	instance_ptr = nullptr;
 }
 
-using CheckReportFunction = std::function<void(const McuServerFixture::McuData&)>;
+using CheckReportFunction = std::function<void(const ServerFixture::McuData&)>;
 
-static void run_create_sanity_tc(const std::string& tc_name, const McuServerFixture::McuData& test_data, const CheckReportFunction& check_task_report, McuServerFixture *fixture) {
+static void run_create_sanity_tc(const std::string& tc_name, const ServerFixture::McuData& test_data, const CheckReportFunction& check_task_report, ServerFixture *fixture) {
 	std::cout << "running TC: " << tc_name << std::endl;
 	std::cout << "test data: " << test_data << std::endl;
 
 	// WHEN
-	McuServerFixture::McuData report("");
-	McuServerFixture::TestMcuServer instance(
+	ServerFixture::McuData report("");
+	ServerFixture::TestServer instance(
 		fixture->parser(),
 		fixture->serializer(),
 		fixture->factory(),
@@ -63,14 +63,14 @@ static void run_create_sanity_tc(const std::string& tc_name, const McuServerFixt
 	check_task_report(report);
 }
 
-TEST_F(McuServerFixture, run_sanity) {
+TEST_F(ServerFixture, run_sanity) {
 	// GIVEN
-	auto check_report = [this](const McuServerFixture::McuData& data) {
+	auto check_report = [this](const ServerFixture::McuData& data) {
 		std::unique_ptr<Data> parsed_data(parser().parse(data));
 		auto result = Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("result")).get();
 		ASSERT_EQ(0, result);
 	};
-	auto check_get_report = [this](const McuServerFixture::McuData& data, const Gpio::State& expected_state) {
+	auto check_get_report = [this](const ServerFixture::McuData& data, const Gpio::State& expected_state) {
 		std::unique_ptr<Data> parsed_data(parser().parse(data));
 		auto result = Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("result")).get();
 		ASSERT_EQ(0, result);
@@ -78,7 +78,7 @@ TEST_F(McuServerFixture, run_sanity) {
 		auto state = static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("gpio_state")).get());
 		ASSERT_EQ(expected_state, state);
 	};
-	using TestCase = std::pair<std::string, std::pair<McuServerFixture::McuData, CheckReportFunction>>;
+	using TestCase = std::pair<std::string, std::pair<ServerFixture::McuData, CheckReportFunction>>;
 	const std::vector<TestCase> test_cases{
 		{
 			"gpi creation",
@@ -105,7 +105,7 @@ TEST_F(McuServerFixture, run_sanity) {
 			"gpo get",
 			{
 				serializer().serialize(get_gpio_data(2)),
-				[check_get_report](const McuServerFixture::McuData& data) {
+				[check_get_report](const ServerFixture::McuData& data) {
 					check_get_report(data, Gpio::State::HIGH);
 				}
 			}
@@ -114,7 +114,7 @@ TEST_F(McuServerFixture, run_sanity) {
 			"gpi get",
 			{
 				serializer().serialize(get_gpio_data(1)),
-				[check_get_report](const McuServerFixture::McuData& data) {
+				[check_get_report](const ServerFixture::McuData& data) {
 					check_get_report(data, Gpio::State::LOW);
 				}
 			}
@@ -155,7 +155,7 @@ TEST_F(McuServerFixture, run_sanity) {
 	}
 }
 
-TEST_F(McuServerFixture, create_and_run_persistent_tasks_sanity) {
+TEST_F(ServerFixture, create_and_run_persistent_tasks_sanity) {
 	// GIVEN
 	auto check_report = [this](const McuData& data) {
 		std::unique_ptr<Data> parsed_data(parser().parse(data));
@@ -190,7 +190,7 @@ TEST_F(McuServerFixture, create_and_run_persistent_tasks_sanity) {
 	tasks_ids.push_back(Integer(test_delay_task_id));
 	tasks_ids.push_back(Integer(test_set_low_task_id));
 	
-	using TestCase = std::pair<std::string, std::pair<McuServerFixture::McuData, CheckReportFunction>>;
+	using TestCase = std::pair<std::string, std::pair<ServerFixture::McuData, CheckReportFunction>>;
 	
 	const std::vector<TestCase> test_cases{
 		{
