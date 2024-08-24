@@ -5,16 +5,18 @@
 #include <stdexcept>
 #include <vector>
 
+#include "transformer.hpp"
 #include "zlib.h"
 
 namespace mcu_server_utl {
-	class ZlibCompressor {
+	class ZlibCompressor: public mcu_server::Transformer<std::vector<char>(const std::vector<char>&)> {
 	public:
 		ZlibCompressor(const int compression_level);
 		ZlibCompressor(const ZlibCompressor& other) = default;
 		ZlibCompressor& operator=(const ZlibCompressor& other) = default;
 
-		std::vector<char> transform(const std::vector<char>& data) const;
+		std::vector<char> transform(const std::vector<char>& data) const override;
+		mcu_server::Transformer<std::vector<char>(const std::vector<char>&)> *clone() const override;
 	private:
 		int m_compression_level;
 	};
@@ -38,6 +40,10 @@ namespace mcu_server_utl {
 			throw std::runtime_error("failed to compress data");
 		}
 		return std::vector<char>(result_buff.get(), result_buff.get() + actual_result_size);
+	}
+
+	inline mcu_server::Transformer<std::vector<char>(const std::vector<char>&)> *ZlibCompressor::clone() const {
+		return new ZlibCompressor(*this);
 	}
 }
 

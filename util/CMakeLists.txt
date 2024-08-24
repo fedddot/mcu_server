@@ -22,6 +22,10 @@ target_link_libraries(json_data_serializer INTERFACE serializer data_lib jsoncpp
 
 add_library(zlib_compressor INTERFACE)
 target_include_directories(zlib_compressor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(zlib_compressor INTERFACE zlib)
+target_link_libraries(zlib_compressor INTERFACE transformer zlib)
+
+add_library(zlib_decompressor INTERFACE)
+target_include_directories(zlib_decompressor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(zlib_decompressor INTERFACE transformer zlib)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
