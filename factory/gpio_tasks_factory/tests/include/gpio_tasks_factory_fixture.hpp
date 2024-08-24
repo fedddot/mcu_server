@@ -22,6 +22,7 @@ namespace mcu_factory_uts {
 		using TestFactory = mcu_factory::GpioTasksFactory<GpioId>;
 		using GpioInventory = typename TestFactory::GpioInventory;
 		using GpioState = typename TestFactory::GpioState;
+		using GpioDirection = typename mcu_platform::Gpio::Direction;
 		using Retriever = typename TestFactory::DataRetriever;
 		using FactoryPlatform = typename TestFactory::FactoryPlatform;
 		
