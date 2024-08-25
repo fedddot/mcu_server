@@ -172,7 +172,7 @@ namespace mcu_factory {
 		std::shared_ptr<ResultReporter> reporter(m_result_reporter->clone());
 		return new CustomTask<Data *(void)>(
 			[id, state, inventory, reporter](void)-> Data * {
-				Gpio::cast<Gpo>(*(inventory->access(id))).set(state);
+				Gpio::cast<Gpo>(*(inventory->access(id))).set_state(state);
 				return reporter->create(0);
 			}
 		);

@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "data.hpp"
 #include "gpio.hpp"
@@ -73,7 +74,7 @@ TEST_F(GpioTasksFactoryFixture, create_sanity) {
 	// GIVEN
 	const GpioId test_gpio_id(12);
 	const GpioDirection test_gpio_dir(GpioDirection::OUT);
-	const std::map<std::string, std::pair<Object, std::function<void(const Data&)>>> test_cases {
+	const std::vector<std::pair<std::string, std::pair<Object, std::function<void(const Data&)>>>> test_cases {
 		{
 			"gpio creation",
 			{
@@ -91,6 +92,16 @@ TEST_F(GpioTasksFactoryFixture, create_sanity) {
 				[this, test_gpio_id](const Data& data) {
 					ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
 					ASSERT_EQ(GpioState::HIGH, Gpio::cast<Gpo>(*(inventory()->access(test_gpio_id))).state());
+				}
+			}
+		},
+		{
+			"gpo get",
+			{
+				get_gpio_data(test_gpio_id),
+				[this, test_gpio_id](const Data& data) {
+					ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
+					ASSERT_EQ(GpioState::HIGH, static_cast<GpioState>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get()));
 				}
 			}
 		},
