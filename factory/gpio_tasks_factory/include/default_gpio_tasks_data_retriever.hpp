@@ -5,21 +5,23 @@
 #include "gpio_tasks_data_retriever.hpp"
 #include "integer.hpp"
 #include "object.hpp"
+#include "string.hpp"
 
 namespace mcu_factory {
-	template <typename Tdomain, typename Ttask_type, typename Tgpio_id>
-	class DefaultGpioTasksDataRetriever: public GpioTasksDataRetriever<Tdomain, Ttask_type, Tgpio_id> {
+	template <typename Ttask_type, typename Tgpio_id>
+	class DefaultGpioTasksDataRetriever: public GpioTasksDataRetriever<Ttask_type, Tgpio_id> {
 	public:
-		using GpioDirection = typename GpioTasksDataRetriever<Tdomain, Ttask_type, Tgpio_id>::GpioDirection;
-		using GpioState = typename GpioTasksDataRetriever<Tdomain, Ttask_type, Tgpio_id>::GpioState;
+		using GpioDirection = typename GpioTasksDataRetriever<Ttask_type, Tgpio_id>::GpioDirection;
+		using GpioState = typename GpioTasksDataRetriever<Ttask_type, Tgpio_id>::GpioState;
 
 		DefaultGpioTasksDataRetriever() = default;
 		DefaultGpioTasksDataRetriever(const DefaultGpioTasksDataRetriever& other) = default;
 		DefaultGpioTasksDataRetriever& operator=(const DefaultGpioTasksDataRetriever& other) = delete;
 		
-		Tdomain retrieve_domain(const server::Data& data) const override {
+		bool is_gpio_task_creatable(const server::Data& data) const override {
+			const std::string domain_name("gpio_tasks");
 			using namespace server;
-			return static_cast<Tdomain>(Data::cast<Integer>(Data::cast<Object>(data).access("domain")).get());
+			return domain_name == Data::cast<String>(Data::cast<Object>(data).access("domain")).get();
 		}
 		Ttask_type retrieve_task_type(const server::Data& data) const override {
 			using namespace server;
@@ -37,7 +39,7 @@ namespace mcu_factory {
 			using namespace server;
 			return static_cast<GpioState>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get());
 		}
-		GpioTasksDataRetriever<Tdomain, Ttask_type, Tgpio_id> *clone() const override {
+		GpioTasksDataRetriever<Ttask_type, Tgpio_id> *clone() const override {
 			return new DefaultGpioTasksDataRetriever(*this);
 		}
 	};

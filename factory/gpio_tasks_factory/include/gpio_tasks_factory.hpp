@@ -112,7 +112,7 @@ namespace mcu_factory {
 
 	template <typename Tgpio_id>
 	inline bool GpioTasksFactory<Tgpio_id>::is_creatable(const server::Data& data) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
+		return m_retriever->is_gpio_task_creatable(data);
 	}
 	
 	template <typename Tgpio_id>
