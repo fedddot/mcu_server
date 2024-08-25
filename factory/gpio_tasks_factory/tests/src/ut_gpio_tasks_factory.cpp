@@ -62,6 +62,7 @@ void run_sanity_test_case(const std::string& title, const Data& data, const Gpio
 
 	// THEN
 	std::cout << "running TC: " << title << std::endl;
+	ASSERT_TRUE(instance_ptr->is_creatable(data));
 	ASSERT_NO_THROW(task_ptr = std::unique_ptr<GpioTasksFactoryFixture::TestFactory::GpioTask>(instance_ptr->create(data)));
 	ASSERT_NE(nullptr, task_ptr);
 	ASSERT_NO_THROW(instance_ptr = nullptr); // the task should be properly executed even though the creator is destructed

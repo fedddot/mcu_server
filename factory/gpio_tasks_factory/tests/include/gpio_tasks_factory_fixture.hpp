@@ -56,6 +56,7 @@ namespace mcu_factory_uts {
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::CREATE_GPIO)));
 			task_data.add("gpio_id", Integer(id));
 			task_data.add("gpio_dir", Integer(static_cast<int>(dir)));
+			task_data.add("domain", String("gpio_tasks"));
 			return task_data;
 		}
 
@@ -65,6 +66,7 @@ namespace mcu_factory_uts {
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::SET_GPIO)));
 			task_data.add("gpio_id", Integer(id));
 			task_data.add("gpio_state", Integer(static_cast<int>(state)));
+			task_data.add("domain", String("gpio_tasks"));
 			return task_data;
 		}
 
@@ -73,6 +75,7 @@ namespace mcu_factory_uts {
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::GET_GPIO)));
 			task_data.add("gpio_id", Integer(id));
+			task_data.add("domain", String("gpio_tasks"));
 			return task_data;
 		}
 
@@ -81,6 +84,7 @@ namespace mcu_factory_uts {
 			Object task_data;
 			task_data.add("task_type", Integer(static_cast<int>(TestFactory::TaskType::DELETE_GPIO)));
 			task_data.add("gpio_id", Integer(id));
+			task_data.add("domain", String("gpio_tasks"));
 			return task_data;
 		}
 
