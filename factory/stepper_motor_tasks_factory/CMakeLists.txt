@@ -2,15 +2,15 @@ add_library(stepper_motor_tasks_data_retriever INTERFACE)
 target_include_directories(stepper_motor_tasks_data_retriever INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(stepper_motor_tasks_data_retriever INTERFACE data stepper_motor)
 
-add_library(default_stepper_motor_data_parser INTERFACE)
-target_include_directories(default_stepper_motor_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(default_stepper_motor_tasks_data_retriever INTERFACE)
+target_include_directories(default_stepper_motor_tasks_data_retriever INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-    default_stepper_motor_data_parser
+    default_stepper_motor_tasks_data_retriever
     INTERFACE
+    stepper_motor_tasks_data_retriever
     data_lib
     gpo
     stepper_motor
-    stepper_motor_data_parser
     stepper_motor_tasks_factory
     steps_sequence_task
 )
@@ -30,5 +30,4 @@ target_link_libraries(
     task_creator
 )
 
-add_subdirectory(tasks)
 add_subdirectory(tests EXCLUDE_FROM_ALL)

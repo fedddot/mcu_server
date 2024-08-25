@@ -4,7 +4,7 @@ target_link_libraries(
 	stepper_motor_tasks_factory_fixture
 	INTERFACE
     data_lib
-    default_stepper_motor_data_parser
+    default_stepper_motor_tasks_data_retriever
     stepper_motor_tasks_factory
     steps_sequence_task
 )

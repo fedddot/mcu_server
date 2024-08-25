@@ -10,7 +10,6 @@
 #include "object.hpp"
 #include "stepper_motor_tasks_factory_fixture.hpp"
 #include "task.hpp"
-#include "test_delay.hpp"
 #include "test_gpo.hpp"
 
 using namespace server;
