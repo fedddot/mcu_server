@@ -29,4 +29,5 @@ target_link_libraries(
 )
 
 add_subdirectory(gpio_tasks_factory)
+add_subdirectory(stepper_motor_tasks_factory)
 add_subdirectory(tests EXCLUDE_FROM_ALL)

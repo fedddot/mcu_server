@@ -28,7 +28,6 @@ add_subdirectory(external)
 add_subdirectory(factory)
 add_subdirectory(ipc)
 add_subdirectory(platform)
-add_subdirectory(stepper_motor_tasks_factory)
 add_subdirectory(util)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
