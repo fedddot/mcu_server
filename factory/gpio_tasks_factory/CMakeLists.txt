@@ -12,9 +12,11 @@ target_link_libraries(
     gpio_tasks_factory
     INTERFACE
     custom_task
-    data
+    data_lib
+    gpi
     gpio
     gpio_tasks_data_retriever
+    gpo
     inventory
     platform
     task
