@@ -6,8 +6,10 @@
 
 #include "custom_task.hpp"
 #include "data.hpp"
+#include "gpi.hpp"
 #include "gpio.hpp"
 #include "gpio_tasks_data_retriever.hpp"
+#include "gpo.hpp"
 #include "inventory.hpp"
 #include "platform.hpp"
 #include "task.hpp"
@@ -56,6 +58,8 @@ namespace mcu_factory {
 		using GpioDirection = typename mcu_platform::Gpio::Direction;
 		GpioTask *create_task(const Tgpio_id& id, const GpioDirection& dir) const;
 		GpioTask *delete_task(const Tgpio_id& id) const;
+		GpioTask *set_task(const Tgpio_id& id, const GpioState& state) const;
+		GpioTask *get_task(const Tgpio_id& id) const;
 	};
 
 	template <typename Tgpio_id>
@@ -98,9 +102,9 @@ namespace mcu_factory {
 		case TaskType::DELETE_GPIO:
 			return delete_task(m_retriever->retrieve_gpio_id(data));
 		case TaskType::SET_GPIO:
-			throw std::invalid_argument("NOT IMPLEMENTED");
+			return set_task(m_retriever->retrieve_gpio_id(data), m_retriever->retrieve_gpio_state(data));
 		case TaskType::GET_GPIO:
-			throw std::invalid_argument("NOT IMPLEMENTED");
+			return get_task(m_retriever->retrieve_gpio_id(data));
 		default:
 			throw std::invalid_argument("unsupported task type received");
 		}
@@ -155,6 +159,43 @@ namespace mcu_factory {
 			[id, inventory, reporter](void)-> Data * {
 				delete inventory->pull(id);
 				return reporter->create(0);
+			}
+		);
+	}
+
+	template <typename Tgpio_id>
+	inline typename GpioTasksFactory<Tgpio_id>::GpioTask *GpioTasksFactory<Tgpio_id>::set_task(const Tgpio_id& id, const GpioState& state) const {
+		using namespace server;
+		using namespace server_utl;
+		using namespace mcu_platform;
+		auto inventory(m_inventory);
+		std::shared_ptr<ResultReporter> reporter(m_result_reporter->clone());
+		return new CustomTask<Data *(void)>(
+			[id, state, inventory, reporter](void)-> Data * {
+				Gpio::cast<Gpo>(*(inventory->access(id))).set(state);
+				return reporter->create(0);
+			}
+		);
+	}
+
+	template <typename Tgpio_id>
+	inline typename GpioTasksFactory<Tgpio_id>::GpioTask *GpioTasksFactory<Tgpio_id>::get_task(const Tgpio_id& id) const {
+		using namespace server;
+		using namespace server_utl;
+		using namespace mcu_platform;
+		auto inventory(m_inventory);
+		std::shared_ptr<ResultStateReporter> reporter(m_result_state_reporter->clone());
+		return new CustomTask<Data *(void)>(
+			[id, inventory, reporter](void)-> Data * {
+				auto gpio_ptr = inventory->access(id);
+				switch (gpio_ptr->direction()) {
+				case GpioDirection::IN:
+					return reporter->create(0, Gpio::cast<Gpi>(*gpio_ptr).state());
+				case GpioDirection::OUT:
+					return reporter->create(0, Gpio::cast<Gpo>(*gpio_ptr).state());
+				default:
+					throw std::invalid_argument("unsupported gpio direction");
+				}
 			}
 		);
 	}
