@@ -1,6 +1,7 @@
 #ifndef STEPPER_MOTOR_TASKS_FACTORY_FIXTURE_HPP
 #define STEPPER_MOTOR_TASKS_FACTORY_FIXTURE_HPP
 
+#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -11,6 +12,7 @@
 #include "object.hpp"
 #include "stepper_motor_tasks_factory.hpp"
 #include "default_stepper_motor_tasks_data_retriever.hpp"
+#include "test_platform.hpp"
 
 namespace mcu_factory_uts {
 	class StepperMotorTasksFactoryFixture: public testing::Test {
@@ -23,6 +25,7 @@ namespace mcu_factory_uts {
 		using GpioDirection = typename mcu_platform::Gpio::Direction;
 		using DataRetriever = typename TestFactory::DataRetriever;
 		using FactoryPlatform = typename TestFactory::FactoryPlatform;
+		using ResultReporter = typename TestFactory::ResultReporter;
 
 		using States = typename mcu_platform::StepperMotor<GpioId>::States;
 		using Direction = typename mcu_platform::StepperMotor<GpioId>::Direction;
@@ -38,8 +41,16 @@ namespace mcu_factory_uts {
 			return &m_inventory;
 		}
 
+		FactoryPlatform *platform() const {
+			return &m_platform;
+		}
+
 		const DataRetriever& data_retriever() const {
 			return *m_data_retriever;
+		}
+
+		const ResultReporter& result_reporter() const {
+			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 
 		const server::Object create_data(const StepperId& stepper_id, const Shoulders& shoulders, const States& states) const {
@@ -103,6 +114,7 @@ namespace mcu_factory_uts {
 		}
 	private:
 		mutable MotorInventory m_inventory;
+		mutable mcu_platform_uts::TestPlatform<GpioId> m_platform;
 		std::unique_ptr<DataRetriever> m_data_retriever;
 		
 		static std::string shoulder_to_str(const Shoulder& shoulder) {
@@ -113,7 +125,7 @@ namespace mcu_factory_uts {
 
 	inline StepperMotorTasksFactoryFixture::StepperMotorTasksFactoryFixture() {
 		using namespace mcu_factory;		
-		m_data_retriever = std::unique_ptr<DataRetriever>(new DefaultGpioTasksDataRetriever<TestFactory::TaskType, GpioId>());
+		m_data_retriever = std::unique_ptr<DataRetriever>(new DefaultStepperMotorDataRetriever<TaskType, GpioId, StepperId>());
 	}
 }
 
