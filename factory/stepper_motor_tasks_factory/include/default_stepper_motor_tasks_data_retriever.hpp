@@ -17,7 +17,7 @@ namespace mcu_factory {
 		DefaultStepperMotorDataRetriever(const DefaultStepperMotorDataRetriever& other) = default;
 		DefaultStepperMotorDataRetriever& operator=(const DefaultStepperMotorDataRetriever& other) = delete;
 
-		DefaultStepperMotorDataRetriever *clone() const override;
+		StepperMotorTasksDataRetriever<Ttask_type, Tgpio_id, Tstepper_id> *clone() const override;
 
 		bool is_stepper_motor_task_creatable(const server::Data& data) const override;
 		Ttask_type retrieve_task_type(const server::Data& data) const override;
@@ -28,8 +28,6 @@ namespace mcu_factory {
 		unsigned int retrieve_steps_number(const server::Data& data) const override;
 		Shoulders retrieve_shoulders(const server::Data& data) const override;
 		States retrieve_states(const server::Data& data) const override;
-		
-		StepperMotorTasksDataRetriever<Ttask_type, Tgpio_id, Tstepper_id> *clone() const override;
 	private:
 		using Shoulder = typename mcu_platform::StepperMotor<int>::Shoulder;
 		using State = typename mcu_platform::StepperMotor<int>::State;
