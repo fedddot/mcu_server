@@ -7,32 +7,30 @@
 #include "object.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_tasks_data_retriever.hpp"
+#include "stepper_motor_tasks_factory.hpp"
 #include "string.hpp"
-#include <vector>
 
 namespace mcu_factory {
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	class DefaultStepperMotorDataRetriever: public StepperMotorTasksDataRetriever<Ttask_type, Tgpio_id, Tstepper_id> {
+	template <typename Tgpio_id, typename Tstepper_id>
+	class DefaultStepperMotorDataRetriever: public StepperMotorTasksDataRetriever<typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::TaskType, Tgpio_id, Tstepper_id, typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::Steps, typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::StepsSequence> {
+	private:
+		using ParentRetriever = StepperMotorTasksDataRetriever<typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::TaskType, Tgpio_id, Tstepper_id, typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::Steps, typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::StepsSequence>; 
 	public:
-		using Direction = typename StepperMotorTasksDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::Direction;
-		using Shoulders = typename StepperMotorTasksDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::Shoulders;
-		using States = typename StepperMotorTasksDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::States;
-		struct Steps {
-			Tstepper_id stepper_id;
-			Direction direction;
-			unsigned int steps_number;
-			unsigned int step_duration_ms;
-		};
-		using StepsSequence = std::vector<Steps>;
+		using Direction = typename ParentRetriever::Direction;
+		using Shoulders = typename ParentRetriever::Shoulders;
+		using States = typename ParentRetriever::States;
+		using TaskType = typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::TaskType;
+		using Steps = typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::Steps;
+		using StepsSequence = typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::StepsSequence;
 		
 		DefaultStepperMotorDataRetriever() = default;
 		DefaultStepperMotorDataRetriever(const DefaultStepperMotorDataRetriever& other) = default;
 		DefaultStepperMotorDataRetriever& operator=(const DefaultStepperMotorDataRetriever& other) = delete;
 
-		StepperMotorTasksDataRetriever<Ttask_type, Tgpio_id, Tstepper_id> *clone() const override;
+		ParentRetriever *clone() const override;
 
 		bool is_stepper_motor_task_creatable(const server::Data& data) const override;
-		Ttask_type retrieve_task_type(const server::Data& data) const override;
+		TaskType retrieve_task_type(const server::Data& data) const override;
 		Tgpio_id retrieve_gpio_id(const server::Data& data) const override;
 		Tstepper_id retrieve_stepper_id(const server::Data& data) const override;
 		Direction retrieve_dir(const server::Data& data) const override;
@@ -48,49 +46,49 @@ namespace mcu_factory {
 		static Shoulder str_to_shoulder(const std::string& shoulder_str);
 	};
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline StepperMotorTasksDataRetriever<Ttask_type, Tgpio_id, Tstepper_id> *DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::clone() const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline typename DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::ParentRetriever *DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::clone() const {
 		return new DefaultStepperMotorDataRetriever(*this);
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline bool DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::is_stepper_motor_task_creatable(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline bool DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::is_stepper_motor_task_creatable(const server::Data& data) const {
 		using namespace server;
 		return "stepper_motor" == Data::cast<String>(Data::cast<Object>(data).access("domain")).get();
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline Ttask_type DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_task_type(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline typename DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::TaskType DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_task_type(const server::Data& data) const {
 		using namespace server;
-		return static_cast<Ttask_type>(Data::cast<Integer>(Data::cast<Object>(data).access("task_type")).get());
+		return static_cast<TaskType>(Data::cast<Integer>(Data::cast<Object>(data).access("task_type")).get());
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline Tstepper_id DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_stepper_id(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline Tstepper_id DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_stepper_id(const server::Data& data) const {
 		using namespace server;
 		return static_cast<Tstepper_id>(Data::cast<Integer>(Data::cast<Object>(data).access("stepper_id")).get());
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline unsigned int DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_step_duration(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline unsigned int DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_step_duration(const server::Data& data) const {
 		using namespace server;
 		return static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("step_duration_ms")).get());
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline unsigned int DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_steps_number(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline unsigned int DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_steps_number(const server::Data& data) const {
 		using namespace server;
 		return static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("steps_number")).get());
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline typename DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::Direction DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_dir(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline typename DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::Direction DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_dir(const server::Data& data) const {
 		using namespace server;
 		return static_cast<Direction>(Data::cast<Integer>(Data::cast<Object>(data).access("direction")).get());
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline typename DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::Shoulders DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_shoulders(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline typename DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::Shoulders DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_shoulders(const server::Data& data) const {
 		Shoulders shoulders;
 		using namespace server;
 		Data::cast<Object>(Data::cast<Object>(data).access("shoulders")).for_each(
@@ -101,8 +99,8 @@ namespace mcu_factory {
 		return shoulders;
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline typename DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::States DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_states(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline typename DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::States DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_states(const server::Data& data) const {
 		States states;
 		using namespace server;
 		using GpoState = mcu_platform::Gpo::State;
@@ -120,8 +118,8 @@ namespace mcu_factory {
 		return states;
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline typename DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::Shoulder DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::str_to_shoulder(const std::string& shoulder_str) {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline typename DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::Shoulder DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::str_to_shoulder(const std::string& shoulder_str) {
 		const std::string prefix("IN");
 		auto prefix_pos = shoulder_str.find(prefix);
 		if (0 != prefix_pos) {
@@ -131,8 +129,8 @@ namespace mcu_factory {
 		return static_cast<Shoulder>(shoulder_number);
 	}
 
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline typename DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::Steps DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_steps(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline typename DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::Steps DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_steps(const server::Data& data) const {
 		return Steps {
 			.stepper_id = retrieve_stepper_id(data),
 			.direction = retrieve_dir(data),
@@ -141,8 +139,8 @@ namespace mcu_factory {
 		};
 	}
 	
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
-	inline typename DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::StepsSequence DefaultStepperMotorDataRetriever<Ttask_type, Tgpio_id, Tstepper_id>::retrieve_steps_sequence(const server::Data& data) const {
+	template <typename Tgpio_id, typename Tstepper_id>
+	inline typename DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::StepsSequence DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_steps_sequence(const server::Data& data) const {
 		StepsSequence sequence;
 		using namespace server;
 		Data::cast<Array>(Data::cast<Object>(data).access("sequence")).for_each(

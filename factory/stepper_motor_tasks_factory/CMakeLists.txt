@@ -12,7 +12,6 @@ target_link_libraries(
     gpo
     stepper_motor
     stepper_motor_tasks_factory
-    steps_sequence_task
 )
 
 add_library(stepper_motor_tasks_factory INTERFACE)

@@ -5,7 +5,7 @@
 #include "stepper_motor.hpp"
 
 namespace mcu_factory {
-	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
+	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id, typename Tsteps, typename Tsteps_sequence>
 	class StepperMotorTasksDataRetriever {
 	public:
 		using Direction = typename mcu_platform::StepperMotor<Tgpio_id>::Direction;
@@ -23,6 +23,8 @@ namespace mcu_factory {
 		virtual unsigned int retrieve_steps_number(const server::Data& data) const = 0;
 		virtual Shoulders retrieve_shoulders(const server::Data& data) const = 0;
 		virtual States retrieve_states(const server::Data& data) const = 0;
+		virtual Tsteps retrieve_steps(const server::Data& data) const = 0;
+		virtual Tsteps_sequence retrieve_steps_sequence(const server::Data& data) const = 0;
 		virtual StepperMotorTasksDataRetriever *clone() const = 0;
 	};
 }

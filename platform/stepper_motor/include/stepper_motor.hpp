@@ -41,10 +41,10 @@ namespace mcu_platform {
 		const State m_shutdown_state;
 		
 		using Gpos = std::map<Shoulder, std::unique_ptr<Gpo>>;
-		const Gpos m_gpos;
+		Gpos m_gpos;
 
 		std::size_t next_state(const Direction& direction) const;
-		Gpos init_gpos(const Shoulders& shoulders) const;
+		void init_gpos(const Shoulders& shoulders);
 
 		using GpioState = typename Gpio::State;
 	};
@@ -63,7 +63,7 @@ namespace mcu_platform {
 		if (!m_platform) {
 			throw std::invalid_argument("invalid platform ptr received");
 		}
-		m_gpos = init_gpos(shoulders);
+		init_gpos(shoulders);
 	}
 
 	template <typename Tgpio_id>
@@ -83,12 +83,10 @@ namespace mcu_platform {
 	}
 
 	template <typename Tgpio_id>
-	inline typename StepperMotor<Tgpio_id>::Gpos StepperMotor<Tgpio_id>::init_gpos(const Shoulders& shoulders) const {
-		Gpos gpos;
+	inline void StepperMotor<Tgpio_id>::init_gpos(const Shoulders& shoulders) {
 		for (const auto [shoulder, gpio_id]: shoulders) {
-			gpos.insert({shoulder, std::unique_ptr<Gpo>(m_platform->create_gpio(gpio_id, Gpio::Direction::OUT))});
+			m_gpos.insert({shoulder, std::unique_ptr<Gpo>(dynamic_cast<Gpo *>(m_platform->create_gpio(gpio_id, Gpio::Direction::OUT)))});
 		}
-		return gpos;
 	}
 
 	template <typename Tgpio_id>

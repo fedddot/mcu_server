@@ -25,10 +25,21 @@ namespace mcu_factory {
 		};
 
 		using FactoryPlatform = mcu_platform::Platform<Tgpio_id>;
-		using DataRetriever = StepperMotorTasksDataRetriever<TaskType, Tgpio_id, Tstepper_id>;
 		using ResultReporter = server::Creator<server::Data *(int)>;
 		using MotorTask = server::Task<server::Data *(void)>;
 		using MotorInventory = mcu_platform::Inventory<Tstepper_id, mcu_platform::StepperMotor<Tgpio_id>>;
+		using Direction = typename mcu_platform::StepperMotor<Tgpio_id>::Direction;
+		
+		struct Steps {
+			Tstepper_id stepper_id;
+			Direction direction;
+			unsigned int steps_number;
+			unsigned int step_duration_ms;
+		};
+		using StepsSequence = std::vector<Steps>;
+
+		using DataRetriever = StepperMotorTasksDataRetriever<TaskType, Tgpio_id, Tstepper_id, Steps, StepsSequence>;
+
 
 		StepperMotorTasksFactory(
 			MotorInventory *inventory,
@@ -51,7 +62,6 @@ namespace mcu_factory {
 		
 		using Shoulders = typename mcu_platform::StepperMotor<Tgpio_id>::Shoulders;
 		using States = typename mcu_platform::StepperMotor<Tgpio_id>::States;
-		using Direction = typename mcu_platform::StepperMotor<Tgpio_id>::Direction;
 
 		MotorTask *create_task(const Tstepper_id& id, const Shoulders& shoulders, const States& states) const;
 		MotorTask *delete_task(const Tstepper_id& id) const;
@@ -102,7 +112,7 @@ namespace mcu_factory {
 		case TaskType::STEPS:
 			return steps_task(
 				m_retriever->retrieve_stepper_id(data),
-				m_retriever->retrieve_step_duration(data),
+				m_retriever->retrieve_dir(data),
 				m_retriever->retrieve_steps_number(data),
 				m_retriever->retrieve_step_duration(data)
 			);
