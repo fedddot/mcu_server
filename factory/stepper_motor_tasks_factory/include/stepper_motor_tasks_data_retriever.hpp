@@ -8,7 +8,7 @@ namespace mcu_factory {
 	template <typename Ttask_type, typename Tgpio_id, typename Tstepper_id>
 	class StepperMotorTasksDataRetriever {
 	public:
-		using StepperMotorDirection = typename mcu_platform::StepperMotor<Tgpio_id>::Direction;
+		using Direction = typename mcu_platform::StepperMotor<Tgpio_id>::Direction;
 		using States = typename mcu_platform::StepperMotor<Tgpio_id>::States;
 		using Shoulders = typename mcu_platform::StepperMotor<Tgpio_id>::Shoulders;
 		
@@ -18,7 +18,7 @@ namespace mcu_factory {
 		virtual Ttask_type retrieve_task_type(const server::Data& data) const = 0;
 		virtual Tgpio_id retrieve_gpio_id(const server::Data& data) const = 0;
 		virtual Tstepper_id retrieve_stepper_id(const server::Data& data) const = 0;
-		virtual StepperMotorDirection retrieve_dir(const server::Data& data) const = 0;
+		virtual Direction retrieve_dir(const server::Data& data) const = 0;
 		virtual unsigned int retrieve_step_duration(const server::Data& data) const = 0;
 		virtual unsigned int retrieve_steps_number(const server::Data& data) const = 0;
 		virtual Shoulders retrieve_shoulders(const server::Data& data) const = 0;
