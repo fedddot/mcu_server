@@ -65,8 +65,8 @@ namespace mcu_factory {
 
 		MotorTask *create_task(const Tstepper_id& id, const Shoulders& shoulders, const States& states) const;
 		MotorTask *delete_task(const Tstepper_id& id) const;
-		MotorTask *steps_task(const Tstepper_id& id, const Direction& direction, const unsigned int steps_num, const unsigned int step_duration) const;
-		MotorTask *steps_sequence_task(const Tgpio_id& id) const;
+		MotorTask *steps_task(const Steps& steps) const;
+		MotorTask *steps_sequence_task(const StepsSequence& steps_sequence) const;
 	};
 
 	template <typename Tstepper_id, typename Tgpio_id>
@@ -110,14 +110,9 @@ namespace mcu_factory {
 		case TaskType::DELETE_STEPPER_MOTOR:
 			return delete_task(m_retriever->retrieve_stepper_id(data));
 		case TaskType::STEPS:
-			return steps_task(
-				m_retriever->retrieve_stepper_id(data),
-				m_retriever->retrieve_dir(data),
-				m_retriever->retrieve_steps_number(data),
-				m_retriever->retrieve_step_duration(data)
-			);
+			return steps_task(m_retriever->retrieve_steps(data));
 		case TaskType::STEPS_SEQUENCE:
-			return steps_sequence_task(m_retriever->retrieve_stepper_id(data));
+			return steps_sequence_task(m_retriever->retrieve_steps_sequence(data));
 		default:
 			throw std::invalid_argument("unsupported task type received");
 		}
@@ -176,23 +171,35 @@ namespace mcu_factory {
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::MotorTask *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::steps_task(const Tstepper_id& id, const Direction& direction, const unsigned int steps_num, const unsigned int step_duration) const {
+	inline typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::MotorTask *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::steps_task(const Steps& steps) const {
 		using namespace server;
 		using namespace server_utl;
 		using namespace mcu_platform;
 		auto inventory(m_inventory);
 		std::shared_ptr<ResultReporter> reporter(m_result_reporter->clone());
 		return new CustomTask<Data *(void)>(
-			[id, direction, steps_num, step_duration, inventory, reporter](void)-> Data * {
-				inventory->access(id)->steps(direction, steps_num, step_duration);
+			[steps, inventory, reporter](void)-> Data * {
+				inventory->access(steps.stepper_id)->steps(steps.direction, steps.steps_number, steps.step_duration_ms);
 				return reporter->create(0);
 			}
 		);
 	}
 
 	template <typename Tstepper_id, typename Tgpio_id>
-	inline typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::MotorTask *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::steps_sequence_task(const Tgpio_id& id) const {
-		throw std::runtime_error("NOT_IMPLEMENTED");
+	inline typename StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::MotorTask *StepperMotorTasksFactory<Tstepper_id, Tgpio_id>::steps_sequence_task(const StepsSequence& steps_sequence) const {
+		using namespace server;
+		using namespace server_utl;
+		using namespace mcu_platform;
+		auto inventory(m_inventory);
+		std::shared_ptr<ResultReporter> reporter(m_result_reporter->clone());
+		return new CustomTask<Data *(void)>(
+			[steps_sequence, inventory, reporter](void)-> Data * {
+				for (const auto& steps: steps_sequence) {
+					inventory->access(steps.stepper_id)->steps(steps.direction, steps.steps_number, steps.step_duration_ms);
+				}
+				return reporter->create(0);
+			}
+		);
 	}
 }
 #endif // STEPPER_MOTOR_TASKS_FACTORY_HPP
