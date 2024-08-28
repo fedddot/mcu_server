@@ -47,8 +47,16 @@ TEST_F(FactoryFixture, create_sanity) {
 	instance.add_task_creator(gpio_tasks_ctor());
 	instance.add_task_creator(stepper_motor_tasks_ctor());
 	std::unique_ptr<Task<Data *(void)>> task_ptr(nullptr);
+	std::unique_ptr<Data> report_ptr(nullptr);
 
 	// THEN
 	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task<Data *(void)>>(instance.create(gpio_data_ctor().create_gpio_data(test_gpio_id, test_gpio_dir))));
 	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task<Data *(void)>>(instance.create(gpio_data_ctor().delete_gpio_data(test_gpio_id))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
 }
