@@ -7,10 +7,9 @@ target_include_directories(default_stepper_motor_tasks_data_retriever INTERFACE 
 target_link_libraries(
     default_stepper_motor_tasks_data_retriever
     INTERFACE
-    stepper_motor_tasks_data_retriever
     data_lib
-    gpo
     stepper_motor
+    stepper_motor_tasks_data_retriever
     stepper_motor_tasks_factory
 )
 
@@ -21,7 +20,7 @@ target_link_libraries(
     INTERFACE
     creator
     custom_task
-    data_lib
+    data
     inventory
     stepper_motor
     stepper_motor_tasks_data_retriever
