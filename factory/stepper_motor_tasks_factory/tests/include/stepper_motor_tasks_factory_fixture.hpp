@@ -1,12 +1,13 @@
 #ifndef STEPPER_MOTOR_TASKS_FACTORY_FIXTURE_HPP
 #define STEPPER_MOTOR_TASKS_FACTORY_FIXTURE_HPP
 
-#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
 
 #include "array.hpp"
+#include "custom_creator.hpp"
+#include "data.hpp"
 #include "gpio.hpp"
 #include "integer.hpp"
 #include "object.hpp"
@@ -27,11 +28,15 @@ namespace mcu_factory_uts {
 		using FactoryPlatform = typename TestFactory::FactoryPlatform;
 		using ResultReporter = typename TestFactory::ResultReporter;
 
+
 		using States = typename mcu_platform::StepperMotor<GpioId>::States;
 		using Direction = typename mcu_platform::StepperMotor<GpioId>::Direction;
 		using Shoulders = typename mcu_platform::StepperMotor<GpioId>::Shoulders;
 		using TaskType = typename TestFactory::TaskType;
 		using Shoulder = typename mcu_platform::StepperMotor<GpioId>::Shoulder;
+
+		using Steps = typename TestFactory::Steps;
+		using StepsSequence = typename TestFactory::StepsSequence;
 
 		StepperMotorTasksFactoryFixture();
 		StepperMotorTasksFactoryFixture(const StepperMotorTasksFactoryFixture&) = delete;
@@ -50,7 +55,7 @@ namespace mcu_factory_uts {
 		}
 
 		const ResultReporter& result_reporter() const {
-			throw std::runtime_error("NOT IMPLEMENTED");
+			return *m_result_reporter;
 		}
 
 		const server::Object create_data(const StepperId& stepper_id, const Shoulders& shoulders, const States& states) const {
@@ -77,33 +82,30 @@ namespace mcu_factory_uts {
 			return create_data;
 		}
 
-		const server::Object steps_data(const StepperId& stepper_id, const Direction& direction, unsigned int steps_num, unsigned int step_duration_ms) const {
+		const server::Object steps_data(const Steps& steps) const {
 			using namespace server;
 			Object steps_data;
 			steps_data.add("task_type", Integer(static_cast<int>(TaskType::STEPS)));
-			steps_data.add("stepper_id", Integer(stepper_id));
-			steps_data.add("direction", Integer(static_cast<int>(direction)));
-			steps_data.add("steps_number", Integer(steps_num));
-			steps_data.add("step_duration_ms", Integer(step_duration_ms));
+			steps_data.add("stepper_id", Integer(steps.stepper_id));
+			steps_data.add("direction", Integer(static_cast<int>(steps.direction)));
+			steps_data.add("steps_number", Integer(steps.steps_number));
+			steps_data.add("step_duration_ms", Integer(steps.step_duration_ms));
 			return steps_data;
 		}
 
-		// const server::Object steps_sequence_data(const StepsSequence& sequence) const {
-		// 	using namespace server;
-		// 	Array sequence_array;
-		// 	for (auto steps: sequence) {
-		// 		Object steps_object;
-		// 		steps_object.add("stepper_id", Integer(static_cast<int>(steps.stepper_id())));
-		// 		steps_object.add("direction", Integer(static_cast<int>(steps.direction())));
-		// 		steps_object.add("steps_number", Integer(static_cast<int>(steps.steps_number())));
-		// 		steps_object.add("step_duration_ms", Integer(static_cast<int>(steps.step_duration_ms())));
-		// 		sequence_array.push_back(steps_object);
-		// 	}
-		// 	Object steps_sequence_data;
-		// 	steps_sequence_data.add("task_type", Integer(static_cast<int>(TaskType::STEPS_SEQUENCE)));
-		// 	steps_sequence_data.add("sequence", sequence_array);
-		// 	return steps_sequence_data;
-		// }
+		const server::Object steps_sequence_data(const StepsSequence& sequence) const {
+			using namespace server;
+			Array sequence_array;
+			for (auto steps: sequence) {
+				auto steps_object(steps_data(steps));
+				steps_object.remove("task_type");
+				sequence_array.push_back(steps_object);
+			}
+			Object steps_sequence_data;
+			steps_sequence_data.add("task_type", Integer(static_cast<int>(TaskType::STEPS_SEQUENCE)));
+			steps_sequence_data.add("sequence", sequence_array);
+			return steps_sequence_data;
+		}
 
 		const server::Object delete_data(const StepperId& stepper_id) const {
 			using namespace server;
@@ -116,6 +118,7 @@ namespace mcu_factory_uts {
 		mutable MotorInventory m_inventory;
 		mutable mcu_platform_uts::TestPlatform<GpioId> m_platform;
 		std::unique_ptr<DataRetriever> m_data_retriever;
+		std::unique_ptr<ResultReporter> m_result_reporter;
 		
 		static std::string shoulder_to_str(const Shoulder& shoulder) {
 			const std::string prefix("IN");
@@ -123,9 +126,18 @@ namespace mcu_factory_uts {
 		}
 	};
 
-	inline StepperMotorTasksFactoryFixture::StepperMotorTasksFactoryFixture() {
-		using namespace mcu_factory;		
-		m_data_retriever = std::unique_ptr<DataRetriever>(new DefaultStepperMotorDataRetriever<TaskType, GpioId, StepperId>());
+	inline StepperMotorTasksFactoryFixture::StepperMotorTasksFactoryFixture():
+		m_data_retriever(new mcu_factory::DefaultStepperMotorDataRetriever<GpioId, StepperId>()),
+		m_result_reporter(
+			new server_utl::CustomCreator<server::Data *(int)>(
+				[](int result) {
+					server::Object report;
+					report.add("result", server::Integer(result));
+					return report.clone();
+				}
+			)
+		) {
+		
 	}
 }
 
