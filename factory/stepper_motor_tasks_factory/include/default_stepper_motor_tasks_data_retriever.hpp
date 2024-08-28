@@ -64,6 +64,12 @@ namespace mcu_factory {
 	}
 
 	template <typename Tgpio_id, typename Tstepper_id>
+	inline Tgpio_id DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_gpio_id(const server::Data& data) const {
+		using namespace server;
+		return static_cast<Tgpio_id>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_id")).get());
+	}
+
+	template <typename Tgpio_id, typename Tstepper_id>
 	inline Tstepper_id DefaultStepperMotorDataRetriever<Tgpio_id, Tstepper_id>::retrieve_stepper_id(const server::Data& data) const {
 		using namespace server;
 		return static_cast<Tstepper_id>(Data::cast<Integer>(Data::cast<Object>(data).access("stepper_id")).get());
