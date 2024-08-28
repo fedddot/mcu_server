@@ -79,7 +79,7 @@ TEST_F(GpioTasksFactoryFixture, create_sanity) {
 		{
 			"gpio creation",
 			{
-				create_gpio_data(test_gpio_id, test_gpio_dir),
+				test_data_ctor().create_gpio_data(test_gpio_id, test_gpio_dir),
 				[this, test_gpio_id](const Data& data) {
 					ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
 					ASSERT_TRUE(inventory()->contains(test_gpio_id));
@@ -89,7 +89,7 @@ TEST_F(GpioTasksFactoryFixture, create_sanity) {
 		{
 			"gpo set high",
 			{
-				set_gpio_data(test_gpio_id, GpioState::HIGH),
+				test_data_ctor().set_gpio_data(test_gpio_id, GpioState::HIGH),
 				[this, test_gpio_id](const Data& data) {
 					ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
 					ASSERT_EQ(GpioState::HIGH, Gpio::cast<Gpo>(*(inventory()->access(test_gpio_id))).state());
@@ -99,7 +99,7 @@ TEST_F(GpioTasksFactoryFixture, create_sanity) {
 		{
 			"gpo get",
 			{
-				get_gpio_data(test_gpio_id),
+				test_data_ctor().get_gpio_data(test_gpio_id),
 				[this, test_gpio_id](const Data& data) {
 					ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
 					ASSERT_EQ(GpioState::HIGH, static_cast<GpioState>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get()));
@@ -109,7 +109,7 @@ TEST_F(GpioTasksFactoryFixture, create_sanity) {
 		{
 			"gpio deletion",
 			{
-				delete_gpio_data(test_gpio_id),
+				test_data_ctor().delete_gpio_data(test_gpio_id),
 				[this, test_gpio_id](const Data& data) {
 					ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
 					ASSERT_FALSE(inventory()->contains(test_gpio_id));
