@@ -8,10 +8,10 @@ target_link_libraries(
     creator
 )
 
-add_library(mcu_factory INTERFACE)
-target_include_directories(mcu_factory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(factory INTERFACE)
+target_include_directories(factory INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-    mcu_factory
+    factory
     INTERFACE
     data
     task
@@ -21,3 +21,5 @@ target_link_libraries(
 
 add_subdirectory(gpio_tasks_factory)
 add_subdirectory(stepper_motor_tasks_factory)
+
+add_subdirectory(tests EXCLUDE_FROM_ALL)
