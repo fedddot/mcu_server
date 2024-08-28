@@ -4,6 +4,8 @@ target_link_libraries(
 	factory_fixture
 	INTERFACE
     gtest
+	stepper_motor_test_data_creator
+	gpio_test_data_creator
 )
 
 add_executable(
@@ -17,5 +19,7 @@ target_link_libraries(
 	PRIVATE
     factory_fixture
     factory
+	gpio_tasks_factory
+	stepper_motor_tasks_factory
 	gtest
 )
