@@ -4,8 +4,19 @@ target_link_libraries(
 	factory_fixture
 	INTERFACE
     gtest
-	stepper_motor_test_data_creator
-	gpio_test_data_creator
+    custom_creator
+    data_lib
+    default_gpio_tasks_data_retriever
+    default_stepper_motor_tasks_data_retriever
+    gpio
+    gpio_tasks_factory
+    gpio_test_data_creator
+    inventory
+    stepper_motor
+    stepper_motor_tasks_factory
+    stepper_motor_test_data_creator
+    task_creator
+    test_platform
 )
 
 add_executable(
