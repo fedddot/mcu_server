@@ -3,16 +3,18 @@
 
 #include "data.hpp"
 #include "gpio_tasks_data_retriever.hpp"
+#include "gpio_tasks_factory.hpp"
 #include "integer.hpp"
 #include "object.hpp"
 #include "string.hpp"
 
 namespace mcu_factory {
-	template <typename Ttask_type, typename Tgpio_id>
-	class DefaultGpioTasksDataRetriever: public GpioTasksDataRetriever<Ttask_type, Tgpio_id> {
+	template <typename Tgpio_id>
+	class DefaultGpioTasksDataRetriever: public GpioTasksDataRetriever<typename GpioTasksFactory<Tgpio_id>::TaskType, Tgpio_id> {
 	public:
-		using GpioDirection = typename GpioTasksDataRetriever<Ttask_type, Tgpio_id>::GpioDirection;
-		using GpioState = typename GpioTasksDataRetriever<Ttask_type, Tgpio_id>::GpioState;
+		using TaskType = typename GpioTasksFactory<Tgpio_id>::TaskType;
+		using GpioDirection = typename GpioTasksDataRetriever<TaskType, Tgpio_id>::GpioDirection;
+		using GpioState = typename GpioTasksDataRetriever<TaskType, Tgpio_id>::GpioState;
 
 		DefaultGpioTasksDataRetriever() = default;
 		DefaultGpioTasksDataRetriever(const DefaultGpioTasksDataRetriever& other) = default;
@@ -23,9 +25,9 @@ namespace mcu_factory {
 			using namespace server;
 			return domain_name == Data::cast<String>(Data::cast<Object>(data).access("domain")).get();
 		}
-		Ttask_type retrieve_task_type(const server::Data& data) const override {
+		TaskType retrieve_task_type(const server::Data& data) const override {
 			using namespace server;
-			return static_cast<Ttask_type>(Data::cast<Integer>(Data::cast<Object>(data).access("task_type")).get());
+			return static_cast<TaskType>(Data::cast<Integer>(Data::cast<Object>(data).access("task_type")).get());
 		}
 		Tgpio_id retrieve_gpio_id(const server::Data& data) const override {
 			using namespace server;
@@ -39,7 +41,7 @@ namespace mcu_factory {
 			using namespace server;
 			return static_cast<GpioState>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get());
 		}
-		GpioTasksDataRetriever<Ttask_type, Tgpio_id> *clone() const override {
+		GpioTasksDataRetriever<TaskType, Tgpio_id> *clone() const override {
 			return new DefaultGpioTasksDataRetriever(*this);
 		}
 	};

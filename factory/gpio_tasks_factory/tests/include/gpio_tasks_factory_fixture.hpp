@@ -58,7 +58,7 @@ namespace mcu_factory_uts {
 	private:
 		mutable GpioInventory m_inventory;
 		mcu_platform_uts::TestPlatform<GpioId> m_platform;
-		mcu_factory::DefaultGpioTasksDataRetriever<TestFactory::TaskType, GpioId> m_retriever;
+		mcu_factory::DefaultGpioTasksDataRetriever<GpioId> m_retriever;
 		std::unique_ptr<TestFactory::ResultReporter> m_result_reporter;
 		std::unique_ptr<TestFactory::ResultStateReporter> m_result_state_reporter;
 		GpioTestDataCreator m_test_data_ctor;
