@@ -4,8 +4,8 @@
 #include "gpio.hpp"
 #include "gpo.hpp"
 #include "stepper_motor.hpp"
-#include "test_delay.hpp"
 #include "test_gpo.hpp"
+#include "test_platform.hpp"
 
 using namespace mcu_platform;
 using namespace mcu_platform_uts;
@@ -24,7 +24,6 @@ TEST(ut_stepper_motor, ctor_dtor_sanity) {
 			return new TestGpo();
 		}
 	);
-	TestDelay delay;
 	Shoulders shoulders {
 		{ Shoulder::IN0, 10 },
 		{ Shoulder::IN1, 11 },
@@ -57,6 +56,7 @@ TEST(ut_stepper_motor, ctor_dtor_sanity) {
 			{ Shoulder::IN3, GpioState::HIGH }
 		}
 	};
+	TestPlatform<int> platform;
 
 	// WHEN
 	StepperMotor<int> *instance_ptr(nullptr);
@@ -67,8 +67,7 @@ TEST(ut_stepper_motor, ctor_dtor_sanity) {
 			instance_ptr = new StepperMotor<int>(
 				shoulders,
 				states,
-				gpo_ctor,
-				delay
+				&platform
 			)
 		)
 	);

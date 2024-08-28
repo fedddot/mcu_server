@@ -3,9 +3,12 @@ target_include_directories(stepper_motor_tasks_factory_fixture INTERFACE ${CMAKE
 target_link_libraries(
 	stepper_motor_tasks_factory_fixture
 	INTERFACE
+    custom_creator
     data_lib
-    default_stepper_motor_tasks_data_retriever
+    gpio
     stepper_motor_tasks_factory
+    default_stepper_motor_tasks_data_retriever
+    test_platform
 )
 
 add_executable(
@@ -17,9 +20,6 @@ add_executable(
 target_link_libraries(
 	stepper_motor_tasks_factory_tests
 	PRIVATE
-    stepper_motor_tasks_factory
-	custom_parser
-	stepper_motor_tasks_factory_fixture
-	test_gpo
+    stepper_motor_tasks_factory_fixture
 	gtest
 )
