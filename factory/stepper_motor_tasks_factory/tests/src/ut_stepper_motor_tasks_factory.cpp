@@ -81,7 +81,7 @@ TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
 
 	// THEN
 	// Motor creation
-	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(create_data(id, shoulders, states))));
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(test_data_ctor().create_data(id, shoulders, states))));
 	ASSERT_NE(nullptr, task_ptr);
 	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
 	ASSERT_NE(nullptr, report_ptr);
@@ -95,7 +95,7 @@ TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
 		.steps_number = ccw_steps_num, 
 		.step_duration_ms = ccw_step_duration
 	};
-	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(steps_data(ccw_steps))));
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(test_data_ctor().steps_data(ccw_steps))));
 	ASSERT_NE(nullptr, task_ptr);
 	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
 	ASSERT_NE(nullptr, report_ptr);
@@ -108,14 +108,14 @@ TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
 		.steps_number = cw_steps_num, 
 		.step_duration_ms = cw_step_duration
 	};
-	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(steps_data(cw_steps))));
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(test_data_ctor().steps_data(cw_steps))));
 	ASSERT_NE(nullptr, task_ptr);
 	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
 	ASSERT_NE(nullptr, report_ptr);
 	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
 
 	// Motor deletion
-	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(delete_data(id))));
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(test_data_ctor().delete_data(id))));
 	ASSERT_NE(nullptr, task_ptr);
 	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
 	ASSERT_NE(nullptr, report_ptr);
