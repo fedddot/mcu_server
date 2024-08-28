@@ -38,88 +38,90 @@ TEST_F(StepperMotorTasksFactoryFixture, ctor_dtor_sanity) {
 	instance_ptr_copy = nullptr;
 }
 
-// TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
-// 	// GIVEN
-// 	using GpoState = typename mcu_platform::Gpio::State;
-// 	Shoulders shoulders {
-// 		{ Shoulder::IN0, 10 },
-// 		{ Shoulder::IN1, 11 },
-// 		{ Shoulder::IN2, 12 },
-// 		{ Shoulder::IN3, 13 }
-// 	};
-// 	States states {
-// 		{
-// 			{ Shoulder::IN0, GpoState::HIGH },
-// 			{ Shoulder::IN1, GpoState::LOW },
-// 			{ Shoulder::IN2, GpoState::LOW },
-// 			{ Shoulder::IN3, GpoState::LOW }
-// 		},
-// 		{
-// 			{ Shoulder::IN0, GpoState::LOW },
-// 			{ Shoulder::IN1, GpoState::LOW },
-// 			{ Shoulder::IN2, GpoState::HIGH },
-// 			{ Shoulder::IN3, GpoState::LOW }
-// 		}
-// 	};
-// 	const StepperId id(12);
-// 	const unsigned int cw_steps_num(45);
-// 	const unsigned int cw_step_duration(1);
-// 	const unsigned int ccw_steps_num(50);
-// 	const unsigned int ccw_step_duration(2);
+TEST_F(StepperMotorTasksFactoryFixture, create_sanity) {
+	// GIVEN
+	using GpoState = typename mcu_platform::Gpio::State;
+	Shoulders shoulders {
+		{ Shoulder::IN0, 10 },
+		{ Shoulder::IN1, 11 },
+		{ Shoulder::IN2, 12 },
+		{ Shoulder::IN3, 13 }
+	};
+	States states {
+		{
+			{ Shoulder::IN0, GpoState::HIGH },
+			{ Shoulder::IN1, GpoState::LOW },
+			{ Shoulder::IN2, GpoState::LOW },
+			{ Shoulder::IN3, GpoState::LOW }
+		},
+		{
+			{ Shoulder::IN0, GpoState::LOW },
+			{ Shoulder::IN1, GpoState::LOW },
+			{ Shoulder::IN2, GpoState::HIGH },
+			{ Shoulder::IN3, GpoState::LOW }
+		}
+	};
+	const StepperId id(12);
+	const unsigned int cw_steps_num(45);
+	const unsigned int cw_step_duration(1);
+	const unsigned int ccw_steps_num(50);
+	const unsigned int ccw_step_duration(2);
 
-// 	// WHEN
-// 	TestFactory instance(
-// 		inventory(),
-// 		data_parser(),
-// 		CustomCreator<mcu_platform::Gpo *(const GpioId&)>(
-// 			[](const GpioId& gpio_id) {
-// 				return new mcu_platform_uts::TestGpo();
-// 			}
-// 		),
-// 		mcu_platform_uts::TestDelay(),
-// 		CustomCreator<Data *(int)>(
-// 			[](int result) {
-// 				Object report;
-// 				report.add("result", Integer(result));
-// 				return report.clone();
-// 			} 
-// 		)
-// 	);
-// 	using Task = Task<Data *(void)>;
-// 	std::unique_ptr<Task> task_ptr(nullptr);
-// 	std::unique_ptr<Data> report_ptr(nullptr);
+	// WHEN
+	TestFactory instance(
+		inventory(),
+		platform(),
+		data_retriever(),
+		result_reporter()
+	);
 
-// 	// THEN
-// 	// Motor creation
-// 	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(create_data(id, shoulders, states))));
-// 	ASSERT_NE(nullptr, task_ptr);
-// 	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
-// 	ASSERT_NE(nullptr, report_ptr);
-// 	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
-// 	ASSERT_TRUE(inventory()->contains(id));
+	using Task = Task<Data *(void)>;
+	std::unique_ptr<Task> task_ptr(nullptr);
+	std::unique_ptr<Data> report_ptr(nullptr);
 
-// 	// CCW motion
-// 	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(steps_data(id, Direction::CCW, ccw_steps_num, ccw_step_duration))));
-// 	ASSERT_NE(nullptr, task_ptr);
-// 	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
-// 	ASSERT_NE(nullptr, report_ptr);
-// 	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+	// THEN
+	// Motor creation
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(create_data(id, shoulders, states))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+	ASSERT_TRUE(inventory()->contains(id));
 
-// 	// CW motion
-// 	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(steps_data(id, Direction::CW, cw_steps_num, cw_step_duration))));
-// 	ASSERT_NE(nullptr, task_ptr);
-// 	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
-// 	ASSERT_NE(nullptr, report_ptr);
-// 	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+	// CCW motion
+	Steps ccw_steps {
+		.stepper_id = id, 
+		.direction = Direction::CCW, 
+		.steps_number = ccw_steps_num, 
+		.step_duration_ms = ccw_step_duration
+	};
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(steps_data(ccw_steps))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
 
-// 	// Motor deletion
-// 	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(delete_data(id))));
-// 	ASSERT_NE(nullptr, task_ptr);
-// 	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
-// 	ASSERT_NE(nullptr, report_ptr);
-// 	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
-// 	ASSERT_FALSE(inventory()->contains(id));
-// }
+	// CW motion
+	Steps cw_steps {
+		.stepper_id = id, 
+		.direction = Direction::CW, 
+		.steps_number = cw_steps_num, 
+		.step_duration_ms = cw_step_duration
+	};
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(steps_data(cw_steps))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+
+	// Motor deletion
+	ASSERT_NO_THROW(task_ptr = std::unique_ptr<Task>(instance.create(delete_data(id))));
+	ASSERT_NE(nullptr, task_ptr);
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(task_ptr->execute()));
+	ASSERT_NE(nullptr, report_ptr);
+	ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(*report_ptr).access("result")).get());
+	ASSERT_FALSE(inventory()->contains(id));
+}
 
 // TEST_F(StepperMotorTasksFactoryFixture, create_steps_sequence_task_sanity) {
 // 	// GIVEN	
