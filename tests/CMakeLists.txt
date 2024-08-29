@@ -3,16 +3,14 @@ target_include_directories(server_fixture INTERFACE ${CMAKE_CURRENT_LIST_DIR}/in
 target_link_libraries(
 	server_fixture
 	INTERFACE
-    creator
     custom_creator
     data_lib
-    json_data_parser
-    json_data_serializer
-    mcu_factory_fixture
-    server
-    parser
-    serializer
-    task
+    default_gpio_tasks_data_retriever
+    gpio
+    gpio_tasks_factory
+    gpio_test_data_creator
+    test_platform
+    gtest
 )
 
 add_executable(

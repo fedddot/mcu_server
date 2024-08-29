@@ -2,68 +2,55 @@
 #define MCU_SERVER_FIXTURE_HPP
 
 #include <exception>
-#include <gtest/gtest.h>
+#include <memory>
 
-#include "creator.hpp"
+#include "gtest/gtest.h"
+#include <stdexcept>
+
 #include "custom_creator.hpp"
 #include "data.hpp"
-#include "integer.hpp"
-#include "json_data_parser.hpp"
-#include "json_data_serializer.hpp"
-#include "mcu_factory_fixture.hpp"
 #include "server.hpp"
-#include "object.hpp"
-#include "parser.hpp"
-#include "serializer.hpp"
-#include "string.hpp"
-#include "task.hpp"
 
 namespace server_uts {
 	class ServerFixture: public testing::Test {
 	public:
 		using ServerTask = typename server::Server::ServerTask;
+		using TaskFactory = typename server::Server::TaskFactory;
+		using FailureReportCreator = typename server::Server::FailureReportCreator;
 		
-		ServerFixture():
-			m_factory(
-				platform(),
-				parsers(),
-				result_reporter(),
-				result_state_reporter(),
-				tasks_results_reporter()
-			),
-			m_fail_report_creator(
-				[](const std::exception& e) {
-					server::Object report;
-					report.add("result", server::Integer(-1));
-					report.add("what", server::String(e.what()));
-					return report.clone();
-				}
-			) {
-		
-		}
+		ServerFixture() = default;
 		ServerFixture(const ServerFixture& other) = delete;
 		ServerFixture& operator=(const ServerFixture& other) = delete;
+
+		void SetUp() override {
+			using namespace server;
+			using namespace server_utl;
+			m_fail_report_creator = std::unique_ptr<FailureReportCreator>(
+				new CustomCreator<Data *(const std::exception&)>(
+					[](const std::exception& e)-> Data * {
+						throw std::runtime_error("NOT IMPLEMENTED");
+					}
+				)
+			);
+			m_factory = std::unique_ptr<TaskFactory>(
+				new CustomCreator<ServerTask *(const Data&)>(
+					[](const Data& data)-> ServerTask * {
+						throw std::runtime_error("NOT IMPLEMENTED");
+					}
+				)
+			);
+		}
 	
-		const TestFactory& factory() const {
-			return m_factory;
+		const TaskFactory& factory() const {
+			return *m_factory;
 		}
 
-		const server::Creator<server::Data *(const std::exception&)>& fail_report_creator() const {
-			return m_fail_report_creator;
-		}
-
-		const server::Parser<server::Data *(const McuData&)>& parser() const {
-			return m_parser;
-		}
-
-		const server::Serializer<McuData(const server::Data&)>& serializer() const {
-			return m_serializer;
+		const FailureReportCreator& fail_report_creator() const {
+			return *m_fail_report_creator;
 		}
 	private:
-		TestFactory m_factory;
-		server_utl::CustomCreator<server::Data *(const std::exception&)> m_fail_report_creator;
-		server_utl::JsonDataParser m_parser;
-		server_utl::JsonDataSerializer m_serializer;
+		std::unique_ptr<TaskFactory> m_factory;
+		std::unique_ptr<FailureReportCreator> m_fail_report_creator;
 	};
 }
 
