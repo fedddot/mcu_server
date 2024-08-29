@@ -29,6 +29,8 @@ target_link_libraries(
     data_lib
     gpio
     server_fixture
+    stepper_motor_test_data_creator
+    gpio_test_data_creator
 
 	gtest
 )

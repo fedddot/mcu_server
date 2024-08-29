@@ -1,10 +1,21 @@
+#include <iostream>
+#include <memory>
+#include <string>
+
 #include "gtest/gtest.h"
 
+#include "data.hpp"
+#include "gpio.hpp"
+#include "gpio_test_data_creator.hpp"
+#include "object.hpp"
 #include "server.hpp"
 #include "server_fixture.hpp"
+#include "stepper_motor_test_data_creator.hpp"
 
 using namespace server;
 using namespace server_uts;
+using namespace mcu_platform;
+using namespace mcu_factory_uts;
 
 TEST_F(ServerFixture, ctor_dtor_sanity) {
 	// WHEN
@@ -18,117 +29,97 @@ TEST_F(ServerFixture, ctor_dtor_sanity) {
 	instance_ptr = nullptr;
 }
 
-// using CheckReportFunction = std::function<void(const ServerFixture::McuData&)>;
+using CheckReportFunction = std::function<void(const Data&)>;
+inline static void run_sanity_tc(const std::string& title, Server *instance_ptr, const Data& test_data, const CheckReportFunction& report_checker) {
+	// WHEN
+	std::unique_ptr<Data> report_ptr(nullptr);
 
-// static void run_create_sanity_tc(const std::string& tc_name, const ServerFixture::McuData& test_data, const CheckReportFunction& check_task_report, ServerFixture *fixture) {
-// 	std::cout << "running TC: " << tc_name << std::endl;
-// 	std::cout << "test data: " << test_data << std::endl;
+	// THEN
+	std::cout << "running TC: " << title << std::endl;
+	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(instance_ptr->run(test_data)));
+	ASSERT_NE(nullptr, report_ptr);
+	report_checker(*report_ptr);
+}
 
-// 	// WHEN
-// 	ServerFixture::McuData report("");
-// 	ServerFixture::TestServer instance(
-// 		fixture->parser(),
-// 		fixture->serializer(),
-// 		fixture->factory(),
-// 		fixture->fail_report_creator()
-// 	);
+TEST_F(ServerFixture, run_sanity) {
+	// GIVEN
+	auto check_report = [](const Data& data) {
+		ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
+	};
+	auto check_gpio_state_report = [check_report](const Data& data, const Gpio::State& expected_state) {
+		check_report(data);
+		ASSERT_EQ(expected_state, static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get()));
+	};
 
-// 	// THEN
-// 	ASSERT_NO_THROW(report = instance.run(test_data));
-// 	check_task_report(report);
-// }
+	const GpioId test_gpi_id(12);
+	const GpioId test_gpo_id(13);
+	
+	using TestCase = std::pair<std::string, std::pair<Object, CheckReportFunction>>;
+	using GpioDirection = typename Gpio::Direction;
+	using GpioState = typename Gpio::State;
 
-// TEST_F(ServerFixture, run_sanity) {
-// 	// GIVEN
-// 	auto check_report = [this](const ServerFixture::McuData& data) {
-// 		std::unique_ptr<Data> parsed_data(parser().parse(data));
-// 		auto result = Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("result")).get();
-// 		ASSERT_EQ(0, result);
-// 	};
-// 	auto check_get_report = [this](const ServerFixture::McuData& data, const Gpio::State& expected_state) {
-// 		std::unique_ptr<Data> parsed_data(parser().parse(data));
-// 		auto result = Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("result")).get();
-// 		ASSERT_EQ(0, result);
-// 		ASSERT_EQ(0, result);
-// 		auto state = static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("gpio_state")).get());
-// 		ASSERT_EQ(expected_state, state);
-// 	};
-// 	using TestCase = std::pair<std::string, std::pair<ServerFixture::McuData, CheckReportFunction>>;
-// 	const std::vector<TestCase> test_cases{
-// 		{
-// 			"gpi creation",
-// 			{
-// 				serializer().serialize(create_gpio_data(1, Gpio::Direction::IN)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"gpo creation",
-// 			{
-// 				serializer().serialize(create_gpio_data(2, Gpio::Direction::OUT)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"gpo set",
-// 			{
-// 				serializer().serialize(set_gpio_data(2, Gpio::State::HIGH)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"gpo get",
-// 			{
-// 				serializer().serialize(get_gpio_data(2)),
-// 				[check_get_report](const ServerFixture::McuData& data) {
-// 					check_get_report(data, Gpio::State::HIGH);
-// 				}
-// 			}
-// 		},
-// 		{
-// 			"gpi get",
-// 			{
-// 				serializer().serialize(get_gpio_data(1)),
-// 				[check_get_report](const ServerFixture::McuData& data) {
-// 					check_get_report(data, Gpio::State::LOW);
-// 				}
-// 			}
-// 		},
-// 		{
-// 			"gpi deletion",
-// 			{
-// 				serializer().serialize(delete_gpio_data(1)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"gpo deletion",
-// 			{
-// 				serializer().serialize(delete_gpio_data(2)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"delay",
-// 			{
-// 				serializer().serialize(delay_data(1000)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"sequence task",
-// 			{
-// 				serializer().serialize(sequence_data(4)),
-// 				check_report
-// 			}
-// 		}
-// 	};
+	const std::vector<TestCase> test_cases{
+		{
+			"gpi creation",
+			{
+				GpioTestDataCreator().create_gpio_data(test_gpi_id, GpioDirection::IN),
+				check_report
+			}
+		},
+		{
+			"gpo creation",
+			{
+				GpioTestDataCreator().create_gpio_data(test_gpo_id, GpioDirection::OUT),
+				check_report
+			}
+		},
+		{
+			"gpo set",
+			{
+				GpioTestDataCreator().set_gpio_data(test_gpo_id, GpioState::HIGH),
+				check_report
+			}
+		},
+		{
+			"gpo get",
+			{
+				GpioTestDataCreator().get_gpio_data(test_gpo_id),
+				[check_gpio_state_report](const Data& data) {
+					check_gpio_state_report(data, GpioState::HIGH);
+				}
+			}
+		},
+		{
+			"gpi get",
+			{
+				GpioTestDataCreator().get_gpio_data(test_gpi_id),
+				[check_gpio_state_report](const Data& data) {
+					check_gpio_state_report(data, GpioState::LOW);
+				}
+			}
+		},
+		{
+			"gpi deletion",
+			{
+				GpioTestDataCreator().delete_gpio_data(test_gpi_id),
+				check_report
+			}
+		},
+		{
+			"gpo deletion",
+			{
+				GpioTestDataCreator().delete_gpio_data(test_gpo_id),
+				check_report
+			}
+		}
+	};
+	Server instance(factory(), fail_report_creator());
 
-// 	// THEN
-// 	for (auto test_case: test_cases) {
-// 		run_create_sanity_tc(test_case.first, test_case.second.first, test_case.second.second, this);
-// 	}
-// }
+	// THEN
+	for (const auto& [title, tc_data]: test_cases) {
+		run_sanity_tc(title, &instance, tc_data.first, tc_data.second);
+	}
+}
 
 // TEST_F(ServerFixture, create_and_run_persistent_tasks_sanity) {
 // 	// GIVEN
