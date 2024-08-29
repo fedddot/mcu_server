@@ -23,4 +23,6 @@ target_link_libraries(
     factory
     task
     test_task_creator
+
+    gtest
 )
