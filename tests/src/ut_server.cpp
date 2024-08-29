@@ -41,7 +41,7 @@ inline static void run_sanity_tc(const std::string& title, Server *instance_ptr,
 	report_checker(*report_ptr);
 }
 
-TEST_F(ServerFixture, run_sanity) {
+TEST_F(ServerFixture, run_gpio_tasks_sanity) {
 	// GIVEN
 	auto check_report = [](const Data& data) {
 		ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
@@ -121,103 +121,132 @@ TEST_F(ServerFixture, run_sanity) {
 	}
 }
 
-// TEST_F(ServerFixture, create_and_run_persistent_tasks_sanity) {
-// 	// GIVEN
-// 	auto check_report = [this](const McuData& data) {
-// 		std::unique_ptr<Data> parsed_data(parser().parse(data));
-// 		auto result = Data::cast<Integer>(Data::cast<Object>(*parsed_data).access("result")).get();
-// 		if (0 != result) {
-// 			std::cout << "failure report received (what: " << Data::cast<String>(Data::cast<Object>(*parsed_data).access("what")).get() << ")" << std::endl;
-// 		}
-// 		ASSERT_EQ(0, result);
-// 	};
+TEST_F(ServerFixture, run_motor_tasks_sanity) {
+	// GIVEN
+	using GpioDirection = typename Gpio::Direction;
+	using GpioState = typename Gpio::State;
+	using TestCase = std::pair<std::string, std::pair<Object, CheckReportFunction>>;
 
-// 	auto check_report_and_gpio_state = [check_report, this](const McuData& data, const GpioId& gpio_id, const Gpio::State& expected_state) {
-// 		check_report(data);
-// 		ASSERT_TRUE(platform()->gpio_inventory()->contains(gpio_id));
-// 		const auto& gpio_casted = Gpio::cast<Gpo>(*(platform()->gpio_inventory()->access(gpio_id)));
-// 		ASSERT_EQ(expected_state, gpio_casted.state());
-// 	};
+	auto check_report = [](const Data& data) {
+		ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
+	};
 
-// 	const GpioId test_gpio_id(14);
+	const States test_states {
+		State {
+			{Shoulder::IN0, GpioState::HIGH},
+			{Shoulder::IN1, GpioState::LOW},
+			{Shoulder::IN2, GpioState::LOW},
+			{Shoulder::IN3, GpioState::LOW}
+		},
+		State {
+			{Shoulder::IN0, GpioState::LOW},
+			{Shoulder::IN1, GpioState::LOW},
+			{Shoulder::IN2, GpioState::HIGH},
+			{Shoulder::IN3, GpioState::LOW}
+		}
+	};
+
+	const StepperId test_stepper_x(12);
+	const Shoulders stepper_x_shoulders {
+		{Shoulder::IN0, 0},
+		{Shoulder::IN1, 1},
+		{Shoulder::IN2, 2},
+		{Shoulder::IN3, 3}
+	};
+
+	const StepperId test_stepper_y(13);
+	const Shoulders stepper_y_shoulders {
+		{Shoulder::IN0, 4},
+		{Shoulder::IN1, 5},
+		{Shoulder::IN2, 6},
+		{Shoulder::IN3, 7}
+	};
 	
-// 	const TaskId test_set_high_task_id(17);
-// 	const auto set_high_data(set_gpio_data(test_gpio_id, Gpio::State::HIGH));
 
-// 	const TaskId test_set_low_task_id(18);
-// 	const auto set_low_data(set_gpio_data(test_gpio_id, Gpio::State::LOW));
+	const std::vector<TestCase> test_cases {
+		{
+			"motor x creation",
+			{
+				StepperMotorTestDataCreator().create_data(test_stepper_x, stepper_x_shoulders, test_states),
+				check_report
+			}
+		},
+		{
+			"motor x steps",
+			{
+				StepperMotorTestDataCreator().steps_data(
+					Steps {
+						.stepper_id = test_stepper_x,
+						.direction = MotorDirection::CCW,
+						.steps_number = 100,
+						.step_duration_ms = 10
+					}
+				),
+				check_report
+			}
+		},
+		{
+			"motor y creation",
+			{
+				StepperMotorTestDataCreator().create_data(test_stepper_y, stepper_y_shoulders, test_states),
+				check_report
+			}
+		},
+		{
+			"motor y steps",
+			{
+				StepperMotorTestDataCreator().steps_data(
+					Steps {
+						.stepper_id = test_stepper_y,
+						.direction = MotorDirection::CW,
+						.steps_number = 50,
+						.step_duration_ms = 3
+					}
+				),
+				check_report
+			}
+		},
+		{
+			"steps sequence",
+			{
+				StepperMotorTestDataCreator().steps_sequence_data(
+					StepsSequence {
+						Steps {
+							.stepper_id = test_stepper_x,
+							.direction = MotorDirection::CCW,
+							.steps_number = 100,
+							.step_duration_ms = 10
+						},
+						Steps {
+							.stepper_id = test_stepper_y,
+							.direction = MotorDirection::CW,
+							.steps_number = 50,
+							.step_duration_ms = 3
+						}
+					}
+				),
+				check_report
+			}
+		},
+		{
+			"motor y deletion",
+			{
+				StepperMotorTestDataCreator().delete_data(test_stepper_y),
+				check_report
+			}
+		},
+		{
+			"motor x deletion",
+			{
+				StepperMotorTestDataCreator().delete_data(test_stepper_x),
+				check_report
+			}
+		}
+	};
+	Server instance(factory(), fail_report_creator());
 
-// 	const TaskId test_delay_task_id(20);
-// 	const int test_delay_ms(1000);
-// 	const auto test_delay_data(delay_data(test_delay_ms));
-
-// 	Array tasks_ids;
-// 	tasks_ids.push_back(Integer(test_set_high_task_id));
-// 	tasks_ids.push_back(Integer(test_delay_task_id));
-// 	tasks_ids.push_back(Integer(test_set_low_task_id));
-	
-// 	using TestCase = std::pair<std::string, std::pair<ServerFixture::McuData, CheckReportFunction>>;
-	
-// 	const std::vector<TestCase> test_cases{
-// 		{
-// 			"create persistent set gpio task (to HIGH state)",
-// 			{
-// 				serializer().serialize(create_persistent_task_data(test_set_high_task_id, set_high_data)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"create persistent set gpio task (to LOW state)",
-// 			{
-// 				serializer().serialize(create_persistent_task_data(test_set_low_task_id, set_low_data)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"create persistent delay task",
-// 			{
-// 				serializer().serialize(create_persistent_task_data(test_delay_task_id, test_delay_data)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"execute tasks",
-// 			{
-// 				serializer().serialize(execute_persistent_tasks_data(tasks_ids)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"delete persistent set gpio task (to HIGH state)",
-// 			{
-// 				serializer().serialize(delete_persistent_task_data(test_set_high_task_id)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"delete persistent set gpio task (to LOW state)",
-// 			{
-// 				serializer().serialize(delete_persistent_task_data(test_set_low_task_id)),
-// 				check_report
-// 			}
-// 		},
-// 		{
-// 			"delete persistent delay task",
-// 			{
-// 				serializer().serialize(delete_persistent_task_data(test_delay_task_id)),
-// 				check_report
-// 			}
-// 		}
-// 	};
-
-// 	// WHEN
-// 	platform()->gpio_inventory()->put(test_gpio_id, new mcu_platform_uts::TestGpo());
-
-// 	// THEN
-// 	for (auto test_case: test_cases) {
-// 		run_create_sanity_tc(test_case.first, test_case.second.first, test_case.second.second, this);
-// 	}
-
-// 	// CLEAN UP
-// 	delete platform()->gpio_inventory()->pull(test_gpio_id);
-// }
+	// THEN
+	for (const auto& [title, tc_data]: test_cases) {
+		run_sanity_tc(title, &instance, tc_data.first, tc_data.second);
+	}
+}

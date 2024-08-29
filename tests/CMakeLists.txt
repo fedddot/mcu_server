@@ -15,6 +15,7 @@ target_link_libraries(
     stepper_motor
     stepper_motor_tasks_factory
     test_platform
+    gtest
 )
 
 add_executable(
@@ -28,9 +29,10 @@ target_link_libraries(
 	PRIVATE
     data_lib
     gpio
+    gpio_test_data_creator
+    server
     server_fixture
     stepper_motor_test_data_creator
-    gpio_test_data_creator
 
 	gtest
 )

@@ -34,6 +34,13 @@ namespace server_uts {
 		using StepperId = int;
 		using MotorInventory = mcu_platform::Inventory<StepperId, mcu_platform::StepperMotor<GpioId>>;
 		using GpioInventory = mcu_platform::Inventory<GpioId, mcu_platform::Gpio>;
+		using Shoulder = typename mcu_platform::StepperMotor<GpioId>::Shoulder;
+		using Shoulders = typename mcu_platform::StepperMotor<GpioId>::Shoulders;
+		using MotorDirection = typename mcu_platform::StepperMotor<GpioId>::Direction;
+		using State = typename mcu_platform::StepperMotor<GpioId>::State;
+		using States = typename mcu_platform::StepperMotor<GpioId>::States;
+		using Steps = typename mcu_factory::StepperMotorTasksFactory<StepperId, GpioId>::Steps;
+		using StepsSequence = typename mcu_factory::StepperMotorTasksFactory<StepperId, GpioId>::StepsSequence;
 		
 		ServerFixture() = default;
 		ServerFixture(const ServerFixture& other) = delete;
