@@ -7,6 +7,7 @@
 #include "integer.hpp"
 #include "object.hpp"
 #include "stepper_motor_tasks_factory.hpp"
+#include "string.hpp"
 
 namespace mcu_factory_uts {
 	class StepperMotorTestDataCreator {
@@ -45,6 +46,7 @@ namespace mcu_factory_uts {
 			create_data.add("shoulders", shoulders_data);
 			create_data.add("states", states_data);
 			create_data.add("stepper_id", Integer(stepper_id));
+			create_data.add("domain", String("stepper_motor"));
 			return create_data;
 		}
 
@@ -56,6 +58,7 @@ namespace mcu_factory_uts {
 			steps_data.add("direction", Integer(static_cast<int>(steps.direction)));
 			steps_data.add("steps_number", Integer(steps.steps_number));
 			steps_data.add("step_duration_ms", Integer(steps.step_duration_ms));
+			steps_data.add("domain", String("stepper_motor"));
 			return steps_data;
 		}
 
@@ -70,6 +73,7 @@ namespace mcu_factory_uts {
 			Object steps_sequence_data;
 			steps_sequence_data.add("task_type", Integer(static_cast<int>(TaskType::STEPS_SEQUENCE)));
 			steps_sequence_data.add("sequence", sequence_array);
+			steps_sequence_data.add("domain", String("stepper_motor"));
 			return steps_sequence_data;
 		}
 
@@ -78,6 +82,7 @@ namespace mcu_factory_uts {
 			Object delete_data;
 			delete_data.add("task_type", Integer(static_cast<int>(TaskType::DELETE_STEPPER_MOTOR)));
 			delete_data.add("stepper_id", Integer(stepper_id));
+			delete_data.add("domain", String("stepper_motor"));
 			return delete_data;
 		}
 	private:
