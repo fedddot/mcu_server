@@ -3,8 +3,7 @@ target_include_directories(stepper_motor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/inc
 target_link_libraries(
     stepper_motor
     INTERFACE
-    creator
-    delay
+    platform
     gpio
     gpo
 )

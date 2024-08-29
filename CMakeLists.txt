@@ -10,28 +10,16 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(creator INTERFACE)
 target_include_directories(creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(parser INTERFACE)
-target_include_directories(parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
-add_library(serializer INTERFACE)
-target_include_directories(serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
-add_library(transformer INTERFACE)
-target_include_directories(transformer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
 add_library(task INTERFACE)
 target_include_directories(task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(mcu_server INTERFACE)
-target_include_directories(mcu_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(server INTERFACE)
+target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-    mcu_server
+    server
     INTERFACE
     creator
     data
-    parser
-    platform
-    serializer
     task
 )
 
@@ -40,7 +28,6 @@ add_subdirectory(external)
 add_subdirectory(factory)
 add_subdirectory(ipc)
 add_subdirectory(platform)
-add_subdirectory(stepper_motor_tasks_factory)
 add_subdirectory(util)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

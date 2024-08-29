@@ -4,7 +4,7 @@
 #include <string>
 #include "data.hpp"
 
-namespace mcu_server {
+namespace server {
 	class String: public Data {
 	public:
 		String(const std::string& str);

@@ -8,7 +8,7 @@
 
 #include "data.hpp"
 
-namespace mcu_server {
+namespace server {
 	class Object: public Data {
 	public:
 		Object() = default;
@@ -31,6 +31,6 @@ namespace mcu_server {
 		void throw_if_not_found(const std::string& name) const;
 		static DataContainer copy_container(const Object& obj);
 	};
-} // namespace mcu_server
+} // namespace server
 
 #endif // OBJECT_HPP

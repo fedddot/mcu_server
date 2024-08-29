@@ -9,7 +9,7 @@
 #include "object.hpp"
 #include "string.hpp"
 
-using namespace mcu_server;
+using namespace server;
 
 TEST(ut_string, sanity) {
 	// GIVEN

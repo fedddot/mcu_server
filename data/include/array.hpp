@@ -8,7 +8,7 @@
 
 #include "data.hpp"
 
-namespace mcu_server {
+namespace server {
 	class Array: public Data {
 	public:
 		Array() = default;
@@ -97,6 +97,6 @@ namespace mcu_server {
 		);
 		return container;
 	}
-} // namespace mcu_server
+} // namespace server
 
 #endif // ARRAY_HPP

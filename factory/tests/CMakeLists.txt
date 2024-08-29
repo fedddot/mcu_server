@@ -1,33 +1,28 @@
-add_library(mcu_factory_fixture INTERFACE)
-target_include_directories(mcu_factory_fixture INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(test_task_creator INTERFACE)
+target_include_directories(test_task_creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-	mcu_factory_fixture
+	test_task_creator
 	INTERFACE
-    data_lib
-    custom_creator
-    mcu_factory_parsers
-    default_mcu_factory_parsers
-    gpio
-    mcu_factory
-    object
-    platform
-    test_platform
+    creator
+    data
+    task
+    task_creator
 )
 
 add_executable(
 	factory_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/ut_mcu_factory.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/ut_factory.cpp
 )
 
 target_link_libraries(
 	factory_tests
 	PRIVATE
-    data
-    gpio
-    inventory
-    mcu_factory
-    mcu_factory_fixture
+    custom_task
+    data_lib
+    factory
+    task
+    test_task_creator
 
-	gtest
+    gtest
 )

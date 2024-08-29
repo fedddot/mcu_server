@@ -6,12 +6,12 @@
 
 #include "task.hpp"
 
-namespace mcu_server_utl {
+namespace server_utl {
 	template <typename Signature>
 	class CustomTask;
 
 	template <typename Treport, typename... Args>
-	class CustomTask<Treport(Args...)>: public mcu_server::Task<Treport(Args...)> {
+	class CustomTask<Treport(Args...)>: public server::Task<Treport(Args...)> {
 	public:
 		using ExecuteAction = std::function<Treport(Args...)>;
 		CustomTask(const ExecuteAction& execute_action);

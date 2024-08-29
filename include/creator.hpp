@@ -1,7 +1,7 @@
 #ifndef	CREATOR_HPP
 #define	CREATOR_HPP
 
-namespace mcu_server {
+namespace server {
 	template <typename Signature>
 	class Creator;
 

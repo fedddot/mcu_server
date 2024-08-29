@@ -7,10 +7,12 @@ add_executable(
 target_link_libraries(
 	stepper_motor_tests
 	PRIVATE
+    custom_creator
+    gpio
+    gpo
     stepper_motor
-	custom_creator
-	test_gpo
-	test_delay
+    test_gpo
+    test_platform
 
 	gtest
 )
