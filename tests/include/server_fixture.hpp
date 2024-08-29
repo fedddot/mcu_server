@@ -2,6 +2,7 @@
 #define MCU_SERVER_FIXTURE_HPP
 
 #include <exception>
+#include <gtest/gtest.h>
 
 #include "creator.hpp"
 #include "custom_creator.hpp"
@@ -18,7 +19,7 @@
 #include "task.hpp"
 
 namespace server_uts {
-	class ServerFixture: public mcu_factory_uts::McuFactoryFixture {
+	class ServerFixture: public testing::Test {
 	public:
 		using ServerTask = typename server::Server::ServerTask;
 		
