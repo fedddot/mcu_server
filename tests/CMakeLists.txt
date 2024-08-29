@@ -6,11 +6,15 @@ target_link_libraries(
     custom_creator
     data_lib
     default_gpio_tasks_data_retriever
+    default_stepper_motor_tasks_data_retriever
+    factory
     gpio
     gpio_tasks_factory
-    gpio_test_data_creator
+    inventory
+    server
+    stepper_motor
+    stepper_motor_tasks_factory
     test_platform
-    gtest
 )
 
 add_executable(
