@@ -18,10 +18,9 @@ add_executable(
 target_link_libraries(
 	factory_tests
 	PRIVATE
-    test_task_creator
-    factory
-	gpio_tasks_factory
-	stepper_motor_tasks_factory
     custom_task
-	gtest
+    data_lib
+    factory
+    task
+    test_task_creator
 )
