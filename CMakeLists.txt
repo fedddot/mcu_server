@@ -7,8 +7,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(creator INTERFACE)
-target_include_directories(creator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(request INTERFACE)
+target_include_directories(request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    request
+    INTERFACE
+    object
+)
+
+add_library(resource INTERFACE)
+target_include_directories(resource INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
 
 add_library(task INTERFACE)
 target_include_directories(task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
