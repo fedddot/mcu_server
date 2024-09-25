@@ -25,7 +25,12 @@ target_link_libraries(
 
 add_library(resource INTERFACE)
 target_include_directories(resource INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
+target_link_libraries(
+    resource
+    INTERFACE
+    request
+    response
+)
 
 add_library(task INTERFACE)
 target_include_directories(task INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
