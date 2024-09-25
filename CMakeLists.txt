@@ -15,6 +15,14 @@ target_link_libraries(
     object
 )
 
+add_library(response INTERFACE)
+target_include_directories(response INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    response
+    INTERFACE
+    object
+)
+
 add_library(resource INTERFACE)
 target_include_directories(resource INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
