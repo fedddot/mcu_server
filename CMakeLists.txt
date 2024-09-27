@@ -32,20 +32,21 @@ target_link_libraries(
     response
 )
 
-add_library(manager INTERFACE)
-target_include_directories(manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(
-    manager
-    INTERFACE
-    request
-    resource
-    response
-)
-
 add_library(vendor INTERFACE)
 target_include_directories(vendor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     vendor
+    INTERFACE
+    request
+    resource
+    response
+    data_lib
+)
+
+add_library(manager INTERFACE)
+target_include_directories(manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    manager
     INTERFACE
     request
     resource
