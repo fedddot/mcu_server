@@ -52,5 +52,6 @@ target_link_libraries(
     response
 )
 
+add_subdirectory(data)
 add_subdirectory(external)
 add_subdirectory(tests EXCLUDE_FROM_ALL)

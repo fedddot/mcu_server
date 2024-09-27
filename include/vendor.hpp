@@ -1,12 +1,14 @@
 #ifndef	VENDOR_HPP
 #define	VENDOR_HPP
 
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include "request.hpp"
 #include "resource.hpp"
 #include "response.hpp"
-#include <memory>
-#include <string>
-#include <vector>
 
 namespace server {
 	class Vendor: public Resource {
@@ -17,8 +19,10 @@ namespace server {
 		
 		std::string id() const override;
 		Response run_request(const Request&) override;
+		Resource *clone() const override;
+		
 		void register_resource(const Resource& resource);
-		void contains_resource(const std::string& id) const;
+		bool contains_resource(const std::string& id) const;
 	private:
 		std::string m_id;
 		std::vector<std::unique_ptr<Resource>> m_resources;
@@ -39,7 +43,19 @@ namespace server {
 	}
 
 	inline Response Vendor::run_request(const Request& request) {
-		return m_id;
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	inline Resource *Vendor::clone() const {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	inline void Vendor::register_resource(const Resource& resource) {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	inline bool Vendor::contains_resource(const std::string& id) const {
+		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 }
 
