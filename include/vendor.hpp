@@ -87,6 +87,22 @@ namespace server {
 		}
 		return false;
 	}
+
+	inline Response Vendor::run_create_request(const Request& request) const {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	inline Response Vendor::run_read_request(const Request& request) const {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	inline Response Vendor::run_update_request(const Request& request) const {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	inline Response Vendor::run_delete_request(const Request& request) const {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
 }
 
 #endif // VENDOR_HPP
