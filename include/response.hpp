@@ -9,7 +9,8 @@ namespace server {
 		enum class ResponseCode: int {
 			OK,
 			METHOD_NOT_ALLOWED,
-			NOT_FOUND
+			NOT_FOUND,
+			BAD_REQUEST
 		};
 		using Body = Object;
 		Response(const ResponseCode& code, const Body& body);

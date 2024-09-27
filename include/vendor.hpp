@@ -15,11 +15,11 @@ namespace server {
 	class Vendor: public Resource {
 	public:
 		Vendor(const std::string& id);
-		Vendor(const Vendor&);
+		Vendor(const Vendor& other);
 		Vendor& operator=(const Vendor&) = delete;
 		
 		std::string id() const override;
-		Response run_request(const Request&) const override;
+		Response run_request(const Request& request) const override;
 		Resource *clone() const override;
 		
 		void register_resource(const Resource& resource);
@@ -29,11 +29,6 @@ namespace server {
 		std::vector<std::unique_ptr<Resource>> m_resources;
 
 		Resource *access_resource(const std::string& id) const;
-
-		Response run_create_request(const Request& request) const;
-		Response run_read_request(const Request& request) const;
-		Response run_update_request(const Request& request) const;
-		Response run_delete_request(const Request& request) const;
 	};
 
 	inline Vendor::Vendor(const std::string& id): m_id(id) {
@@ -51,21 +46,20 @@ namespace server {
 	}
 
 	inline Response Vendor::run_request(const Request& request) const {
-		switch (request.method()) {
-		case Request::Method::CREATE:
-			return run_create_request(request);
-		case Request::Method::READ:
-			return run_read_request(request);
-		case Request::Method::UPDATE:
-			return run_update_request(request);
-		case Request::Method::DELETE:
-			return run_delete_request(request);
-		default:
-			break;
+		if (request.path().empty()) {
+			Response::Body response_data;
+			response_data.add("what", server::String("path must contain at least one token"));
+			return Response(Response::ResponseCode::BAD_REQUEST, response_data);
 		}
-		Response::Body response_data;
-		response_data.add("what", server::String("received method is not supported"));
-		return Response(Response::ResponseCode::METHOD_NOT_ALLOWED, response_data);
+		auto path(request.path());
+		auto resource_id(*(path.begin()));
+		if (!contains_resource(resource_id)) {
+			Response::Body response_data;
+			response_data.add("what", server::String("resource " + resource_id + " is not registered"));
+			return Response(Response::ResponseCode::NOT_FOUND, response_data);
+		}
+		auto resource_request_path(Request::Path(path.begin() + 1, path.end()));
+		return access_resource(resource_id)->run_request(Request(request.method(), resource_request_path, request.body()));
 	}
 
 	inline Resource *Vendor::clone() const {
@@ -95,35 +89,6 @@ namespace server {
 			}
 		}
 		throw std::invalid_argument("resource " + id + " is not registered");
-	}
-
-	inline Response Vendor::run_create_request(const Request& request) const {
-		if (request.path().empty()) {
-			Response::Body response_data;
-			response_data.add("what", server::String("path must contain at least one token"));
-			return Response(Response::ResponseCode::NOT_FOUND, response_data);
-		}
-		auto path(request.path());
-		auto resource_id(*(path.begin()));
-		if (!contains_resource(resource_id)) {
-			Response::Body response_data;
-			response_data.add("what", server::String("resource " + resource_id + " is not registered"));
-			return Response(Response::ResponseCode::NOT_FOUND, response_data);
-		}
-		auto resource_request_path(Request::Path(path.begin() + 1, path.end()));
-		return access_resource(resource_id)->run_request(Request(request.method(), resource_request_path, request.body()));
-	}
-
-	inline Response Vendor::run_read_request(const Request& request) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	}
-
-	inline Response Vendor::run_update_request(const Request& request) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	}
-
-	inline Response Vendor::run_delete_request(const Request& request) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 }
 
