@@ -85,7 +85,7 @@ namespace server {
 	inline Resource *Vendor::access_resource(const std::string& id) const {
 		for (auto const& registered_resource: m_resources) {
 			if (registered_resource->id() == id) {
-				registered_resource.get();
+				return registered_resource.get();
 			}
 		}
 		throw std::invalid_argument("resource " + id + " is not registered");
