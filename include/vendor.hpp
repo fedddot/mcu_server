@@ -28,6 +28,8 @@ namespace server {
 		std::string m_id;
 		std::vector<std::unique_ptr<Resource>> m_resources;
 
+		Resource *access_resource(const std::string& id) const;
+
 		Response run_create_request(const Request& request) const;
 		Response run_read_request(const Request& request) const;
 		Response run_update_request(const Request& request) const;
@@ -71,10 +73,8 @@ namespace server {
 	}
 
 	inline void Vendor::register_resource(const Resource& resource) {
-		for (auto const& registered_resource: m_resources) {
-			if (registered_resource->id() == resource.id()) {
-				throw std::invalid_argument("resource id " + resource.id() + " is already registered");
-			}
+		if (contains_resource(resource.id())) {
+			throw std::invalid_argument("resource id " + resource.id() + " is already registered");
 		}
 		m_resources.push_back(std::unique_ptr<Resource>(resource.clone()));
 	}
@@ -88,8 +88,30 @@ namespace server {
 		return false;
 	}
 
+	inline Resource *Vendor::access_resource(const std::string& id) const {
+		for (auto const& registered_resource: m_resources) {
+			if (registered_resource->id() == id) {
+				registered_resource.get();
+			}
+		}
+		throw std::invalid_argument("resource " + id + " is not registered");
+	}
+
 	inline Response Vendor::run_create_request(const Request& request) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
+		if (request.path().empty()) {
+			Response::Body response_data;
+			response_data.add("what", server::String("path must contain at least one token"));
+			return Response(Response::ResponseCode::NOT_FOUND, response_data);
+		}
+		auto path(request.path());
+		auto resource_id(*(path.begin()));
+		if (!contains_resource(resource_id)) {
+			Response::Body response_data;
+			response_data.add("what", server::String("resource " + resource_id + " is not registered"));
+			return Response(Response::ResponseCode::NOT_FOUND, response_data);
+		}
+		auto resource_request_path(Request::Path(path.begin() + 1, path.end()));
+		return access_resource(resource_id)->run_request(Request(request.method(), resource_request_path, request.body()));
 	}
 
 	inline Response Vendor::run_read_request(const Request& request) const {
