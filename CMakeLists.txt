@@ -17,6 +17,7 @@ target_link_libraries(response INTERFACE data_lib)
 
 add_library(resource INTERFACE)
 target_include_directories(resource INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(resource INTERFACE request response)
 
 add_subdirectory(data)
 add_subdirectory(external)

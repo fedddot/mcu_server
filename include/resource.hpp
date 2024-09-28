@@ -1,15 +1,14 @@
 #ifndef	RESOURCE_HPP
 #define	RESOURCE_HPP
 
-namespace server {
-	template <typename Signature>
-	class Resource;
+#include "request.hpp"
+#include "response.hpp"
 
-	template <typename Tresponse, typename... Args>
-	class Resource<Tresponse(Args...)> {
+namespace server {
+	class Resource {
 	public:
 		virtual ~Resource() noexcept = default;
-		virtual Tresponse run_request(Args...) const = 0;
+		virtual Response run_request(const Request& request) const = 0;
 		virtual Resource *clone() const = 0;
 	};
 }

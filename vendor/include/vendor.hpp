@@ -12,7 +12,7 @@
 #include "string.hpp"
 
 namespace server {
-	class Vendor: public Resource<Response(const Request&)> {
+	class Vendor: public Resource {
 	public:
 		Vendor() = default;
 		Vendor(const Vendor& other);
@@ -24,13 +24,13 @@ namespace server {
 		void register_resource(const std::string& id, const Resource& resource);
 		bool contains_resource(const std::string& id) const;
 	private:
-		std::map<std::string, std::unique_ptr<Resource<Response(const Request&)>>> m_resources;
-		Resource<Response(const Request&)> *access_resource(const std::string& id) const;
+		std::map<std::string, std::unique_ptr<Resource>> m_resources;
+		Resource *access_resource(const std::string& id) const;
 	};
 
 	inline Vendor::Vendor(const Vendor& other) {
 		for (const auto& [id, resource_ptr]: other.m_resources) {
-			m_resources.insert({id, std::unique_ptr<Resource<Response(const Request&)>>(resource_ptr->clone())});
+			m_resources.insert({id, std::unique_ptr<Resource>(resource_ptr->clone())});
 		}
 	}
 
@@ -51,7 +51,7 @@ namespace server {
 		return access_resource(resource_id)->run_request(Request(request.method(), resource_request_path, request.body()));
 	}
 
-	inline Resource<Response(const Request&)> *Vendor::clone() const {
+	inline Resource *Vendor::clone() const {
 		return new Vendor(*this);
 	}
 
@@ -59,14 +59,14 @@ namespace server {
 		if (contains_resource(id)) {
 			throw std::invalid_argument("resource id " + id + " is already registered");
 		}
-		m_resources.insert({id, std::unique_ptr<Resource<Response(const Request&)>>(resource.clone())});
+		m_resources.insert({id, std::unique_ptr<Resource>(resource.clone())});
 	}
 
 	inline bool Vendor::contains_resource(const std::string& id) const {
 		return m_resources.end() != m_resources.find(id);
 	}
 
-	inline Resource<Response(const Request&)> *Vendor::access_resource(const std::string& id) const {
+	inline Resource *Vendor::access_resource(const std::string& id) const {
 		const auto iter = m_resources.find(id);
 		if (m_resources.end() == iter) {
 			throw std::invalid_argument("resource " + id + " is not registered");

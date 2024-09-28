@@ -11,15 +11,13 @@
 using namespace server;
 using namespace server_uts;
 
-using ResourceClass = Resource<Response(const Request&)>;
-
 TEST(ut_vendor, ctor_cctor_clone_dtor_id_sanity) {
 	// GIVEN
 	const std::string test_vendor_id("test_vendor_id");
 	
 	// WHEN
 	using VendorUnqPtr = std::unique_ptr<Vendor>;
-	using ResourceUnqPtr = std::unique_ptr<ResourceClass>;
+	using ResourceUnqPtr = std::unique_ptr<Resource>;
 	VendorUnqPtr instance_ptr(nullptr);
 	VendorUnqPtr instance_ptr_copy(nullptr);
 	ResourceUnqPtr instance_ptr_clone(nullptr);

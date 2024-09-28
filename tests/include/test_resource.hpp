@@ -9,7 +9,7 @@
 #include "response.hpp"
 
 namespace server_uts {
-	class TestResource: public server::Resource<server::Response(const server::Request&)> {
+	class TestResource: public server::Resource {
 	public:
 		using TestAction = std::function<server::Response(const server::Request&)>;
 		TestResource(const TestAction& action): m_action(action) {
@@ -22,7 +22,7 @@ namespace server_uts {
 			return m_action(request);
 		}
 
-		server::Resource<server::Response(const server::Request&)> *clone() const override {
+		server::Resource *clone() const override {
 			return new TestResource(*this);
 		}
 	private:
