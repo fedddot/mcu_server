@@ -21,3 +21,5 @@ target_include_directories(resource INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 add_subdirectory(data)
 add_subdirectory(external)
 add_subdirectory(vendor)
+
+add_subdirectory(tests EXCLUDE_FROM_ALL)

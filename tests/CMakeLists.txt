@@ -1,0 +1,3 @@
+add_library(test_resource INTERFACE)
+target_include_directories(test_resource INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(test_resource INTERFACE request resource response)
