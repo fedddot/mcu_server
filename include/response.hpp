@@ -10,7 +10,8 @@ namespace server {
 			OK,
 			METHOD_NOT_ALLOWED,
 			NOT_FOUND,
-			BAD_REQUEST
+			BAD_REQUEST,
+			UNSPECIFIED
 		};
 		using Body = Object;
 		Response(const ResponseCode& code, const Body& body);
