@@ -21,6 +21,7 @@ target_link_libraries(resource INTERFACE request response)
 
 add_subdirectory(data)
 add_subdirectory(external)
+add_subdirectory(manager)
 add_subdirectory(vendor)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

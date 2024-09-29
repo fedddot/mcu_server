@@ -1,0 +1,167 @@
+#ifndef	INVENTORY_MANAGER_HPP
+#define	INVENTORY_MANAGER_HPP
+
+#include <exception>
+#include <functional>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <map>
+
+#include "array.hpp"
+#include "data.hpp"
+#include "object.hpp"
+#include "request.hpp"
+#include "resource.hpp"
+#include "response.hpp"
+#include "string.hpp"
+
+namespace server {
+	template <typename Tstored>
+	class InventoryManager: public Resource {
+	public:
+		using Creator = std::function<Tstored *(const Object&)>;
+		using Copier = std::function<Tstored *(const Tstored&)>;
+		using Describer = std::function<Object(const Tstored&)>;
+		
+		InventoryManager(const Creator& creator, const Copier& copier, const Describer& describer);
+		InventoryManager(const InventoryManager& other);
+		InventoryManager& operator=(const InventoryManager&) = delete;
+		
+		Response run_request(const Request& request) const override;
+		Resource *clone() const override;
+		
+	private:
+		Creator m_creator;
+		Copier m_copier;
+		Describer m_describer;
+
+		using Method = typename Request::Method;
+		using ResponseCode = typename Response::ResponseCode;
+		using Body = typename Response::Body;
+		using InstanceUniquePtr = std::unique_ptr<Tstored>;
+		using Instances = std::map<std::string, InstanceUniquePtr>;
+
+		mutable Instances m_instances;
+		Response run_create(const Request& request) const;
+		Response run_read(const Request& request) const;
+		Response run_update(const Request& request) const;
+		Response run_delete(const Request& request) const;
+
+		Response report_failure(const ResponseCode& code, const std::string& what) const;
+	};
+
+	template <typename Tstored>
+	inline InventoryManager<Tstored>::InventoryManager(const Creator& creator, const Copier& copier, const Describer& describer): m_creator(creator), m_copier(copier), m_describer(describer) {
+		if (!m_creator || !m_copier || !m_describer) {
+			throw std::invalid_argument("invalid action received");
+		}
+	}
+
+	template <typename Tstored>
+	inline InventoryManager<Tstored>::InventoryManager(const InventoryManager& other): m_creator(other.m_creator), m_copier(other.m_copier), m_describer(other.m_describer) {
+		for (const auto& [id, instance_ptr]: other.m_instances) {
+			m_instances.insert({id, InstanceUniquePtr(m_copier(*instance_ptr))});
+		}
+	}
+
+	template <typename Tstored>
+	inline Response InventoryManager<Tstored>::run_request(const Request& request) const {
+		switch (request.method()) {
+		case Method::CREATE:
+			return run_create(request);
+		case Method::READ:
+			return run_read(request);
+		case Method::UPDATE:
+			return run_update(request);
+		case Method::DELETE:
+			return run_delete(request);
+		default:
+			return report_failure(ResponseCode::BAD_REQUEST, "unsupported method request received");
+		}
+	}
+
+	template <typename Tstored>
+	inline Resource *InventoryManager<Tstored>::clone() const {
+		return new InventoryManager(*this);
+	}
+
+	template <typename Tstored>
+	inline Response InventoryManager<Tstored>::run_create(const Request& request) const {
+		using ResponseCode = typename Response::ResponseCode;
+		using Body = typename Response::Body;
+
+		if (!request.path().empty()) {
+			Body not_found_body;
+			not_found_body.add("what", String("wrong create request path"));
+			return Response(ResponseCode::NOT_FOUND, not_found_body);
+		}
+		auto id(Data::cast<String>(request.body().access("id")).get());
+		if (m_instances.end() != m_instances.find(id)) {
+			Body exists_body;
+			exists_body.add("id", String(id));
+			exists_body.add("what", String("component with id = " + id + " already exists"));
+			return Response(ResponseCode::BAD_REQUEST, exists_body);
+		}
+		m_instances.insert({id, std::unique_ptr<Tstored>(m_creator(request.body()))});
+		return Response(ResponseCode::OK, Body());
+	}
+
+	template <typename Tstored>
+	inline Response InventoryManager<Tstored>::run_read(const Request& request) const {
+		auto read_instance = [this](const std::string& id) {
+			auto iter = m_instances.find(id);
+			if (m_instances.end() == iter) {
+				return report_failure(ResponseCode::NOT_FOUND, "resource " + id + " is not registered");
+			}
+			auto instance_data(m_describer(*(iter->second)));
+			instance_data.add("id", String(iter->first));
+			return Response(ResponseCode::OK, instance_data);
+		};
+
+		auto read_all_instances = [this](void) {
+			try {
+				Array members;
+				for (const auto& [id, instance_ptr]: m_instances) {
+					auto member_data(m_describer(*instance_ptr));
+					member_data.add("id", String(id));
+					members.push_back(member_data);
+				}
+				Body body;
+				body.add("members", members);
+				return Response(ResponseCode::OK, body);
+			} catch (const std::exception& e) {
+				return report_failure(ResponseCode::UNSPECIFIED, std::string(e.what()));
+			}
+		};
+		
+		if (request.path().empty()) {
+			return read_all_instances();
+		}
+
+		if (1UL < request.path().size()) {
+			return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
+		}
+		auto id(request.path()[0]);
+		return read_instance(id);
+	}
+
+	template <typename Tstored>
+	inline Response InventoryManager<Tstored>::run_update(const Request& request) const {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	template <typename Tstored>
+	inline Response InventoryManager<Tstored>::run_delete(const Request& request) const {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	template <typename Tstored>
+	inline Response InventoryManager<Tstored>::report_failure(const ResponseCode& code, const std::string& what) const {
+		Body failure_body;
+		failure_body.add("what", String(what));
+		return Response(ResponseCode::UNSPECIFIED, failure_body);
+	}
+}
+
+#endif // INVENTORY_MANAGER_HPP
