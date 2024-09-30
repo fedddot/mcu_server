@@ -3,31 +3,36 @@
 #include <stdexcept>
 #include <string>
 
+#include "array.hpp"
 #include "data.hpp"
 #include "object.hpp"
+#include "inventory_manager.hpp"
 #include "request.hpp"
 #include "response.hpp"
 #include "string.hpp"
-#include "test_resource.hpp"
-#include "inventory_manager.hpp"
 
 using namespace server;
-using namespace server_uts;
+
+using Method = typename Request::Method;
+using Path = typename Request::Path;
+using Body = typename Request::Body;
+using ResponseCode = typename Response::ResponseCode;	
 
 TEST(ut_inventory_manager, ctor_cctor_clone_dtor_id_sanity) {
 	// GIVEN
 	using TestManager = InventoryManager<std::string>;
 
-	auto test_creator = [](const Object& data) {
-		return new std::string(Data::cast<String>(data.access("data")).get());
+	auto test_creator = [](const Data& data)-> std::string * {
+		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	auto test_copier = [](const std::string& data) {
-		return new std::string(data);
+	auto test_copier = [](const std::string& data)-> std::string * {
+		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	auto test_reader = [](const std::string& instance) {
-		Object data;
-		data.add("data", String(instance));
-		return data;
+	auto test_reader = [](const std::string& instance)-> Object {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	auto test_writer = [](std::string *instance_ptr, const Data& data) {
+		throw std::runtime_error("NOT IMPLEMENTED");
 	};
 
 	// WHEN
@@ -39,7 +44,7 @@ TEST(ut_inventory_manager, ctor_cctor_clone_dtor_id_sanity) {
 	
 	// THEN
 	// ctor
-	ASSERT_NO_THROW(instance_ptr = TestManagerUnqPtr(new TestManager(test_creator, test_copier, test_reader)));
+	ASSERT_NO_THROW(instance_ptr = TestManagerUnqPtr(new TestManager(test_creator, test_copier, test_reader, test_writer)));
 	ASSERT_NE(nullptr, instance_ptr);
 
 	// cctor
@@ -56,67 +61,80 @@ TEST(ut_inventory_manager, ctor_cctor_clone_dtor_id_sanity) {
 	ASSERT_NO_THROW(instance_ptr_clone = nullptr);
 }
 
-// TEST(ut_inventory_manager, register_resource_contains_resource_sanity) {
-// 	// GIVEN
-// 	const std::string test_inventory_manager_id("test_inventory_manager_id");
-// 	const std::string test_resource_id_1("test_resource_id_1");
-// 	const std::string test_resource_id_2("test_resource_id_2");
-// 	auto stub = [](const Request&) -> Response {
-// 		throw std::runtime_error("NOT_IMPLEMENTED");
-// 	};
-// 	const TestResource test_resource_1(stub);
-// 	const TestResource test_resource_2(stub);
+TEST(ut_inventory_manager, run_request_sanity) {
+	// GIVEN
+	using TestManager = InventoryManager<std::string>;
 	
-// 	// WHEN
-// 	TestManager instance;
+	auto test_creator = [](const Data& data) {
+		return new std::string(Data::cast<String>(Data::cast<Object>(data).access("data")).get());
+	};
+	auto test_copier = [](const std::string& data) {
+		return new std::string(data);
+	};
+	auto test_reader = [](const std::string& instance) {
+		Object data;
+		data.add("data", String(instance));
+		return data;
+	};
+	auto test_writer = [](std::string *instance_ptr, const Data& data) {
+		*instance_ptr = Data::cast<String>(Data::cast<Object>(data).access("data")).get();
+	};
 
-// 	// THEN
-// 	ASSERT_FALSE(instance.contains_resource(test_resource_id_1));
-// 	ASSERT_NO_THROW(instance.register_resource(test_resource_id_1, test_resource_1));
-// 	ASSERT_TRUE(instance.contains_resource(test_resource_id_1));
-
-// 	ASSERT_FALSE(instance.contains_resource(test_resource_id_2));
-// 	ASSERT_NO_THROW(instance.register_resource(test_resource_id_2, test_resource_2));
-// 	ASSERT_TRUE(instance.contains_resource(test_resource_id_2));
-// }
-
-// TEST(ut_inventory_manager, run_request_sanity) {
-// 	// GIVEN
-// 	const std::string test_inventory_manager_id("test_inventory_manager_id");
+	Body create_instance_data;
+	create_instance_data.add("id", String("instance_id"));
+	create_instance_data.add("data", String("instance_data"));
 	
-// 	using ResponseCode = typename Response::ResponseCode;
-// 	const std::string test_resource_id_1("test_resource_id_1");
-// 	const auto test_response_code_1(ResponseCode::OK);
-	
-// 	const std::string test_resource_id_2("test_resource_id_2");
-// 	const auto test_response_code_2(ResponseCode::NOT_FOUND);
+	// WHEN
+	TestManager instance(test_creator, test_copier, test_reader, test_writer);
+	Response response(ResponseCode::OK, Body());
 
-// 	const TestResource test_resource_1(
-// 		[test_resource_id_1, test_response_code_1](const Request&) -> Response {
-// 			Response::Body data;
-// 			data.add("resourse_id", String(test_resource_id_1));
-// 			return Response(test_response_code_1, data);
-// 		}
-// 	);
-// 	const TestResource test_resource_2(
-// 		[test_resource_id_2, test_response_code_2](const Request&) -> Response {
-// 			Response::Body data;
-// 			data.add("resourse_id", String(test_resource_id_2));
-// 			return Response(test_response_code_2, data);
-// 		}
-// 	);
-// 	Request test_request_1(Request::Method::CREATE, {test_resource_id_1}, Request::Body());
-// 	Request test_request_2(Request::Method::READ, {test_resource_id_2}, Request::Body());
+	// THEN
+	// Create
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::CREATE, 
+				{}, 
+				create_instance_data
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
 	
-// 	// WHEN
-// 	TestManager instance;
-// 	instance.register_resource(test_resource_id_1, test_resource_1);
-// 	instance.register_resource(test_resource_id_2, test_resource_2);
-// 	std::unique_ptr<Response> response(nullptr);
+	// ReadAll
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::READ, 
+				{}, 
+				Body()
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_TRUE(response.body().contains("members"));
+	ASSERT_EQ(Data::Type::ARRAY, response.body().access("members").type());
+	ASSERT_EQ(1UL, Data::cast<Array>(response.body().access("members")).size());
 
-// 	// THEN
-// 	ASSERT_NO_THROW(response = std::make_unique<Response>(instance.run_request(test_request_1)));
-// 	ASSERT_EQ(test_response_code_1, response->code());
-// 	ASSERT_NO_THROW(response = std::make_unique<Response>(instance.run_request(test_request_2)));
-// 	ASSERT_EQ(test_response_code_2, response->code());
-// }
+	// Read
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::READ, 
+				{Data::cast<String>(create_instance_data.access("id")).get()}, 
+				create_instance_data
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_TRUE(response.body().contains("id"));
+	ASSERT_EQ(Data::cast<String>(create_instance_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
+	
+	ASSERT_TRUE(response.body().contains("data"));
+	ASSERT_EQ(Data::cast<String>(create_instance_data.access("data")).get(), Data::cast<String>(response.body().access("data")).get());
+
+	// Update
+	// ASSERT_TRUE(response.body().contains("members"));
+	// ASSERT_EQ(Data::Type::ARRAY, response.body().access("members"));
+	// ASSERT_EQ(1UL, Data::cast<Array>(response.body().access("members")).size());
+}
