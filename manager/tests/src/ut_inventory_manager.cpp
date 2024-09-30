@@ -83,6 +83,9 @@ TEST(ut_inventory_manager, run_request_sanity) {
 	Body create_instance_data;
 	create_instance_data.add("id", String("instance_id"));
 	create_instance_data.add("data", String("instance_data"));
+
+	Body update_instance_data;
+	update_instance_data.add("data", String("updated_instance_data"));
 	
 	// WHEN
 	TestManager instance(test_creator, test_copier, test_reader, test_writer);
@@ -122,7 +125,7 @@ TEST(ut_inventory_manager, run_request_sanity) {
 			Request(
 				Method::READ, 
 				{Data::cast<String>(create_instance_data.access("id")).get()}, 
-				create_instance_data
+				Body()
 			)
 		)
 	);
@@ -134,7 +137,30 @@ TEST(ut_inventory_manager, run_request_sanity) {
 	ASSERT_EQ(Data::cast<String>(create_instance_data.access("data")).get(), Data::cast<String>(response.body().access("data")).get());
 
 	// Update
-	// ASSERT_TRUE(response.body().contains("members"));
-	// ASSERT_EQ(Data::Type::ARRAY, response.body().access("members"));
-	// ASSERT_EQ(1UL, Data::cast<Array>(response.body().access("members")).size());
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::UPDATE, 
+				{Data::cast<String>(create_instance_data.access("id")).get()}, 
+				update_instance_data
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	// Update validation
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::READ, 
+				{Data::cast<String>(create_instance_data.access("id")).get()}, 
+				Body()
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_TRUE(response.body().contains("id"));
+	ASSERT_EQ(Data::cast<String>(create_instance_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
+	
+	ASSERT_TRUE(response.body().contains("data"));
+	ASSERT_EQ(Data::cast<String>(update_instance_data.access("data")).get(), Data::cast<String>(response.body().access("data")).get());
 }

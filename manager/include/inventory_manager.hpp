@@ -66,18 +66,22 @@ namespace server {
 
 	template <typename Tstored>
 	inline Response InventoryManager<Tstored>::run_request(const Request& request) const {
-		using Method = typename Request::Method;
-		switch (request.method()) {
-		case Method::CREATE:
-			return run_create(request);
-		case Method::READ:
-			return run_read(request);
-		case Method::UPDATE:
-			return run_update(request);
-		case Method::DELETE:
-			return run_delete(request);
-		default:
-			return report_failure(ResponseCode::BAD_REQUEST, "unsupported method request received");
+		try {
+			using Method = typename Request::Method;
+			switch (request.method()) {
+			case Method::CREATE:
+				return run_create(request);
+			case Method::READ:
+				return run_read(request);
+			case Method::UPDATE:
+				return run_update(request);
+			case Method::DELETE:
+				return run_delete(request);
+			default:
+				return report_failure(ResponseCode::BAD_REQUEST, "unsupported method request received");
+			}
+		} catch (const std::exception& e) {
+			return report_failure(ResponseCode::UNSPECIFIED, std::string(e.what()));
 		}
 	}
 
@@ -125,24 +129,30 @@ namespace server {
 			return Response(ResponseCode::OK, body);
 		};
 
-		try {
-			if (request.path().empty()) {
-				return read_all_instances();
-			}
-
-			if (1UL < request.path().size()) {
-				return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
-			}
-			auto id(request.path()[0]);
-			return read_instance(id);
-		} catch (const std::exception& e) {
-			return report_failure(ResponseCode::UNSPECIFIED, std::string(e.what()));
+		if (1UL < request.path().size()) {
+			return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
 		}
+
+		if (request.path().empty()) {
+			return read_all_instances();
+		}
+
+		auto id(request.path()[0]);
+		return read_instance(id);
 	}
 
 	template <typename Tstored>
 	inline Response InventoryManager<Tstored>::run_update(const Request& request) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
+		if (1UL != request.path().size()) {
+			return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
+		}
+		auto id(request.path()[0]);
+		auto iter = m_instances.find(id);
+		if (m_instances.end() == iter) {
+			return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
+		}
+		m_writer((iter->second).get(), request.body());
+		return Response(ResponseCode::OK, Response::Body());
 	}
 
 	template <typename Tstored>
