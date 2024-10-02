@@ -10,6 +10,7 @@
 
 #include "array.hpp"
 #include "data.hpp"
+#include "integer.hpp"
 #include "object.hpp"
 #include "request.hpp"
 #include "resource.hpp"
