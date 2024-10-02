@@ -70,6 +70,9 @@ TEST(ut_gpio_manager, run_request_sanity) {
 	create_gpo_data.add("id", String("gpo_id"));
 	create_gpo_data.add("dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
 
+	Body update_gpo_data;
+	update_gpo_data.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
+
 	Body create_gpi_data;
 	create_gpi_data.add("id", String("gpi_id"));
 	create_gpi_data.add("dir", Integer(static_cast<int>(Gpio::Direction::IN)));
@@ -102,88 +105,86 @@ TEST(ut_gpio_manager, run_request_sanity) {
 		)
 	);
 	ASSERT_EQ(ResponseCode::OK, response.code());
-	
-	// // ReadAll
-	// ASSERT_NO_THROW(
-	// 	response = instance.run_request(
-	// 		Request(
-	// 			Method::READ, 
-	// 			{}, 
-	// 			Body()
-	// 		)
-	// 	)
-	// );
-	// ASSERT_EQ(ResponseCode::OK, response.code());
-	// ASSERT_TRUE(response.body().contains("members"));
-	// ASSERT_EQ(Data::Type::ARRAY, response.body().access("members").type());
-	// ASSERT_EQ(1UL, Data::cast<Array>(response.body().access("members")).size());
 
-	// // Read
-	// ASSERT_NO_THROW(
-	// 	response = instance.run_request(
-	// 		Request(
-	// 			Method::READ, 
-	// 			{Data::cast<String>(create_instance_data.access("id")).get()}, 
-	// 			Body()
-	// 		)
-	// 	)
-	// );
-	// ASSERT_EQ(ResponseCode::OK, response.code());
-	// ASSERT_TRUE(response.body().contains("id"));
-	// ASSERT_EQ(Data::cast<String>(create_instance_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
-	
-	// ASSERT_TRUE(response.body().contains("data"));
-	// ASSERT_EQ(Data::cast<String>(create_instance_data.access("data")).get(), Data::cast<String>(response.body().access("data")).get());
+	// ReadAll
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::READ, 
+				{}, 
+				Body()
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_TRUE(response.body().contains("members"));
+	ASSERT_EQ(Data::Type::ARRAY, response.body().access("members").type());
+	ASSERT_EQ(2UL, Data::cast<Array>(response.body().access("members")).size());
 
-	// // Update
-	// ASSERT_NO_THROW(
-	// 	response = instance.run_request(
-	// 		Request(
-	// 			Method::UPDATE, 
-	// 			{Data::cast<String>(create_instance_data.access("id")).get()}, 
-	// 			update_instance_data
-	// 		)
-	// 	)
-	// );
-	// ASSERT_EQ(ResponseCode::OK, response.code());
-	// // Update validation
-	// ASSERT_NO_THROW(
-	// 	response = instance.run_request(
-	// 		Request(
-	// 			Method::READ, 
-	// 			{Data::cast<String>(create_instance_data.access("id")).get()}, 
-	// 			Body()
-	// 		)
-	// 	)
-	// );
-	// ASSERT_EQ(ResponseCode::OK, response.code());
-	// ASSERT_TRUE(response.body().contains("id"));
-	// ASSERT_EQ(Data::cast<String>(create_instance_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
+	// Update
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::UPDATE, 
+				{Data::cast<String>(create_gpo_data.access("id")).get()}, 
+				update_gpo_data
+			)
+		)
+	);
 	
-	// ASSERT_TRUE(response.body().contains("data"));
-	// ASSERT_EQ(Data::cast<String>(update_instance_data.access("data")).get(), Data::cast<String>(response.body().access("data")).get());
+	// Read GPI
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::READ, 
+				{Data::cast<String>(create_gpi_data.access("id")).get()}, 
+				Body()
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_TRUE(response.body().contains("id"));
+	ASSERT_EQ(Data::cast<String>(create_gpi_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
+	ASSERT_TRUE(response.body().contains("state"));
+	ASSERT_EQ(Gpio::State::LOW, static_cast<Gpio::State>(Data::cast<Integer>(response.body().access("state")).get()));
 
-	// // Delete
-	// ASSERT_NO_THROW(
-	// 	response = instance.run_request(
-	// 		Request(
-	// 			Method::DELETE, 
-	// 			{Data::cast<String>(create_instance_data.access("id")).get()}, 
-	// 			Body()
-	// 		)
-	// 	)
-	// );
-	// ASSERT_EQ(ResponseCode::OK, response.code());
-	
-	// // Delete validation
-	// ASSERT_NO_THROW(
-	// 	response = instance.run_request(
-	// 		Request(
-	// 			Method::READ, 
-	// 			{Data::cast<String>(create_instance_data.access("id")).get()}, 
-	// 			Body()
-	// 		)
-	// 	)
-	// );
-	// ASSERT_NE(ResponseCode::OK, response.code());
+	// Read GPO
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::READ, 
+				{Data::cast<String>(create_gpo_data.access("id")).get()}, 
+				Body()
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_TRUE(response.body().contains("id"));
+	ASSERT_EQ(Data::cast<String>(create_gpo_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
+	ASSERT_TRUE(response.body().contains("state"));
+	ASSERT_EQ(Gpio::State::HIGH, static_cast<Gpio::State>(Data::cast<Integer>(response.body().access("state")).get()));
+
+	// Delete GPI
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::DELETE, 
+				{Data::cast<String>(create_gpi_data.access("id")).get()}, 
+				Body()
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
+
+	// Delete GPO
+	ASSERT_NO_THROW(
+		response = instance.run_request(
+			Request(
+				Method::DELETE, 
+				{Data::cast<String>(create_gpo_data.access("id")).get()}, 
+				Body()
+			)
+		)
+	);
+	ASSERT_EQ(ResponseCode::OK, response.code());
 }
