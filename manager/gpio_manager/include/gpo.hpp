@@ -3,7 +3,7 @@
 
 #include "gpio.hpp"
 
-namespace mcu_platform {
+namespace manager {
 	class Gpo: public Gpio {
 	public:
 		virtual State state() const = 0;
