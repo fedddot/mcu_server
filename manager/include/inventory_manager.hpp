@@ -157,7 +157,16 @@ namespace server {
 
 	template <typename Tstored>
 	inline Response InventoryManager<Tstored>::run_delete(const Request& request) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
+		if (1UL != request.path().size()) {
+			return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
+		}
+		auto id(request.path()[0]);
+		auto iter = m_instances.find(id);
+		if (m_instances.end() == iter) {
+			return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
+		}
+		m_instances.erase(iter);
+		return Response(ResponseCode::OK, Response::Body());
 	}
 
 	template <typename Tstored>
