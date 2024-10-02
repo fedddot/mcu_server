@@ -8,6 +8,8 @@ target_link_libraries(
 	ipc_util_tests
 	PRIVATE
 	buffered_custom_ipc_connection
+	request
+	response
 	
 	gtest
 )

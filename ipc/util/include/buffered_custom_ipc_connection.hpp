@@ -1,59 +1,80 @@
 #ifndef	BUFFERED_CUSTOM_IPC_CONNECTION_HPP
 #define	BUFFERED_CUSTOM_IPC_CONNECTION_HPP
 
-#include <cstddef>
 #include <functional>
 #include <stdexcept>
 
 #include "ipc_connection.hpp"
+#include "request.hpp"
+#include "response.hpp"
 
-namespace mcu_ipc_utl {
-	template <typename Tdata>
-	class BufferedCustomIpcConnection: public mcu_ipc::IpcConnection<Tdata> {
+namespace server_utl {
+	template <typename Traw_data>
+	class BufferedCustomIpcConnection: public server::IpcConnection {
 	public:
-		using SendRawDataFunction = std::function<void(const Tdata&)>;
-		BufferedCustomIpcConnection(const Tdata& head, const Tdata& tail, const std::size_t& max_buff_size, const SendRawDataFunction& send_raw_data);
-		BufferedCustomIpcConnection(const BufferedCustomIpcConnection& other) = delete;
-		BufferedCustomIpcConnection& operator=(const BufferedCustomIpcConnection& other) = delete;
+		using RequestParser = std::function<server::Request(const Traw_data&)>;
+		using ResponseSerializer = std::function<Traw_data(const server::Response&)>;
+		using RawDataSender = std::function<void(const Traw_data&)>;
 		
-		bool readable() const override;
-		Tdata read() override;
-		void send(const Tdata& data) const override;
-		void feed(const Tdata& data);
-	private:
-		const Tdata m_head;
-		const Tdata m_tail;
-		const std::size_t m_max_buff_size;
-		const SendRawDataFunction m_send_raw_data;
+		BufferedCustomIpcConnection(
+			const Traw_data& head,
+			const Traw_data& tail,
+			const RequestParser& request_parser,
+			const ResponseSerializer& response_serializer,
+			const RawDataSender& raw_data_sender
+		);
+		BufferedCustomIpcConnection(const BufferedCustomIpcConnection& other) = default;
+		BufferedCustomIpcConnection& operator=(const BufferedCustomIpcConnection& other) = default;
 
-		Tdata m_data;
+		bool readable() const override;
+		server::Request read() override;
+		void send(const server::Response& response) const override;
+		void feed(const Traw_data& data);
+	private:
+		Traw_data m_head;
+		Traw_data m_tail;
+		RequestParser m_request_parser;
+		ResponseSerializer m_response_serializer;
+		RawDataSender m_raw_data_sender;
+
+		Traw_data m_data;
 	};
 
-	template <typename Tdata>
-	inline BufferedCustomIpcConnection<Tdata>::BufferedCustomIpcConnection(const Tdata& head, const Tdata& tail, const std::size_t& max_buff_size, const SendRawDataFunction& send_raw_data): m_head(head), m_tail(tail), m_max_buff_size(max_buff_size), m_send_raw_data(send_raw_data) {
-		if (!m_send_raw_data) {
-			throw std::invalid_argument("invalid sender received");
+	template <typename Traw_data>
+	inline BufferedCustomIpcConnection<Traw_data>::BufferedCustomIpcConnection(
+			const Traw_data& head,
+			const Traw_data& tail,
+			const RequestParser& request_parser,
+			const ResponseSerializer& response_serializer,
+			const RawDataSender& raw_data_sender
+		): m_head(head), m_tail(tail), m_request_parser(request_parser), m_response_serializer(response_serializer), m_raw_data_sender(raw_data_sender) {
+		
+		if (m_head.empty() || m_tail.empty()) {
+			throw std::invalid_argument("invalid head/tail received");
+		}
+		if (!m_request_parser || !m_response_serializer || !m_raw_data_sender) {
+			throw std::invalid_argument("invalid action received");
 		}
 	}
 
-	template <typename Tdata>
-	inline bool BufferedCustomIpcConnection<Tdata>::readable() const {
+	template <typename Traw_data>
+	inline bool BufferedCustomIpcConnection<Traw_data>::readable() const {
 		auto header_pos = m_data.find(m_head);
 		auto tail_pos = m_data.find(m_tail, header_pos);
-		return ((Tdata::npos != header_pos) && (Tdata::npos != tail_pos));
+		return ((Traw_data::npos != header_pos) && (Traw_data::npos != tail_pos));
 	}
 	
-	template <typename Tdata>
-	inline Tdata BufferedCustomIpcConnection<Tdata>::read() {
+	template <typename Traw_data>
+	inline server::Request BufferedCustomIpcConnection<Traw_data>::read() {
 		auto header_pos = m_data.find(m_head);
-		if (Tdata::npos == header_pos) {
+		if (Traw_data::npos == header_pos) {
 			throw std::invalid_argument("missing header");
 		}
 		auto tail_pos = m_data.find(m_tail, header_pos);
-		if (Tdata::npos == tail_pos) {
+		if (Traw_data::npos == tail_pos) {
 			throw std::invalid_argument("missing tail");
 		}
-		Tdata extracted_data(
+		Traw_data extracted_data(
 			m_data.begin() + header_pos + m_head.size(),
 			m_data.begin() + tail_pos
 		);
@@ -61,16 +82,16 @@ namespace mcu_ipc_utl {
 			m_data.begin() + header_pos,
 			m_data.begin() + tail_pos + m_tail.size()
 		);
-		return extracted_data;
+		return m_request_parser(extracted_data);
 	}
 
-	template <typename Tdata>
-	inline void BufferedCustomIpcConnection<Tdata>::send(const Tdata& data) const {
-		m_send_raw_data(m_head + data + m_tail);
+	template <typename Traw_data>
+	inline void BufferedCustomIpcConnection<Traw_data>::send(const server::Response& response) const {
+		m_raw_data_sender(m_head + m_response_serializer(response) + m_tail);
 	}
 
-	template <typename Tdata>
-	inline void BufferedCustomIpcConnection<Tdata>::feed(const Tdata& data) {
+	template <typename Traw_data>
+	inline void BufferedCustomIpcConnection<Traw_data>::feed(const Traw_data& data) {
 		m_data.insert(m_data.end(), data.begin(), data.end());
 	}
 }
