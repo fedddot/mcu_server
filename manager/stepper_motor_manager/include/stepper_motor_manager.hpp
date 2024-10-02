@@ -2,15 +2,11 @@
 #define	STEPPER_MOTOR_MANAGER_HPP
 
 #include "data.hpp"
-#include "gpi.hpp"
-#include "gpio.hpp"
-#include "gpo.hpp"
 #include "integer.hpp"
 #include "inventory_manager.hpp"
-
 #include "object.hpp"
 #include "resource.hpp"
-#include <stdexcept>
+#include "stepper_motor.hpp"
 
 namespace manager {
 	
@@ -23,12 +19,11 @@ namespace manager {
 		server::Resource *clone() const override;
 	private:
 		static StepperMotor *duplicate(const StepperMotor& instance);
-		static server::Object read_gpio(const StepperMotor& gpio);
-		static void write_gpio(StepperMotor *gpio_ptr, const server::Data& data);
-		static typename StepperMotor::State read_gpio_state(const StepperMotor& gpio);
+		static server::Object read_motor(const StepperMotor& gpio);
+		static void write_motor(StepperMotor *motor_ptr, const server::Data& data);
 	};
 
-	inline StepperMotorManager::StepperMotorManager(const Creator& creator): InventoryManager<StepperMotor>(creator, Duplicator(StepperMotorManager::duplicate), Reader(StepperMotorManager::read_gpio), Writer(StepperMotorManager::write_gpio)) {
+	inline StepperMotorManager::StepperMotorManager(const Creator& creator): InventoryManager<StepperMotor>(creator, Duplicator(StepperMotorManager::duplicate), Reader(StepperMotorManager::read_motor), Writer(StepperMotorManager::write_motor)) {
 
 	}
 
@@ -40,29 +35,17 @@ namespace manager {
 		return instance.clone();
 	}
 	
-	inline server::Object StepperMotorManager::read_gpio(const StepperMotor& gpio) {
+	inline server::Object StepperMotorManager::read_motor(const StepperMotor& gpio) {
 		using namespace server;
-		Object gpio_data;
-		gpio_data.add("dir", Integer(static_cast<int>(gpio.direction())));
-		gpio_data.add("state", Integer(static_cast<int>(read_gpio_state(gpio))));
-		return gpio_data;
+		return Object();
 	}
 
-	inline void StepperMotorManager::write_gpio(StepperMotor *gpio_ptr, const server::Data& data) {
+	inline void StepperMotorManager::write_motor(StepperMotor *motor_ptr, const server::Data& data) {
 		using namespace server;
-		const auto state = static_cast<StepperMotor::State>(Data::cast<Integer>(Data::cast<Object>(data).access("state")).get());
-		StepperMotor::cast<Gpo>(*gpio_ptr).set_state(state);
-	}
-
-	inline typename StepperMotor::State StepperMotorManager::read_gpio_state(const StepperMotor& gpio) {
-		switch (gpio.direction()) {
-		case StepperMotor::Direction::IN:
-			return StepperMotor::cast<Gpi>(gpio).state();
-		case StepperMotor::Direction::OUT:
-			return StepperMotor::cast<Gpo>(gpio).state();
-		default:
-			throw std::invalid_argument("unsupported StepperMotor type");
-		}
+		const auto direction = static_cast<StepperMotor::Direction>(Data::cast<Integer>(Data::cast<Object>(data).access("dir")).get());
+		const auto steps_num = static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("steps_num")).get());
+		const auto step_duration_ms = static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("step_duration_ms")).get());
+		motor_ptr->steps(direction, steps_num, step_duration_ms);
 	}
 }
 
