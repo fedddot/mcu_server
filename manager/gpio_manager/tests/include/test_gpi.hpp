@@ -4,8 +4,8 @@
 #include "gpi.hpp"
 #include "gpio.hpp"
 
-namespace mcu_platform_uts {
-	class TestGpi: public mcu_platform::Gpi {
+namespace manager_uts {
+	class TestGpi: public manager::Gpi {
 	public:
 		TestGpi();
 		TestGpi(const TestGpi&) = default;
@@ -13,7 +13,7 @@ namespace mcu_platform_uts {
 
 		State state() const override;
 		void update_test_state(const State& state);
-		mcu_platform::Gpio *clone() const override;
+		manager::Gpio *clone() const override;
 	private:
 		State m_state;
 	};
@@ -30,7 +30,7 @@ namespace mcu_platform_uts {
 		m_state = state;
 	}
 
-	inline mcu_platform::Gpio *TestGpi::clone() const {
+	inline manager::Gpio *TestGpi::clone() const {
 		return new TestGpi(*this);
 	}
 }

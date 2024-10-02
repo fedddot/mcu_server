@@ -3,8 +3,8 @@
 
 #include "gpo.hpp"
 
-namespace mcu_platform_uts {
-	class TestGpo: public mcu_platform::Gpo {
+namespace manager_uts {
+	class TestGpo: public manager::Gpo {
 	public:
 		TestGpo();
 		TestGpo(const TestGpo&) = default;
@@ -13,7 +13,7 @@ namespace mcu_platform_uts {
 		State state() const override;
 		void set_state(const State& state) override;
 
-		mcu_platform::Gpio *clone() const override;
+		manager::Gpio *clone() const override;
 	private:
 		State m_state;
 	};
@@ -30,7 +30,7 @@ namespace mcu_platform_uts {
 		m_state = state;
 	}
 
-	inline mcu_platform::Gpio *TestGpo::clone() const {
+	inline manager::Gpio *TestGpo::clone() const {
 		return new TestGpo(*this);
 	}
 }

@@ -16,7 +16,8 @@ target_link_libraries(
 	gpio_manager_tests
 	PRIVATE
     gpio_manager
-	test_resource
+	test_gpi
+	test_gpo
 
 	gtest
 )
