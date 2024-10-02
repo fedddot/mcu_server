@@ -9,4 +9,5 @@ target_link_libraries(
     data_lib
 )
 
+add_subdirectory(gpio_manager)
 add_subdirectory(tests EXCLUDE_FROM_ALL)
