@@ -12,6 +12,7 @@
 #include "string.hpp"
 
 using namespace server;
+using namespace manager;
 
 using Method = typename Request::Method;
 using Path = typename Request::Path;

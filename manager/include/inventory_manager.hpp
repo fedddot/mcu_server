@@ -10,28 +10,27 @@
 
 #include "array.hpp"
 #include "data.hpp"
-#include "integer.hpp"
 #include "object.hpp"
 #include "request.hpp"
 #include "resource.hpp"
 #include "response.hpp"
 #include "string.hpp"
 
-namespace server {
+namespace manager {
 	template <typename Tstored>
-	class InventoryManager: public Resource {
+	class InventoryManager: public server::Resource {
 	public:
-		using Creator = std::function<Tstored *(const Data&)>;
+		using Creator = std::function<Tstored *(const server::Data&)>;
 		using Duplicator = std::function<Tstored *(const Tstored&)>;
-		using Reader = std::function<Object(const Tstored&)>;
-		using Writer = std::function<void(Tstored *, const Data&)>;
+		using Reader = std::function<server::Object(const Tstored&)>;
+		using Writer = std::function<void(Tstored *, const server::Data&)>;
 
 		InventoryManager(const Creator& creator, const Duplicator& duplicator, const Reader& reader, const Writer& writer);
 		InventoryManager(const InventoryManager& other);
 		InventoryManager& operator=(const InventoryManager&) = delete;
 		
-		Response run_request(const Request& request) const override;
-		Resource *clone() const override;
+		server::Response run_request(const server::Request& request) const override;
+		server::Resource *clone() const override;
 	private:
 		Creator m_creator;
 		Duplicator m_duplicator;
@@ -42,13 +41,13 @@ namespace server {
 		using Instances = std::map<std::string, InstanceUniquePtr>;
 		mutable Instances m_instances;
 
-		Response run_create(const Request& request) const;
-		Response run_read(const Request& request) const;
-		Response run_update(const Request& request) const;
-		Response run_delete(const Request& request) const;
+		server::Response run_create(const server::Request& request) const;
+		server::Response run_read(const server::Request& request) const;
+		server::Response run_update(const server::Request& request) const;
+		server::Response run_delete(const server::Request& request) const;
 
-		using ResponseCode = typename Response::ResponseCode;
-		Response report_failure(const ResponseCode& code, const std::string& what) const;
+		using ResponseCode = typename server::Response::ResponseCode;
+		server::Response report_failure(const ResponseCode& code, const std::string& what) const;
 	};
 
 	template <typename Tstored>
@@ -66,9 +65,9 @@ namespace server {
 	}
 
 	template <typename Tstored>
-	inline Response InventoryManager<Tstored>::run_request(const Request& request) const {
+	inline server::Response InventoryManager<Tstored>::run_request(const server::Request& request) const {
 		try {
-			using Method = typename Request::Method;
+			using Method = typename server::Request::Method;
 			switch (request.method()) {
 			case Method::CREATE:
 				return run_create(request);
@@ -87,12 +86,13 @@ namespace server {
 	}
 
 	template <typename Tstored>
-	inline Resource *InventoryManager<Tstored>::clone() const {
+	inline server::Resource *InventoryManager<Tstored>::clone() const {
 		return new InventoryManager(*this);
 	}
 
 	template <typename Tstored>
-	inline Response InventoryManager<Tstored>::run_create(const Request& request) const {
+	inline server::Response InventoryManager<Tstored>::run_create(const server::Request& request) const {
+		using namespace server;
 		using Body = typename Response::Body;
 		if (!request.path().empty()) {
 			return report_failure(ResponseCode::NOT_FOUND, "wrong create request path");
@@ -106,7 +106,8 @@ namespace server {
 	}
 
 	template <typename Tstored>
-	inline Response InventoryManager<Tstored>::run_read(const Request& request) const {
+	inline server::Response InventoryManager<Tstored>::run_read(const server::Request& request) const {
+		using namespace server;
 		auto read_instance = [this](const std::string& id) {
 			auto iter = m_instances.find(id);
 			if (m_instances.end() == iter) {
@@ -143,7 +144,8 @@ namespace server {
 	}
 
 	template <typename Tstored>
-	inline Response InventoryManager<Tstored>::run_update(const Request& request) const {
+	inline server::Response InventoryManager<Tstored>::run_update(const server::Request& request) const {
+		using namespace server;
 		if (1UL != request.path().size()) {
 			return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
 		}
@@ -157,7 +159,8 @@ namespace server {
 	}
 
 	template <typename Tstored>
-	inline Response InventoryManager<Tstored>::run_delete(const Request& request) const {
+	inline server::Response InventoryManager<Tstored>::run_delete(const server::Request& request) const {
+		using namespace server;
 		if (1UL != request.path().size()) {
 			return report_failure(ResponseCode::NOT_FOUND, std::string("path not found"));
 		}
@@ -171,7 +174,8 @@ namespace server {
 	}
 
 	template <typename Tstored>
-	inline Response InventoryManager<Tstored>::report_failure(const ResponseCode& code, const std::string& what) const {
+	inline server::Response InventoryManager<Tstored>::report_failure(const ResponseCode& code, const std::string& what) const {
+		using namespace server;
 		using Body = typename Response::Body;
 		Body failure_body;
 		failure_body.add("what", String(what));
