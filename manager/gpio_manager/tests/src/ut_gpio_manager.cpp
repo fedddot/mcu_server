@@ -1,6 +1,8 @@
-#include "gtest/gtest.h"
 #include <memory>
 #include <stdexcept>
+
+#include "gtest/gtest.h"
+
 #include "data.hpp"
 #include "gpio.hpp"
 #include "gpio_manager.hpp"
@@ -8,6 +10,7 @@
 #include "object.hpp"
 #include "request.hpp"
 #include "response.hpp"
+#include "string.hpp"
 #include "test_gpi.hpp"
 #include "test_gpo.hpp"
 
