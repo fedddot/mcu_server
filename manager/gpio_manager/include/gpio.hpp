@@ -1,7 +1,7 @@
 #ifndef	GPIO_HPP
 #define	GPIO_HPP
 
-namespace mcu_platform {
+namespace manager {
 	class Gpio {
 	public:
 		enum class State: int {
