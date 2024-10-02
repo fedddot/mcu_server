@@ -8,9 +8,8 @@
 
 #include "gpio.hpp"
 #include "gpo.hpp"
-#include "platform.hpp"
 
-namespace mcu_platform {
+namespace manager {
 	template <typename Tgpio_id>
 	class StepperMotor {
 	public:
