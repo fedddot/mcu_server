@@ -4,13 +4,13 @@
 #include "request.hpp"
 #include "response.hpp"
 
-namespace server {
+namespace ipc {
 	class IpcConnection {
 	public:
 		virtual ~IpcConnection() noexcept = default;
 		virtual bool readable() const = 0;
-		virtual Request read() = 0;
-		virtual void send(const Response& response) const = 0;
+		virtual server::Request read() = 0;
+		virtual void send(const server::Response& response) const = 0;
 	};
 }
 
