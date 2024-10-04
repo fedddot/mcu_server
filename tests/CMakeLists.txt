@@ -13,6 +13,6 @@ target_link_libraries(
 	PRIVATE
     server
 	test_resource
-
+	
 	gtest
 )

@@ -21,7 +21,7 @@ target_link_libraries(resource INTERFACE request response)
 
 add_library(server INTERFACE)
 target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(server INTERFACE vendor request response)
+target_link_libraries(server INTERFACE vendor request response ipc_connection data_lib)
 
 add_subdirectory(data)
 add_subdirectory(external)
