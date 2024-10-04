@@ -15,13 +15,17 @@ add_executable(
 target_link_libraries(
 	server_tests
 	PRIVATE
+    data_lib
+    gpio
+    gpio_manager
+    request
+    response
     server
-	test_resource
-	test_ipc_connection
-	gpio_manager
-	test_gpi
-	test_gpo
-	vendor
+    test_ipc_connection
+    test_resource
+    test_gpi
+    test_gpo
+    vendor
 	
 	gtest
 )

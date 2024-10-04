@@ -37,7 +37,6 @@ namespace vendor {
 	inline server::Response Vendor::run_request(const server::Request& request) const {
 		using namespace server;
 		if (request.path().empty()) {
-			using namespace server;
 			Response::Body response_data;
 			response_data.add("what", String("path must contain at least one token"));
 			return Response(Response::ResponseCode::BAD_REQUEST, response_data);
