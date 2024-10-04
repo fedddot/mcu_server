@@ -10,6 +10,7 @@
 
 using namespace server;
 using namespace server_uts;
+using namespace vendor;
 
 TEST(ut_vendor, ctor_cctor_clone_dtor_id_sanity) {
 	// GIVEN
