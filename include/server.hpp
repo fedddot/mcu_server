@@ -7,6 +7,7 @@
 #include <string>
 
 #include "ipc_connection.hpp"
+#include "request.hpp"
 #include "resource.hpp"
 #include "response.hpp"
 #include "string.hpp"
@@ -15,10 +16,10 @@ namespace server {
 	class Server {
 	public:
 		Server(ipc::IpcConnection *connection, const Resource& resources_vendor);
-		Server(const Server& other);
+		Server(const Server& other) = delete;
 		Server& operator=(const Server& other) = delete;
 
-		virtual ~Server() noexcept = default;
+		virtual ~Server() noexcept;
 
 		void start();
 		bool is_running() const;
@@ -26,54 +27,29 @@ namespace server {
 	private:
 		ipc::IpcConnection *m_connection;
 		std::unique_ptr<Resource> m_resources_vendor;
-		bool m_is_running;
-
-		void server_iteration();
 	};
 
-	inline Server::Server(ipc::IpcConnection *connection, const Resource& resources_vendor): m_connection(connection), m_resources_vendor(resources_vendor.clone()), m_is_running(false) {
+	inline Server::Server(ipc::IpcConnection *connection, const Resource& resources_vendor): m_connection(connection), m_resources_vendor(resources_vendor.clone()) {
 		if (!m_connection) {
 			throw std::invalid_argument("invalid connection ptr received");
 		}
-	}
-
-	inline Server::Server(const Server& other): m_connection(other.m_connection), m_resources_vendor(other.m_resources_vendor->clone()), m_is_running(false) {
-
-	}
-
-	inline void Server::start() {
-		if (is_running()) {
-			return;
-		}
-		m_is_running = true;
-		while (m_is_running) {
-			server_iteration();
-		}
-	}
-
-	inline bool Server::is_running() const {
-		return m_is_running;
-	}
-
-	inline void Server::stop() {
-		m_is_running = false;
-	}
-
-	inline void Server::server_iteration() {
-		try {
-			if (!(m_connection->readable())) {
-				return;
+		m_connection->set_callback(
+			[this](const Request& request) {
+				try {
+					auto response(m_resources_vendor->run_request(request));
+					m_connection->send(response);
+				} catch (const std::exception& e) {
+					Response::Body body;
+					body.add("what", String(std::string(e.what())));
+					m_connection->send(Response(Response::ResponseCode::UNSPECIFIED, body));
+				}
 			}
-			auto request(m_connection->read());
-			auto response(m_resources_vendor->run_request(request));
-			m_connection->send(response);
-		} catch (const std::exception& e) {
-			Response::Body body;
-			body.add("what", String(std::string(e.what())));
-			m_connection->send(Response(Response::ResponseCode::UNSPECIFIED, body));
-		}
+		);
 	}
 
+	inline Server::~Server() noexcept {
+		m_connection->set_callback([](const Request& request) { });
+	}
 }
 
 #endif // SERVER_HPP

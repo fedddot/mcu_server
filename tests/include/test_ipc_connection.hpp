@@ -2,7 +2,6 @@
 #define	TEST_IPC_CONNECTION_HPP
 
 #include <functional>
-#include <queue>
 #include <stdexcept>
 
 #include "request.hpp"
@@ -19,29 +18,24 @@ namespace server_uts {
 			}
 		}
 
-		bool readable() const override {
-			return !m_requests_queue.empty();
+		void set_callback(const Callback& cb) override {
+			m_callback = cb;
 		}
 
-		server::Request read() override {
-			if (!readable()) {
-				throw std::runtime_error("connection is not readable");
-			}
-			auto res(m_requests_queue.front());
-			m_requests_queue.pop();
-			return res;
-		}
-		
 		void send(const server::Response& response) const override {
 			m_send_action(response);
 		}
 
-		void enqueue_request(const server::Request& request) {
-			m_requests_queue.push(request);
+		void publish_request(const server::Request& request) {
+			if (!m_callback) {
+				return;
+			}
+			m_callback(request);
 		}
 	private:
 		SendAction m_send_action;
-		std::queue<server::Request> m_requests_queue;
+		unsigned int m_readable_timeout_ms;
+		Callback m_callback;
 	};
 }
 

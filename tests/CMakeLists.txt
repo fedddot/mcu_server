@@ -18,6 +18,10 @@ target_link_libraries(
     server
 	test_resource
 	test_ipc_connection
+	gpio_manager
+	test_gpi
+	test_gpo
+	vendor
 	
 	gtest
 )
