@@ -22,7 +22,7 @@ using namespace vendor;
 using namespace manager;
 using namespace manager_uts;
 
-TEST(ut_server, ctor_cctor_dtor_sanity) {
+TEST(ut_server, ctor_dtor_sanity) {
     // GIVEN
     const server_uts::TestResource test_vendor(
         [](const Request&)-> Response {
@@ -76,6 +76,12 @@ TEST(ut_server, run_is_running_stop_sanity) {
     create_gpio_body.add("dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
     Request create_gpio_request(Request::Method::CREATE, Request::Path {"gpios"}, create_gpio_body);
 
+    Request::Body update_gpio_body;
+    update_gpio_body.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
+    Request update_gpio_request(Request::Method::UPDATE, Request::Path {"gpios", "1"}, update_gpio_body);
+
+    Request read_gpio_request(Request::Method::READ, Request::Path {"gpios", "1"}, Request::Body());
+
     Request delete_gpio_request(Request::Method::DELETE, Request::Path {"gpios", "1"}, Request::Body());
 
     // WHEN
@@ -83,5 +89,7 @@ TEST(ut_server, run_is_running_stop_sanity) {
 
     // THEN
     ASSERT_NO_THROW(connection.publish_request(create_gpio_request));
+    ASSERT_NO_THROW(connection.publish_request(update_gpio_request));
+    ASSERT_NO_THROW(connection.publish_request(read_gpio_request));
 	ASSERT_NO_THROW(connection.publish_request(delete_gpio_request));
 }
