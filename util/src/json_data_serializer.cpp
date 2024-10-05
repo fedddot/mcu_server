@@ -12,10 +12,10 @@
 
 #include "json_data_serializer.hpp"
 
-using namespace mcu_server;
-using namespace mcu_server_utl;
+using namespace server;
+using namespace server_utl;
 
-std::string JsonDataSerializer::serialize(const Data& data) const {
+std::string JsonDataSerializer::operator()(const Data& data) const {
 	Json::StreamWriterBuilder wbuilder;
 	wbuilder["indentation"] = "";
 	return Json::writeString(wbuilder, parseJsonValue(data));	

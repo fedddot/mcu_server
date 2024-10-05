@@ -15,6 +15,7 @@ namespace server_utl {
 		JsonDataParser() = default;
 		JsonDataParser(const JsonDataParser& other) = default;
 		JsonDataParser& operator=(const JsonDataParser& other) = default;
+		virtual ~JsonDataParser() noexcept = default;
 		
 		server::Data *operator()(const std::string& data) const;
 	private:

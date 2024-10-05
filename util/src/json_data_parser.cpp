@@ -13,10 +13,10 @@
 
 #include "json_data_parser.hpp"
 
-using namespace mcu_server;
-using namespace mcu_server_utl;
+using namespace server;
+using namespace server_utl;
 
-Data *JsonDataParser::parse(const std::string& data) const {
+Data *JsonDataParser::operator()(const std::string& data) const {
 	Json::Value root;
 	Json::Reader reader;
     reader.parse(data, root);
