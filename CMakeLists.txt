@@ -28,5 +28,6 @@ add_subdirectory(external)
 add_subdirectory(ipc)
 add_subdirectory(manager)
 add_subdirectory(vendor)
+add_subdirectory(util)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
