@@ -9,8 +9,8 @@
 #include "object.hpp"
 #include "json_data_serializer.hpp"
 
-using namespace mcu_server;
-using namespace mcu_server_utl;
+using namespace server;
+using namespace server_utl;
 
 TEST(ut_json_data_serializer, serialize_sanity) {
 	// GIVEN:
@@ -32,6 +32,6 @@ TEST(ut_json_data_serializer, serialize_sanity) {
 	std::string result;
 
 	// THEN:
-	ASSERT_NO_THROW(result = instance.serialize(data));
+	ASSERT_NO_THROW(result = instance(data));
 	std::cout << result << std::endl;
 }

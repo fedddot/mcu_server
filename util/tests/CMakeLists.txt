@@ -10,6 +10,7 @@ target_link_libraries(
 	PRIVATE
 	json_data_parser
 	json_data_serializer
+	data_lib
 	
 	gtest
 )

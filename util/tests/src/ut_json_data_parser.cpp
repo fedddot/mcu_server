@@ -7,8 +7,8 @@
 #include "json_data_parser.hpp"
 #include "object.hpp"
 
-using namespace mcu_server;
-using namespace mcu_server_utl;
+using namespace server;
+using namespace server_utl;
 
 TEST(ut_json_data_parser, parse_sanity) {
 	// GIVEN:
@@ -19,7 +19,7 @@ TEST(ut_json_data_parser, parse_sanity) {
 	std::unique_ptr<Data> result(nullptr);
 
 	// THEN:
-	ASSERT_NO_THROW(result = std::unique_ptr<Data>(instance.parse(test_data)));
+	ASSERT_NO_THROW(result = std::unique_ptr<Data>(instance(test_data)));
 	ASSERT_NE(nullptr, result);
 	Object *result_obj(dynamic_cast<Object *>(result.get()));
 	ASSERT_NE(nullptr, result_obj);
