@@ -2,6 +2,7 @@
 #define	TEST_IPC_CONNECTION_HPP
 
 #include <functional>
+#include <map>
 #include <stdexcept>
 
 #include "request.hpp"
@@ -18,8 +19,23 @@ namespace server_uts {
 			}
 		}
 
-		void set_callback(const Callback& cb) override {
-			m_callback = cb;
+		void subscribe(const std::string& id, const Callback& cb) override {
+			if (is_subscribed(id)) {
+				throw std::invalid_argument("received id is already subscribed");
+			}
+			m_callbacks.insert({id, cb});
+		}
+
+		void unsubscribe(const std::string& id) override {
+			if (!is_subscribed(id)) {
+				throw std::invalid_argument("received id is not subscribed");
+			}
+			const auto iter = m_callbacks.find(id);
+			m_callbacks.erase(iter);
+		}
+
+		bool is_subscribed(const std::string& id) const override {
+			return m_callbacks.end() == m_callbacks.find(id);
 		}
 
 		void send(const server::Response& response) const override {
@@ -27,15 +43,13 @@ namespace server_uts {
 		}
 
 		void publish_request(const server::Request& request) {
-			if (!m_callback) {
-				return;
+			for (auto [id, cb]: m_callbacks) {
+				cb(request);
 			}
-			m_callback(request);
 		}
 	private:
 		SendAction m_send_action;
-		unsigned int m_readable_timeout_ms;
-		Callback m_callback;
+		std::map<std::string, Callback> m_callbacks;
 	};
 }
 
