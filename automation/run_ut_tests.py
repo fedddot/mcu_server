@@ -23,7 +23,8 @@ uts = [
     # "ipc_util_tests",
     "stepper_motor_manager_tests",
     "vendor_tests",
-    "server_tests"
+    "server_tests",
+    "server_util_tests"
 ]
 
 def find_executable(name, path):
