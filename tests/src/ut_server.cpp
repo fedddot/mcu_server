@@ -1,7 +1,9 @@
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 
 #include "gtest/gtest.h"
+#include <string>
 
 #include "data.hpp"
 #include "gpio.hpp"
@@ -24,6 +26,7 @@ using namespace manager_uts;
 
 TEST(ut_server, ctor_dtor_sanity) {
     // GIVEN
+    const std::string test_id("test_server");
     const server_uts::TestResource test_vendor(
         [](const Request&)-> Response {
             throw std::runtime_error("NOT IMPLEMENTED");
@@ -39,7 +42,7 @@ TEST(ut_server, ctor_dtor_sanity) {
     std::unique_ptr<Server> instance_ptr(nullptr);
 
     // THEN
-    ASSERT_NO_THROW(instance_ptr = std::unique_ptr<Server>(new Server(&connection, test_vendor)));
+    ASSERT_NO_THROW(instance_ptr = std::unique_ptr<Server>(new Server(&connection, test_id, test_vendor)));
     ASSERT_NE(nullptr, instance_ptr);
     
     ASSERT_NO_THROW(instance_ptr = nullptr);
@@ -48,6 +51,7 @@ TEST(ut_server, ctor_dtor_sanity) {
 
 TEST(ut_server, run_is_running_stop_sanity) {
     // GIVEN
+    const std::string test_id("test_server");
     Vendor test_vendor;
     test_vendor.register_resource(
         "gpios",
@@ -67,6 +71,7 @@ TEST(ut_server, run_is_running_stop_sanity) {
     );
     server_uts::TestIpcConnection connection(
         [](const Response& response)-> void {
+            std::cout << "server sends response, code = " << std::to_string(static_cast<int>(response.code())) << std::endl;
             ASSERT_EQ(Response::ResponseCode::OK, response.code());
         }
     );
@@ -85,11 +90,16 @@ TEST(ut_server, run_is_running_stop_sanity) {
     Request delete_gpio_request(Request::Method::DELETE, Request::Path {"gpios", "1"}, Request::Body());
 
     // WHEN
-    Server instance(&connection, test_vendor);
+    Server instance(&connection, test_id, test_vendor);
 
     // THEN
+    ASSERT_FALSE(instance.is_running());
+    ASSERT_NO_THROW(instance.run());
+    ASSERT_TRUE(instance.is_running());
     ASSERT_NO_THROW(connection.publish_request(create_gpio_request));
     ASSERT_NO_THROW(connection.publish_request(update_gpio_request));
     ASSERT_NO_THROW(connection.publish_request(read_gpio_request));
 	ASSERT_NO_THROW(connection.publish_request(delete_gpio_request));
+    ASSERT_NO_THROW(instance.stop());
+    ASSERT_FALSE(instance.is_running());
 }

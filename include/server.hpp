@@ -21,7 +21,7 @@ namespace server {
 
 		virtual ~Server() noexcept = default;
 
-		void start();
+		void run();
 		bool is_running() const;
 		void stop();
 	private:
@@ -38,7 +38,7 @@ namespace server {
 		}
 	}
 
-	inline void Server::start() {
+	inline void Server::run() {
 		m_connection->subscribe(
 			m_id,
 			[this](const Request& request) {

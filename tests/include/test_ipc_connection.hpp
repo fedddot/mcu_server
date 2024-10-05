@@ -35,7 +35,7 @@ namespace server_uts {
 		}
 
 		bool is_subscribed(const std::string& id) const override {
-			return m_callbacks.end() == m_callbacks.find(id);
+			return m_callbacks.end() != m_callbacks.find(id);
 		}
 
 		void send(const server::Response& response) const override {
