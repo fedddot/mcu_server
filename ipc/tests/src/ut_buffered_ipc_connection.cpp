@@ -9,7 +9,7 @@
 #include "response.hpp"
 
 using namespace server;
-using namespace ipc_utl;
+using namespace ipc;
 
 using RawData = std::string;
 using TestConnection = BufferedIpcConnection<int, RawData>;

@@ -9,7 +9,7 @@
 #include "ipc_connection.hpp"
 #include "response.hpp"
 
-namespace server_uts {
+namespace ipc_uts {
 	
 	template <typename Tsubscriber_id>
 	class TestIpcConnection: public ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response> {
