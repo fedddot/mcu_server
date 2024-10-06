@@ -14,7 +14,7 @@ namespace server_uts {
 	template <typename Tsubscriber_id>
 	class TestIpcConnection: public ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response> {
 	public:
-		using Callback = typename ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>;
+		using Callback = typename ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>::Callback;
 		using SendAction = std::function<void(const server::Response&)>;
 
 		TestIpcConnection(const SendAction& send_action): m_send_action(send_action) {

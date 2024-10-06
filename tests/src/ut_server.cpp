@@ -20,34 +20,37 @@
 #include "vendor.hpp"
 
 using namespace server;
+using namespace server_uts;
 using namespace vendor;
 using namespace manager;
 using namespace manager_uts;
 
+using TestServer = Server<std::string>;
+using TestConnection = TestIpcConnection<std::string>;
+
 TEST(ut_server, ctor_dtor_sanity) {
     // GIVEN
     const std::string test_id("test_server");
-    const server_uts::TestResource test_vendor(
+    const TestResource test_vendor(
         [](const Request&)-> Response {
             throw std::runtime_error("NOT IMPLEMENTED");
         }
     );
-    server_uts::TestIpcConnection connection(
+    TestConnection connection(
         [](const Response&)-> void {
             throw std::runtime_error("NOT IMPLEMENTED");
         }
     );
 
     // WHEN
-    std::unique_ptr<Server> instance_ptr(nullptr);
+    std::unique_ptr<TestServer> instance_ptr(nullptr);
 
     // THEN
-    ASSERT_NO_THROW(instance_ptr = std::unique_ptr<Server>(new Server(&connection, test_id, test_vendor)));
+    ASSERT_NO_THROW(instance_ptr = std::unique_ptr<TestServer>(new TestServer(&connection, test_id, test_vendor)));
     ASSERT_NE(nullptr, instance_ptr);
     
     ASSERT_NO_THROW(instance_ptr = nullptr);
 }
-
 
 TEST(ut_server, run_is_running_stop_sanity) {
     // GIVEN
@@ -69,7 +72,7 @@ TEST(ut_server, run_is_running_stop_sanity) {
             }
         )
     );
-    server_uts::TestIpcConnection connection(
+    TestConnection connection(
         [](const Response& response)-> void {
             std::cout << "server sends response, code = " << std::to_string(static_cast<int>(response.code())) << std::endl;
             ASSERT_EQ(Response::ResponseCode::OK, response.code());
@@ -90,7 +93,7 @@ TEST(ut_server, run_is_running_stop_sanity) {
     Request delete_gpio_request(Request::Method::DELETE, Request::Path {"gpios", "1"}, Request::Body());
 
     // WHEN
-    Server instance(&connection, test_id, test_vendor);
+    TestServer instance(&connection, test_id, test_vendor);
 
     // THEN
     ASSERT_FALSE(instance.is_running());
