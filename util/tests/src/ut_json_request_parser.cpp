@@ -1,9 +1,7 @@
-#include <memory>
 #include <string>
 
 #include "gtest/gtest.h"
 
-#include "data.hpp"
 #include "json_data_serializer.hpp"
 #include "json_request_parser.hpp"
 #include "object.hpp"
