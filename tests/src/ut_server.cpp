@@ -21,6 +21,7 @@
 
 using namespace server;
 using namespace server_uts;
+using namespace ipc_uts;
 using namespace vendor;
 using namespace manager;
 using namespace manager_uts;
