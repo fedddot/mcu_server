@@ -10,23 +10,27 @@
 #include "response.hpp"
 
 namespace server_uts {
-	class TestIpcConnection: public ipc::IpcConnection {
+	
+	template <typename Tsubscriber_id>
+	class TestIpcConnection: public ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response> {
 	public:
+		using Callback = typename ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>;
 		using SendAction = std::function<void(const server::Response&)>;
+
 		TestIpcConnection(const SendAction& send_action): m_send_action(send_action) {
 			if (!m_send_action) {
 				throw std::invalid_argument("invalid action received");
 			}
 		}
 
-		void subscribe(const std::string& id, const Callback& cb) override {
+		void subscribe(const Tsubscriber_id& id, const Callback& cb) override {
 			if (is_subscribed(id)) {
 				throw std::invalid_argument("received id is already subscribed");
 			}
 			m_callbacks.insert({id, cb});
 		}
 
-		void unsubscribe(const std::string& id) override {
+		void unsubscribe(const Tsubscriber_id& id) override {
 			if (!is_subscribed(id)) {
 				throw std::invalid_argument("received id is not subscribed");
 			}
@@ -34,7 +38,7 @@ namespace server_uts {
 			m_callbacks.erase(iter);
 		}
 
-		bool is_subscribed(const std::string& id) const override {
+		bool is_subscribed(const Tsubscriber_id& id) const override {
 			return m_callbacks.end() != m_callbacks.find(id);
 		}
 
@@ -49,7 +53,7 @@ namespace server_uts {
 		}
 	private:
 		SendAction m_send_action;
-		std::map<std::string, Callback> m_callbacks;
+		std::map<Tsubscriber_id, Callback> m_callbacks;
 	};
 }
 
