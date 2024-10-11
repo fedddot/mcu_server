@@ -44,8 +44,9 @@ namespace manager {
 		using namespace server;
 		const auto direction = static_cast<StepperMotor::Direction>(Data::cast<Integer>(Data::cast<Object>(data).access("dir")).get());
 		const auto steps_num = static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("steps_num")).get());
-		const auto step_duration_ms = static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("step_duration_ms")).get());
-		motor_ptr->steps(direction, steps_num, step_duration_ms);
+		const auto on_time = static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("on_time_ms")).get());
+		const auto off_time = static_cast<unsigned int>(Data::cast<Integer>(Data::cast<Object>(data).access("off_time_ms")).get());
+		motor_ptr->steps(direction, steps_num, on_time, off_time);
 	}
 }
 
