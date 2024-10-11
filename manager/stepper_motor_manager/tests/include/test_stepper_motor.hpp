@@ -18,7 +18,7 @@ namespace manager_uts {
 		TestStepperMotor(const TestStepperMotor&) = default;
 		TestStepperMotor& operator=(const TestStepperMotor&) = delete;
 
-		void steps(const Direction& direction, unsigned int steps_num, unsigned int step_duration_ms) override {
+		void steps(const Direction& direction, const unsigned int steps_num, const unsigned int step_duration_ms) override {
 			m_action(direction, steps_num, step_duration_ms);
 		}
 		manager::StepperMotor *clone() const override {
