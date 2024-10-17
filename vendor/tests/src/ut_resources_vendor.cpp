@@ -2,30 +2,66 @@
 #include <memory>
 #include <stdexcept>
 
+#include "object.hpp"
 #include "request.hpp"
 #include "response.hpp"
 #include "string.hpp"
-#include "test_resource.hpp"
+#include "resources_vendor.hpp"
 #include "vendor.hpp"
 
 using namespace server;
-using namespace server_uts;
 using namespace vendor;
 
-TEST(ut_vendor, ctor_cctor_clone_dtor_id_sanity) {
+using ResourceId = std::string;
+
+static ResourceId retrieve_manager_id(const Request& request) {
+	if (request.path().empty()) {
+		throw std::invalid_argument("empty path received");
+	}
+	return static_cast<ResourceId>(request.path()[0]);
+}
+
+static ResourceId retrieve_resource_id(const Request& request) {
+	if (Request::Method::CREATE == request.method()) {
+		return static_cast<ResourceId>(Data::cast<String>(request.body().access("id")).get());
+	}
+	if (2UL != request.path().size()) {
+		throw std::invalid_argument("wrong path length");
+	}
+	return static_cast<ResourceId>(request.path()[1]);
+}
+
+static Object retrieve_create_data(const Request& request) {
+	return Data::cast<Object>(request.body().access("config"));
+}
+
+static Object retrieve_update_data(const Request& request) {
+	return Data::cast<Object>(request.body().access("config"));
+}
+
+TEST(ut_resources_vendor, ctor_cctor_clone_dtor_id_sanity) {
 	// GIVEN
 	const std::string test_vendor_id("test_vendor_id");
 	
 	// WHEN
+	using ResourcesVendorUnqPtr = std::unique_ptr<ResourcesVendor<ResourceId>>;
 	using VendorUnqPtr = std::unique_ptr<Vendor>;
-	using ResourceUnqPtr = std::unique_ptr<Resource>;
-	VendorUnqPtr instance_ptr(nullptr);
-	VendorUnqPtr instance_ptr_copy(nullptr);
-	ResourceUnqPtr instance_ptr_clone(nullptr);
+	ResourcesVendorUnqPtr instance_ptr(nullptr);
+	ResourcesVendorUnqPtr instance_ptr_copy(nullptr);
+	VendorUnqPtr instance_ptr_clone(nullptr);
 	
 	// THEN
 	// ctor
-	ASSERT_NO_THROW(instance_ptr = VendorUnqPtr(new Vendor()));
+	ASSERT_NO_THROW(
+		instance_ptr = ResourcesVendorUnqPtr(
+			new ResourcesVendor<ResourceId>(
+				retrieve_manager_id,
+				retrieve_resource_id,
+				retrieve_create_data,
+				retrieve_update_data
+			)
+		)
+	);
 	ASSERT_NE(nullptr, instance_ptr);
 
 	// cctor
@@ -42,7 +78,7 @@ TEST(ut_vendor, ctor_cctor_clone_dtor_id_sanity) {
 	ASSERT_NO_THROW(instance_ptr_clone = nullptr);
 }
 
-TEST(ut_vendor, register_resource_contains_resource_sanity) {
+TEST(ut_resources_vendor, register_resource_contains_resource_sanity) {
 	// GIVEN
 	const std::string test_vendor_id("test_vendor_id");
 	const std::string test_resource_id_1("test_resource_id_1");
@@ -66,7 +102,7 @@ TEST(ut_vendor, register_resource_contains_resource_sanity) {
 	ASSERT_TRUE(instance.contains_resource(test_resource_id_2));
 }
 
-TEST(ut_vendor, run_request_sanity) {
+TEST(ut_resources_vendor, run_request_sanity) {
 	// GIVEN
 	const std::string test_vendor_id("test_vendor_id");
 	
