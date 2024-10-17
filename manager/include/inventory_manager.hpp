@@ -42,7 +42,7 @@ namespace manager {
 	template <typename Tid, typename Tstored>
 	inline server::Response InventoryManager<Tid, Tstored>::run_request(const server::Request& request) const {
 		try {
-			return m_inventory_request_handler(request);
+			return m_inventory_request_handler(m_inventory, request);
 		} catch (const std::exception& e) {
 			return report_failure(ResponseCode::UNSPECIFIED, std::string(e.what()));
 		}

@@ -1,44 +1,92 @@
+#include <functional>
 #include <memory>
 #include <stdexcept>
 
 #include "gtest/gtest.h"
+#include <vector>
 
+#include "array.hpp"
 #include "data.hpp"
-#include "stepper_motor.hpp"
-#include "stepper_motor_manager.hpp"
+#include "in_memory_inventory.hpp"
+#include "object.hpp"
+#include "requests_manager.hpp"
 #include "request.hpp"
+#include "resource.hpp"
 #include "response.hpp"
-#include "test_stepper_motor.hpp"
+#include "string.hpp"
 
 using namespace server;
 using namespace manager;
-using namespace manager_uts;
 
-using Method = typename Request::Method;
-using Path = typename Request::Path;
-using Body = typename Request::Body;
-using ResponseCode = typename Response::ResponseCode;	
+using TestId = std::string;
 
-TEST(ut_stepper_motor_manager, ctor_cctor_clone_dtor_id_sanity) {
+class TestVendor: public Resource {
+public:
+	using Action = std::function<Response(const Request&)>;
+	TestVendor(const Action& action): m_action(action) {
+		if (!m_action) {
+			throw std::invalid_argument("invalid action received");
+		}
+	}
+	TestVendor(const TestVendor&) = default;
+	TestVendor& operator=(const TestVendor&) = delete;
+
+	Response run_request(const Request& request) const override {
+		return m_action(request);
+	}
+
+	Resource *clone() const override {
+		return new TestVendor(*this);
+	}
+private:
+	Action m_action;
+};
+
+TEST(ut_requests_manager, ctor_cctor_clone_dtor_id_sanity) {
 	// GIVEN
-	auto test_creator = [](const Data& data)-> StepperMotor * {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
+	InMemoryInventory<TestId, Request> inventory;
+	TestVendor vendor(
+		[](const Request&) -> Response {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
+	);
 
 	// WHEN
-	using StepperMotorManagerUnqPtr = std::unique_ptr<StepperMotorManager>;
+	using RequestsManagerUnqPtr = std::unique_ptr<RequestsManager<TestId>>;
 	using ResourceUnqPtr = std::unique_ptr<Resource>;
-	StepperMotorManagerUnqPtr instance_ptr(nullptr);
-	StepperMotorManagerUnqPtr instance_ptr_copy(nullptr);
+	RequestsManagerUnqPtr instance_ptr(nullptr);
+	RequestsManagerUnqPtr instance_ptr_copy(nullptr);
 	ResourceUnqPtr instance_ptr_clone(nullptr);
 	
 	// THEN
 	// ctor
-	ASSERT_NO_THROW(instance_ptr = StepperMotorManagerUnqPtr(new StepperMotorManager(test_creator)));
+	ASSERT_NO_THROW(
+		instance_ptr = RequestsManagerUnqPtr(
+			new RequestsManager<TestId>(
+				&inventory,
+				&vendor,
+				[](const Request::Body& body) -> Request {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				},
+				[](const Request::Body& body) -> TestId {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				},
+				[](const Request::Path& path) -> TestId {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				},
+				[](const Request::Body& body) -> std::vector<TestId> {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				},
+				[](const Request&) -> Response::Body {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				}
+			)
+		)
+	);
 	ASSERT_NE(nullptr, instance_ptr);
 
 	// cctor
-	ASSERT_NO_THROW(instance_ptr_copy = StepperMotorManagerUnqPtr(new StepperMotorManager(*instance_ptr)));
+	ASSERT_NO_THROW(instance_ptr_copy = RequestsManagerUnqPtr(new RequestsManager(*instance_ptr)));
 	ASSERT_NE(nullptr, instance_ptr_copy);
 
 	// clone
@@ -51,95 +99,108 @@ TEST(ut_stepper_motor_manager, ctor_cctor_clone_dtor_id_sanity) {
 	ASSERT_NO_THROW(instance_ptr_clone = nullptr);
 }
 
-static inline StepperMotor *test_stepper_motor_ctor(const Data& data, const TestStepperMotor::StepsAction& action) {
-	(void)data;
-	return new TestStepperMotor(action);
-}
-
-TEST(ut_stepper_motor_manager, run_request_sanity) {
+TEST(ut_requests_manager, run_request_sanity) {
 	// GIVEN
-	Body update_motor_data;
-	update_motor_data.add("dir", Integer(static_cast<int>(StepperMotor::Direction::CW)));
-	update_motor_data.add("steps_num", Integer(100));
-	update_motor_data.add("step_duration", Integer(10));
-
-	Body create_motor_data;
-	create_motor_data.add("id", String("test_stepper_motor"));
-
-	auto steps_action = [](const StepperMotor::Direction&, unsigned int, unsigned int) {
-		;
+	InMemoryInventory<TestId, Request> inventory;
+	auto data_to_method = [](const Data& data) {
+		static const std::map<std::string, Request::Method> mapping {
+			{"CREATE", Request::Method::CREATE},
+			{"READ", Request::Method::READ},
+			{"UPDATE", Request::Method::UPDATE},
+			{"DELETE", Request::Method::DELETE}
+		};
+		const auto iter = mapping.find(Data::cast<String>(data).get());
+		if (mapping.end() == iter) {
+			throw std::invalid_argument("unsupported method received");
+		}
+		return iter->second;
 	};
-	
+	auto data_to_path = [](const Data& data) {
+		Request::Path path;
+		Data::cast<Array>(data).for_each(
+			[&path](int, const Data& data) {
+				path.push_back(Data::cast<String>(data).get());
+			}
+		);
+		return path;
+	};
+	auto request_retriever = [data_to_method, data_to_path](const Request::Body& body) {
+		auto method = data_to_method(Data::cast<Object>(body.access("config")).access("method"));
+		auto path = data_to_path(Data::cast<Object>(body.access("config")).access("path"));
+		return Request(method, path, Data::cast<Request::Body>(Data::cast<Object>(body.access("config")).access("body")));
+	};
+	auto id_from_body_retriever = [](const Request::Body& body) {
+		return static_cast<TestId>(Data::cast<String>(body.access("id")).get());
+	};
+	auto id_from_path_retriever = [](const Request::Path& path) {
+		if (path.empty()) {
+			throw std::invalid_argument("empty path received");
+		}
+		return static_cast<TestId>(path[0]);
+	};
+	auto ids_retriever = [](const Request::Body& body) {
+		const auto& ids_array(Data::cast<Array>(body.access("ids"))); 
+		std::vector<TestId> ids;
+		ids.reserve(ids_array.size());
+		ids_array.for_each(
+			[&ids](int, const Data& data) {
+				ids.push_back(static_cast<TestId>(Data::cast<String>(data).get()));
+			}
+		);
+		return ids;
+	};
+	auto request_reader = [](const Request&) -> Response::Body {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+
+	const TestId test_id("test_request");
+	Array request_path;
+	request_path.push_back(String("gpiod"));
+	Object test_config;
+	test_config.add("method", String("CREATE"));
+	test_config.add("path", request_path);
+	test_config.add("body", Request::Body());
+	Request::Body create_body;
+	create_body.add("id", String(test_id));
+	create_body.add("config", test_config);
+	Request test_request(Request::Method::CREATE, {}, create_body);
+
+	Request::Body update_body;
+	Array ids_array;
+	ids_array.push_back(String(test_id));
+	update_body.add("ids", ids_array);
+	Request update_request(Request::Method::UPDATE, {}, update_body);
+	Request delete_request(Request::Method::DELETE, {test_id}, Request::Body());
+
 	// WHEN
-	StepperMotorManager instance(
-		[steps_action](const Data& data) {
-			return test_stepper_motor_ctor(data, steps_action);
+	TestVendor vendor(
+		[test_config, data_to_method, data_to_path](const Request& request) -> Response {
+			if (request.method() != data_to_method(test_config.access("method"))) {
+				throw std::runtime_error("");
+			}
+			if (request.path() != data_to_path(test_config.access("path"))) {
+				throw std::runtime_error("");
+			}
+			return Response(Response::ResponseCode::OK, Response::Body());
 		}
 	);
-	Response response(ResponseCode::OK, Body());
+
+	RequestsManager<TestId> instance(
+		&inventory,
+		&vendor,
+		request_retriever,
+		id_from_body_retriever,
+		id_from_path_retriever,
+		ids_retriever,
+		request_reader
+	);
+	Response response(Response::ResponseCode::UNSPECIFIED, Response::Body());
 
 	// THEN
-	// Create
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::CREATE, 
-				{}, 
-				create_motor_data
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-
-	// ReadAll
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::READ, 
-				{}, 
-				Body()
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-	ASSERT_TRUE(response.body().contains("members"));
-	ASSERT_EQ(Data::Type::ARRAY, response.body().access("members").type());
-	ASSERT_EQ(1UL, Data::cast<Array>(response.body().access("members")).size());
-
-	// Update
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::UPDATE, 
-				{Data::cast<String>(create_motor_data.access("id")).get()}, 
-				update_motor_data
-			)
-		)
-	);
-	
-	// Read
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::READ, 
-				{Data::cast<String>(create_motor_data.access("id")).get()}, 
-				Body()
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-	ASSERT_TRUE(response.body().contains("id"));
-	ASSERT_EQ(Data::cast<String>(create_motor_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
-
-	// Delete
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::DELETE, 
-				{Data::cast<String>(create_motor_data.access("id")).get()}, 
-				Body()
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_NO_THROW(response = instance.run_request(test_request));
+	ASSERT_EQ(Response::ResponseCode::OK, response.code());
+	ASSERT_NO_THROW(response = instance.run_request(update_request));
+	ASSERT_EQ(Response::ResponseCode::OK, response.code());
+	ASSERT_NO_THROW(response = instance.run_request(delete_request));
+	ASSERT_EQ(Response::ResponseCode::OK, response.code());
 }
