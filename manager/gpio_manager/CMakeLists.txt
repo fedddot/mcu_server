@@ -14,11 +14,13 @@ target_include_directories(gpio_manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/incl
 target_link_libraries(
     gpio_manager
     INTERFACE
+    data_lib
     gpio
+    inventory
     inventory_manager
+    request
     resource
     response
-    data_lib
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

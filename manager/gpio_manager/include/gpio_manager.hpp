@@ -1,68 +1,149 @@
 #ifndef	GPIO_MANAGER_HPP
 #define	GPIO_MANAGER_HPP
 
-#include "data.hpp"
-#include "gpi.hpp"
-#include "gpio.hpp"
-#include "gpo.hpp"
-#include "integer.hpp"
-#include "inventory_manager.hpp"
+#include <functional>
+#include <memory>
+#include <string>
 
-#include "object.hpp"
+#include "gpio.hpp"
+#include "inventory.hpp"
+#include "inventory_manager.hpp"
+#include "request.hpp"
 #include "resource.hpp"
-#include <stdexcept>
+#include "response.hpp"
+#include "string.hpp"
 
 namespace manager {
-	
-	class GpioManager: public InventoryManager<Gpio> {
+	template <typename Tid>
+	class GpioManager: public InventoryManager<Tid, Gpio> {
 	public:
-		GpioManager(const Creator& creator);
+		using GpioCreator = std::function<Gpio *(const server::Request::Body&)>;
+		using GpioIdFromBodyRetriever = std::function<Tid(const server::Request::Body&)>;
+		using GpioIdFromPathRetriever = std::function<Tid(const server::Request::Path&)>;
+		using GpioReader = std::function<server::Response::Body(const Gpio&)>;
+		using GpioWriter = std::function<void(Gpio *, const server::Request::Body&)>;
+
+		GpioManager(
+			Inventory<Tid, Gpio> *gpio_inventory,
+			const GpioCreator& gpio_creator,
+			const GpioIdFromBodyRetriever& gpio_id_from_body_retriever,
+			const GpioIdFromPathRetriever& gpio_id_from_path_retriever,
+			const GpioReader& gpio_reader,
+			const GpioWriter& gpio_writer
+		);
 		GpioManager(const GpioManager& other) = default;
 		GpioManager& operator=(const GpioManager&) = delete;
-		
 		server::Resource *clone() const override;
 	private:
-		static Gpio *duplicate(const Gpio& instance);
-		static server::Object read_gpio(const Gpio& gpio);
-		static void write_gpio(Gpio *gpio_ptr, const server::Data& data);
-		static typename Gpio::State read_gpio_state(const Gpio& gpio);
+		GpioCreator m_gpio_creator;
+		GpioIdFromBodyRetriever m_gpio_id_from_body_retriever;
+		GpioIdFromPathRetriever m_gpio_id_from_path_retriever;
+		GpioReader m_gpio_reader;
+		GpioWriter m_gpio_writer;
+
+		server::Response handle_request(Inventory<Tid, Gpio> *inventory, const server::Request& request) const;
+		server::Response create_gpio(Inventory<Tid, Gpio> *inventory, const server::Request& request) const;
+		server::Response read_gpio(Inventory<Tid, Gpio> *inventory, const server::Request& request) const;
+		server::Response update_gpio(Inventory<Tid, Gpio> *inventory, const server::Request& request) const;
+		server::Response delete_gpio(Inventory<Tid, Gpio> *inventory, const server::Request& request) const;
+		
+		server::Response report_failure(const server::Response::ResponseCode& code, const std::string& what) const;
 	};
 
-	inline GpioManager::GpioManager(const Creator& creator): InventoryManager<Gpio>(creator, Duplicator(GpioManager::duplicate), Reader(GpioManager::read_gpio), Writer(GpioManager::write_gpio)) {
+	template <typename Tid>
+	inline GpioManager<Tid>::GpioManager(
+		Inventory<Tid, Gpio> *gpio_inventory,
+		const GpioCreator& gpio_creator,
+		const GpioIdFromBodyRetriever& gpio_id_from_body_retriever,
+		const GpioIdFromPathRetriever& gpio_id_from_path_retriever,
+		const GpioReader& gpio_reader,
+		const GpioWriter& gpio_writer
+	): InventoryManager<Tid, server::Request>(
+		gpio_inventory,
+		[this](Inventory<Tid, Gpio> *inventory, const server::Request& request) {
+			return handle_request(inventory, request);
+		}
+	), m_gpio_creator(gpio_creator), m_gpio_id_from_body_retriever(gpio_id_from_body_retriever), m_gpio_id_from_path_retriever(gpio_id_from_path_retriever), m_gpio_reader(gpio_reader), m_gpio_writer(gpio_writer) {
 
 	}
 
-	inline server::Resource *GpioManager::clone() const {
-		return new GpioManager(*this);
+	template <typename Tid>
+	inline server::Response GpioManager<Tid>::create_gpio(Inventory<Tid, Gpio> *inventory, const server::Request& request) const {
+		using ResponseCode = typename server::Response::ResponseCode;
+		if (!request.path().empty()) {
+			return report_failure(ResponseCode::BAD_REQUEST, "create gpio handler requires an empty path relatively to the manager");
+		}
+		auto id(m_gpio_id_from_body_retriever(request.body()));
+		if (inventory->contains(id)) {
+			return report_failure(ResponseCode::BAD_REQUEST, "gpio with specified id already exists");
+		}
+		inventory->add(id, m_gpio_creator(request.body()));
+		return server::Response(ResponseCode::OK, server::Response::Body());
 	}
 
-	inline Gpio *GpioManager::duplicate(const Gpio& instance) {
-		return instance.clone();
+	template <typename Tid>
+	inline server::Response GpioManager<Tid>::read_gpio(Inventory<Tid, Gpio> *inventory, const server::Request& request) const {
+		using ResponseCode = typename server::Response::ResponseCode;
+		const auto gpio_id(m_gpio_id_from_path_retriever(request.path()));
+		if (!(inventory->contains(gpio_id))) {
+			return report_failure(ResponseCode::NOT_FOUND, "gpio with specified id doesn't exist");
+		}
+		auto body(m_gpio_reader(inventory->access(gpio_id)));
+		return server::Response(ResponseCode::OK, body);
+	}
+
+	template <typename Tid>
+	inline server::Response GpioManager<Tid>::update_gpio(Inventory<Tid, Gpio> *inventory, const server::Request& request) const {
+		using ResponseCode = typename server::Response::ResponseCode;
+		const auto gpio_id(m_gpio_id_from_path_retriever(request.path()));
+		if (!(inventory->contains(gpio_id))) {
+			return report_failure(ResponseCode::NOT_FOUND, "gpio with specified id doesn't exist");
+		}
+		m_gpio_writer(&(inventory->access(gpio_id)), request.body());
+		return server::Response(ResponseCode::OK, server::Response::Body());
+	}
+
+	template <typename Tid>
+	inline server::Response GpioManager<Tid>::delete_gpio(Inventory<Tid, Gpio> *inventory, const server::Request& request) const {
+		using ResponseCode = typename server::Response::ResponseCode;
+		const auto gpio_id(m_gpio_id_from_path_retriever(request.path()));
+		if (!(inventory->contains(gpio_id))) {
+			return report_failure(ResponseCode::NOT_FOUND, "gpio with specified id doesn't exist");
+		}
+		std::unique_ptr<server::Request> removed_gpio(inventory->remove(gpio_id));
+		removed_gpio = nullptr;
+		return server::Response(ResponseCode::OK, server::Response::Body());
+	}
+
+	template <typename Tid>
+	inline server::Response GpioManager<Tid>::handle_request(Inventory<Tid, Gpio> *inventory, const server::Request& request) const {
+		using Method = typename server::Request::Method;
+		using ResponseCode = typename server::Response::ResponseCode;
+
+		switch (request.method()) {
+		case Method::CREATE:
+			return create_gpio(inventory, request);
+		case Method::READ:
+			return read_gpio(inventory, request);
+		case Method::UPDATE:
+			return update_gpio(inventory, request);
+		case Method::DELETE:
+			return delete_request(inventory, request);
+		default:
+			return report_failure(ResponseCode::BAD_REQUEST, "unsupported method");
+		}
+	}
+
+	template <typename Tid>
+	inline server::Response GpioManager<Tid>::report_failure(const server::Response::ResponseCode& code, const std::string& what) const {
+		server::Response::Body body;
+		body.add("what", server::String(what));
+		return server::Response(code, body);
 	}
 	
-	inline server::Object GpioManager::read_gpio(const Gpio& gpio) {
-		using namespace server;
-		Object gpio_data;
-		gpio_data.add("dir", Integer(static_cast<int>(gpio.direction())));
-		gpio_data.add("state", Integer(static_cast<int>(read_gpio_state(gpio))));
-		return gpio_data;
-	}
-
-	inline void GpioManager::write_gpio(Gpio *gpio_ptr, const server::Data& data) {
-		using namespace server;
-		const auto state = static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(data).access("state")).get());
-		Gpio::cast<Gpo>(*gpio_ptr).set_state(state);
-	}
-
-	inline typename Gpio::State GpioManager::read_gpio_state(const Gpio& gpio) {
-		switch (gpio.direction()) {
-		case Gpio::Direction::IN:
-			return Gpio::cast<Gpi>(gpio).state();
-		case Gpio::Direction::OUT:
-			return Gpio::cast<Gpo>(gpio).state();
-		default:
-			throw std::invalid_argument("unsupported Gpio type");
-		}
+	template <typename Tid>
+	inline server::Resource *GpioManager<Tid>::clone() const {
+		return new GpioManager(*this);
 	}
 }
 
