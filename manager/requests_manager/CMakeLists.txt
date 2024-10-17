@@ -3,7 +3,9 @@ target_include_directories(requests_manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/
 target_link_libraries(
     requests_manager
     INTERFACE
-    data
+    data_lib
+    inventory
+    inventory_manager
     request
     resource
     response
