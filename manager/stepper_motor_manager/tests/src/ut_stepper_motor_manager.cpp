@@ -61,7 +61,7 @@ TEST(ut_stepper_motor_manager, run_request_sanity) {
 	Body update_motor_data;
 	update_motor_data.add("dir", Integer(static_cast<int>(StepperMotor::Direction::CW)));
 	update_motor_data.add("steps_num", Integer(100));
-	update_motor_data.add("step_duration_ms", Integer(10));
+	update_motor_data.add("step_duration", Integer(10));
 
 	Body create_motor_data;
 	create_motor_data.add("id", String("test_stepper_motor"));
