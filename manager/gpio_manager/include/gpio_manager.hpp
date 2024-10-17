@@ -58,7 +58,7 @@ namespace manager {
 		const GpioIdFromPathRetriever& gpio_id_from_path_retriever,
 		const GpioReader& gpio_reader,
 		const GpioWriter& gpio_writer
-	): InventoryManager<Tid, server::Request>(
+	): InventoryManager<Tid, Gpio>(
 		gpio_inventory,
 		[this](Inventory<Tid, Gpio> *inventory, const server::Request& request) {
 			return handle_request(inventory, request);
@@ -110,7 +110,7 @@ namespace manager {
 		if (!(inventory->contains(gpio_id))) {
 			return report_failure(ResponseCode::NOT_FOUND, "gpio with specified id doesn't exist");
 		}
-		std::unique_ptr<server::Request> removed_gpio(inventory->remove(gpio_id));
+		std::unique_ptr<Gpio> removed_gpio(inventory->remove(gpio_id));
 		removed_gpio = nullptr;
 		return server::Response(ResponseCode::OK, server::Response::Body());
 	}
@@ -128,7 +128,7 @@ namespace manager {
 		case Method::UPDATE:
 			return update_gpio(inventory, request);
 		case Method::DELETE:
-			return delete_request(inventory, request);
+			return delete_gpio(inventory, request);
 		default:
 			return report_failure(ResponseCode::BAD_REQUEST, "unsupported method");
 		}

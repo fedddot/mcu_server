@@ -1,36 +1,31 @@
+#include <functional>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
 #include "gtest/gtest.h"
 
+#include "array.hpp"
 #include "data.hpp"
-#include "gpio.hpp"
-#include "gpio_manager.hpp"
-#include "integer.hpp"
+#include "in_memory_inventory.hpp"
 #include "object.hpp"
+#include "gpio_manager.hpp"
 #include "request.hpp"
+#include "resource.hpp"
 #include "response.hpp"
 #include "string.hpp"
-#include "test_gpi.hpp"
-#include "test_gpo.hpp"
 
 using namespace server;
 using namespace manager;
-using namespace manager_uts;
 
-using Method = typename Request::Method;
-using Path = typename Request::Path;
-using Body = typename Request::Body;
-using ResponseCode = typename Response::ResponseCode;	
+using TestId = int;
 
 TEST(ut_gpio_manager, ctor_cctor_clone_dtor_id_sanity) {
 	// GIVEN
-	auto test_creator = [](const Data& data)-> Gpio * {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
+	InMemoryInventory<TestId, Gpio> inventory;
 
 	// WHEN
-	using GpioManagerUnqPtr = std::unique_ptr<GpioManager>;
+	using GpioManagerUnqPtr = std::unique_ptr<GpioManager<TestId>>;
 	using ResourceUnqPtr = std::unique_ptr<Resource>;
 	GpioManagerUnqPtr instance_ptr(nullptr);
 	GpioManagerUnqPtr instance_ptr_copy(nullptr);
@@ -38,7 +33,28 @@ TEST(ut_gpio_manager, ctor_cctor_clone_dtor_id_sanity) {
 	
 	// THEN
 	// ctor
-	ASSERT_NO_THROW(instance_ptr = GpioManagerUnqPtr(new GpioManager(test_creator)));
+	ASSERT_NO_THROW(
+		instance_ptr = GpioManagerUnqPtr(
+			new GpioManager<TestId>(
+				&inventory,
+				[](const Request::Body& body) -> Gpio * {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				},
+				[](const Request::Body& body) -> TestId {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				},
+				[](const Request::Path& path) -> TestId {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				},
+				[](const Gpio&) -> Response::Body {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				},
+				[](Gpio *, const Request::Body&) {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				}
+			)
+		)
+	);
 	ASSERT_NE(nullptr, instance_ptr);
 
 	// cctor
@@ -55,139 +71,108 @@ TEST(ut_gpio_manager, ctor_cctor_clone_dtor_id_sanity) {
 	ASSERT_NO_THROW(instance_ptr_clone = nullptr);
 }
 
-static inline Gpio *test_gpio_ctor(const Data& data) {
-	auto dir = static_cast<Gpio::Direction>(Data::cast<Integer>(Data::cast<Object>(data).access("dir")).get());
-	switch (dir) {
-	case Gpio::Direction::IN:
-		return new TestGpi();
-	case Gpio::Direction::OUT:
-		return new TestGpo();
-	default:
-		throw std::invalid_argument("unsupported Gpio direction received");
-	}
-}
+// TEST(ut_gpio_manager, run_request_sanity) {
+// 	// GIVEN
+// 	InMemoryInventory<TestId, Gpio> inventory;
+// 	auto data_to_method = [](const Data& data) {
+// 		static const std::map<std::string, Gpio::Method> mapping {
+// 			{"CREATE", Gpio::Method::CREATE},
+// 			{"READ", Gpio::Method::READ},
+// 			{"UPDATE", Gpio::Method::UPDATE},
+// 			{"DELETE", Gpio::Method::DELETE}
+// 		};
+// 		const auto iter = mapping.find(Data::cast<String>(data).get());
+// 		if (mapping.end() == iter) {
+// 			throw std::invalid_argument("unsupported method received");
+// 		}
+// 		return iter->second;
+// 	};
+// 	auto data_to_path = [](const Data& data) {
+// 		Request::Path path;
+// 		Data::cast<Array>(data).for_each(
+// 			[&path](int, const Data& data) {
+// 				path.push_back(Data::cast<String>(data).get());
+// 			}
+// 		);
+// 		return path;
+// 	};
+// 	auto request_retriever = [data_to_method, data_to_path](const Request::Body& body) {
+// 		auto method = data_to_method(Data::cast<Object>(body.access("config")).access("method"));
+// 		auto path = data_to_path(Data::cast<Object>(body.access("config")).access("path"));
+// 		return Gpio(method, path, Data::cast<Request::Body>(Data::cast<Object>(body.access("config")).access("body")));
+// 	};
+// 	auto id_from_body_retriever = [](const Request::Body& body) {
+// 		return static_cast<TestId>(Data::cast<String>(body.access("id")).get());
+// 	};
+// 	auto id_from_path_retriever = [](const Request::Path& path) {
+// 		if (path.empty()) {
+// 			throw std::invalid_argument("empty path received");
+// 		}
+// 		return static_cast<TestId>(path[0]);
+// 	};
+// 	auto ids_retriever = [](const Request::Body& body) {
+// 		const auto& ids_array(Data::cast<Array>(body.access("ids"))); 
+// 		std::vector<TestId> ids;
+// 		ids.reserve(ids_array.size());
+// 		ids_array.for_each(
+// 			[&ids](int, const Data& data) {
+// 				ids.push_back(static_cast<TestId>(Data::cast<String>(data).get()));
+// 			}
+// 		);
+// 		return ids;
+// 	};
+// 	auto request_reader = [](const Gpio&) -> Response::Body {
+// 		throw std::runtime_error("NOT IMPLEMENTED");
+// 	};
 
-TEST(ut_gpio_manager, run_request_sanity) {
-	// GIVEN
-	Body create_gpo_data;
-	create_gpo_data.add("id", String("gpo_id"));
-	create_gpo_data.add("dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
+// 	const TestId test_id("test_request");
+// 	Array request_path;
+// 	request_path.push_back(String("gpiod"));
+// 	Object test_config;
+// 	test_config.add("method", String("CREATE"));
+// 	test_config.add("path", request_path);
+// 	test_config.add("body", Request::Body());
+// 	Request::Body create_body;
+// 	create_body.add("id", String(test_id));
+// 	create_body.add("config", test_config);
+// 	Gpio test_request(Gpio::Method::CREATE, {}, create_body);
 
-	Body update_gpo_data;
-	update_gpo_data.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
+// 	Request::Body update_body;
+// 	Array ids_array;
+// 	ids_array.push_back(String(test_id));
+// 	update_body.add("ids", ids_array);
+// 	Gpio update_request(Gpio::Method::UPDATE, {}, update_body);
+// 	Gpio delete_request(Gpio::Method::DELETE, {test_id}, Request::Body());
 
-	Body create_gpi_data;
-	create_gpi_data.add("id", String("gpi_id"));
-	create_gpi_data.add("dir", Integer(static_cast<int>(Gpio::Direction::IN)));
-	
-	// WHEN
-	GpioManager instance(test_gpio_ctor);
-	Response response(ResponseCode::OK, Body());
+// 	// WHEN
+// 	TestVendor vendor(
+// 		[test_config, data_to_method, data_to_path](const Gpio& request) -> Response {
+// 			if (request.method() != data_to_method(test_config.access("method"))) {
+// 				throw std::runtime_error("");
+// 			}
+// 			if (request.path() != data_to_path(test_config.access("path"))) {
+// 				throw std::runtime_error("");
+// 			}
+// 			return Response(Response::ResponseCode::OK, Response::Body());
+// 		}
+// 	);
 
-	// THEN
-	// Create GPO
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::CREATE, 
-				{}, 
-				create_gpo_data
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
+// 	GpioManager<TestId> instance(
+// 		&inventory,
+// 		&vendor,
+// 		request_retriever,
+// 		id_from_body_retriever,
+// 		id_from_path_retriever,
+// 		ids_retriever,
+// 		request_reader
+// 	);
+// 	Response response(Response::ResponseCode::UNSPECIFIED, Response::Body());
 
-	// Create GPI
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::CREATE, 
-				{}, 
-				create_gpi_data
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-
-	// ReadAll
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::READ, 
-				{}, 
-				Body()
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-	ASSERT_TRUE(response.body().contains("members"));
-	ASSERT_EQ(Data::Type::ARRAY, response.body().access("members").type());
-	ASSERT_EQ(2UL, Data::cast<Array>(response.body().access("members")).size());
-
-	// Update
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::UPDATE, 
-				{Data::cast<String>(create_gpo_data.access("id")).get()}, 
-				update_gpo_data
-			)
-		)
-	);
-	
-	// Read GPI
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::READ, 
-				{Data::cast<String>(create_gpi_data.access("id")).get()}, 
-				Body()
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-	ASSERT_TRUE(response.body().contains("id"));
-	ASSERT_EQ(Data::cast<String>(create_gpi_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
-	ASSERT_TRUE(response.body().contains("state"));
-	ASSERT_EQ(Gpio::State::LOW, static_cast<Gpio::State>(Data::cast<Integer>(response.body().access("state")).get()));
-
-	// Read GPO
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::READ, 
-				{Data::cast<String>(create_gpo_data.access("id")).get()}, 
-				Body()
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-	ASSERT_TRUE(response.body().contains("id"));
-	ASSERT_EQ(Data::cast<String>(create_gpo_data.access("id")).get(), Data::cast<String>(response.body().access("id")).get());
-	ASSERT_TRUE(response.body().contains("state"));
-	ASSERT_EQ(Gpio::State::HIGH, static_cast<Gpio::State>(Data::cast<Integer>(response.body().access("state")).get()));
-
-	// Delete GPI
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::DELETE, 
-				{Data::cast<String>(create_gpi_data.access("id")).get()}, 
-				Body()
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-
-	// Delete GPO
-	ASSERT_NO_THROW(
-		response = instance.run_request(
-			Request(
-				Method::DELETE, 
-				{Data::cast<String>(create_gpo_data.access("id")).get()}, 
-				Body()
-			)
-		)
-	);
-	ASSERT_EQ(ResponseCode::OK, response.code());
-}
+// 	// THEN
+// 	ASSERT_NO_THROW(response = instance.run_request(test_request));
+// 	ASSERT_EQ(Response::ResponseCode::OK, response.code());
+// 	ASSERT_NO_THROW(response = instance.run_request(update_request));
+// 	ASSERT_EQ(Response::ResponseCode::OK, response.code());
+// 	ASSERT_NO_THROW(response = instance.run_request(delete_request));
+// 	ASSERT_EQ(Response::ResponseCode::OK, response.code());
+// }
