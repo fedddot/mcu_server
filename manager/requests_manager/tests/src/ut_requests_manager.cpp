@@ -1,9 +1,9 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
 #include "gtest/gtest.h"
-#include <vector>
 
 #include "array.hpp"
 #include "data.hpp"

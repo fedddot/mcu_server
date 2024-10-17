@@ -7,10 +7,11 @@ add_executable(
 target_link_libraries(
 	requests_manager_tests
 	PRIVATE
+    data_lib
+    in_memory_inventory
     requests_manager
     request
+    resource
     response
-    in_memory_inventory
-    data_lib
 	gtest
 )
