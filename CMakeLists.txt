@@ -13,7 +13,7 @@ target_link_libraries(server_types INTERFACE object)
 
 add_library(server_exception INTERFACE)
 target_include_directories(server_exception INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(server_exception INTERFACE server_types)
+target_link_libraries(server_exception INTERFACE server_types data_lib)
 
 add_library(request INTERFACE)
 target_include_directories(request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
