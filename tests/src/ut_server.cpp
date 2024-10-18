@@ -8,6 +8,7 @@
 #include "gpio_manager.hpp"
 #include "in_memory_inventory.hpp"
 #include "manager.hpp"
+#include "object.hpp"
 #include "test_gpi.hpp"
 #include "test_gpo.hpp"
 #include "integer.hpp"
@@ -119,8 +120,10 @@ TEST(ut_server, run_is_running_stop_sanity) {
     create_gpio_body.add("dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
     Request create_gpio_request(Request::Method::CREATE, Path {"gpios"}, create_gpio_body);
 
+    Object update_config;
+    update_config.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
     Body update_gpio_body;
-    update_gpio_body.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
+    update_gpio_body.add("config", update_config);
     Request update_gpio_request(Request::Method::UPDATE, Path {"gpios", "1"}, update_gpio_body);
 
     Request read_gpio_request(Request::Method::READ, Path {"gpios", "1"}, Body());
