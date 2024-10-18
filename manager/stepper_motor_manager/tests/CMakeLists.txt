@@ -10,12 +10,12 @@ add_executable(
 target_link_libraries(
 	stepper_motor_manager_tests
 	PRIVATE
-    test_stepper_motor
     data_lib
     stepper_motor
     stepper_motor_manager
-    request
-    response
+    in_memory_inventory
+    server_types
+    test_stepper_motor
 
 	gtest
 )
