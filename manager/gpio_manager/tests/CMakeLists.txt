@@ -18,8 +18,9 @@ target_link_libraries(
     data_lib
     gpio
     gpio_manager
-    request
-    response
+    in_memory_inventory
+    server_exception
+    server_types
     test_gpi
     test_gpo
 

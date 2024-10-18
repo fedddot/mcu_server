@@ -3,10 +3,10 @@
 #include "gtest/gtest.h"
 
 #include "gpio.hpp"
+#include "gpio_manager.hpp"
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
 #include "object.hpp"
-#include "gpio_manager.hpp"
 #include "server_exception.hpp"
 #include "server_types.hpp"
 #include "test_gpi.hpp"
