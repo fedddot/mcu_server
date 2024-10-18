@@ -1,19 +1,11 @@
 #ifndef	RESPONSE_HPP
 #define	RESPONSE_HPP
 
-#include "object.hpp"
+#include "server_types.hpp"
 
 namespace server {
 	class Response {
 	public:
-		enum class ResponseCode: int {
-			OK,
-			METHOD_NOT_ALLOWED,
-			NOT_FOUND,
-			BAD_REQUEST,
-			UNSPECIFIED
-		};
-		using Body = Object;
 		Response(const ResponseCode& code, const Body& body);
 		Response(const Response&) = default;
 		Response& operator=(const Response&) = default;
@@ -30,11 +22,11 @@ namespace server {
 
 	}
 
-	inline typename Response::ResponseCode Response::code() const {
+	inline ResponseCode Response::code() const {
 		return m_code;
 	}
 
-	inline typename Response::Body Response::body() const {
+	inline Body Response::body() const {
 		return m_body;
 	}
 }

@@ -1,10 +1,7 @@
 #ifndef	REQUEST_HPP
 #define	REQUEST_HPP
 
-#include <string>
-#include <vector>
-
-#include "object.hpp"
+#include "server_types.hpp"
 
 namespace server {
 	class Request {
@@ -15,8 +12,6 @@ namespace server {
 			UPDATE,
 			DELETE
 		};
-		using Path = std::vector<std::string>;
-		using Body = Object;
 		Request(const Method& method, const Path& path, const Body& body);
 		Request(const Request&) = default;
 		Request& operator=(const Request&) = default;
@@ -39,11 +34,11 @@ namespace server {
 		return m_method;
 	}
 
-	inline typename Request::Path Request::path() const {
+	inline Path Request::path() const {
 		return m_path;
 	}
 
-	inline typename Request::Body Request::body() const {
+	inline Body Request::body() const {
 		return m_body;
 	}
 }
