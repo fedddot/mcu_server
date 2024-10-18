@@ -18,7 +18,7 @@ namespace manager {
 	class StepperMotorManager: public server::Manager {
 	public:
 		using StepperMotorCreator = std::function<StepperMotor *(const server::Body&)>;
-		using StepperMotorReader = std::function<server::Body(const Gpio&)>;
+		using StepperMotorReader = std::function<server::Body(const StepperMotor&)>;
 		StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const StepperMotorCreator& stepper_motor_creator, const StepperMotorReader& stepper_motor_reader);
 		StepperMotorManager(const StepperMotorManager& other) = delete;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
@@ -57,7 +57,8 @@ namespace manager {
 		if (!(m_stepper_motor_inventory->contains(stepper_motor_id))) {
 			throw ServerException(ResponseCode::NOT_FOUND, "stepper_motor with specified id doesn't exist");
 		}
-		return m_stepper_motor_reader(m_stepper_motor_inventory->access(stepper_motor_id));
+		const auto& gpio(m_stepper_motor_inventory->access(stepper_motor_id));
+		return m_stepper_motor_reader(gpio);
 	}
 
 	inline server::Body StepperMotorManager::read_all_resources() const {
