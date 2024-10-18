@@ -4,11 +4,13 @@
 #include <stdexcept>
 #include <string>
 
+#include "array.hpp"
 #include "manager.hpp"
 #include "request.hpp"
 #include "response.hpp"
 #include "server_exception.hpp"
 #include "server_types.hpp"
+#include "string.hpp"
 #include "vendor.hpp"
 
 namespace vendor {
@@ -80,7 +82,15 @@ namespace vendor {
 	}
 
 	inline server::Response ResourcesVendor::report_managers() const {
-		throw std::runtime_error("NOT IMPLEMENTED");
+		using namespace server;
+		Array managers_ids;
+		for (const auto& [id, manager_ptr]: m_managers) {
+			(void)manager_ptr;
+			managers_ids.push_back(String(id));
+		}
+		Body managers_body;
+		managers_body.add("managers", managers_ids);
+		return Response(ResponseCode::OK, managers_body);
 	}
 	
 	inline server::Response ResourcesVendor::run_create(server::Manager *manager, const server::Body& request_body) const {
@@ -94,26 +104,16 @@ namespace vendor {
 		return Response(ResponseCode::OK, manager->read_resource(route));
 	}
 	
-	inline server::Response ResourcesVendor::run_update(server::Manager *manager, const server::Request& request) const {
+	inline server::Response ResourcesVendor::run_update(server::Manager *manager, const server::Path& route, const server::Body& request_body) const {
 		using namespace server;
-		const auto resource_id(m_resource_id_retriever(request));
-		if (!(manager->contains(resource_id))) {
-			return report_failure(Response::ResponseCode::NOT_FOUND, "resource not found");
-		}
-		const auto update_cfg(m_update_cfg_retriever(request));
-		manager->update_resource(resource_id, update_cfg);
-		return Response(Response::ResponseCode::OK, Response::Body());
+		manager->update_resource(route, request_body);
+		return Response(ResponseCode::OK, Body());
 	}
-
 	
-	inline server::Response ResourcesVendor::run_delete(server::Manager *manager, const server::Request& request) const {
+	inline server::Response ResourcesVendor::run_delete(server::Manager *manager, const server::Path& route) const {
 		using namespace server;
-		const auto resource_id(m_resource_id_retriever(request));
-		if (!(manager->contains(resource_id))) {
-			return report_failure(Response::ResponseCode::NOT_FOUND, "resource not found");
-		}
-		manager->delete_resource(resource_id);
-		return Response(Response::ResponseCode::OK, Response::Body());
+		manager->delete_resource(route);
+		return Response(ResponseCode::OK, Body());
 	}
 }
 

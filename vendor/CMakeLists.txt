@@ -7,6 +7,8 @@ target_link_libraries(
     manager
     request
     response
+    server_exception
+    server_types
     vendor
 )
 
