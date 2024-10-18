@@ -2,22 +2,22 @@
 #define	SERVER_HPP
 
 #include <exception>
-#include <memory>
 #include <stdexcept>
-#include <string>
 
 #include "ipc_connection.hpp"
 #include "request.hpp"
-#include "resource.hpp"
 #include "response.hpp"
+#include "server_exception.hpp"
+#include "server_types.hpp"
 #include "string.hpp"
+#include "vendor.hpp"
 
 namespace server {
 	template <typename Tsubscriber_id>
 	class Server {
 	public:
 		using IpcConnection = ipc::IpcConnection<Tsubscriber_id, Request, Response>;
-		Server(IpcConnection *connection, const Tsubscriber_id& id, const Resource& resources_vendor);
+		Server(IpcConnection *connection, const Tsubscriber_id& id, Vendor *vendor);
 		Server(const Server& other) = delete;
 		Server& operator=(const Server& other) = delete;
 
@@ -29,15 +29,15 @@ namespace server {
 	private:
 		IpcConnection *m_connection;
 		Tsubscriber_id m_id;
-		std::unique_ptr<Resource> m_resources_vendor;
+		Vendor *m_vendor;
 
 		void handle_request(const Request& request) const;
 	};
 
 	template <typename Tsubscriber_id>
-	inline Server<Tsubscriber_id>::Server(IpcConnection *connection, const Tsubscriber_id& id, const Resource& resources_vendor): m_connection(connection), m_id(id), m_resources_vendor(resources_vendor.clone()) {
-		if (!m_connection) {
-			throw std::invalid_argument("invalid connection ptr received");
+	inline Server<Tsubscriber_id>::Server(IpcConnection *connection, const Tsubscriber_id& id, Vendor *vendor): m_connection(connection), m_id(id), m_vendor(vendor) {
+		if (!m_connection || !m_vendor) {
+			throw std::invalid_argument("invalid arguments received");
 		}
 	}
 
@@ -64,12 +64,14 @@ namespace server {
 	template <typename Tsubscriber_id>
 	inline void Server<Tsubscriber_id>::handle_request(const Request& request) const {
 		try {
-			auto response(m_resources_vendor->run_request(request));
+			auto response(m_vendor->run_request(request));
 			m_connection->send(response);
+		} catch (const ServerException& e) {
+			m_connection->send(Response(e.code(), e.body()));
 		} catch (const std::exception& e) {
-			Response::Body body;
-			body.add("what", String(Tsubscriber_id(e.what())));
-			m_connection->send(Response(Response::ResponseCode::UNSPECIFIED, body));
+			Body body;
+			body.add("what", String(std::string(e.what())));
+			m_connection->send(Response(ResponseCode::UNSPECIFIED, body));
 		}
 	}
 }
