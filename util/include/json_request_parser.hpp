@@ -10,6 +10,7 @@
 #include "json_data_parser.hpp"
 #include "object.hpp"
 #include "request.hpp"
+#include "server_types.hpp"
 #include "string.hpp"
 
 namespace server_utl {
@@ -23,8 +24,8 @@ namespace server_utl {
 		server::Request operator()(const std::string& data) const;
 	private:
 		static typename server::Request::Method parse_method(const server::Data& data);
-		static typename server::Request::Path parse_path(const server::Data& data);
-		static typename server::Request::Body parse_body(const server::Data& data);
+		static typename server::Path parse_path(const server::Data& data);
+		static typename server::Body parse_body(const server::Data& data);
 	};
 
 	inline server::Request JsonRequestParser::operator()(const std::string& data) const {
@@ -54,11 +55,11 @@ namespace server_utl {
 		}
 	}
 
-	inline typename server::Request::Path JsonRequestParser::parse_path(const server::Data& data) {
+	inline typename server::Path JsonRequestParser::parse_path(const server::Data& data) {
 		using namespace server;
 		const char delim('/');
 		auto data_str(Data::cast<String>(data).get());
-		Request::Path path;
+		Path path;
 		auto start_iter(data_str.begin());
 		while (true) {
 			auto delim_iter(std::find(start_iter, data_str.end(), delim));
@@ -71,7 +72,7 @@ namespace server_utl {
 		return path;
 	}
 
-	inline typename server::Request::Body JsonRequestParser::parse_body(const server::Data& data) {
+	inline typename server::Body JsonRequestParser::parse_body(const server::Data& data) {
 		using namespace server;
 		return Data::cast<Object>(data);
 	}

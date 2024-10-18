@@ -13,6 +13,7 @@ target_link_libraries(
 	json_request_parser
 	json_data_serializer
 	data_lib
+	server_types
 	
 	gtest
 )

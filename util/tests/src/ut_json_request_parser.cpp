@@ -6,6 +6,7 @@
 #include "json_request_parser.hpp"
 #include "object.hpp"
 #include "request.hpp"
+#include "server_types.hpp"
 #include "string.hpp"
 
 using namespace server;
@@ -21,11 +22,11 @@ TEST(ut_json_request_parser, parse_sanity) {
 
 	// WHEN:
 	JsonRequestParser instance;
-	Request result(Request::Method::READ, {}, Request::Body());
+	Request result(Request::Method::READ, {}, Body());
 
 	// THEN:
 	ASSERT_NO_THROW(result = instance(test_data_serial));
 	ASSERT_EQ(Request::Method::CREATE, result.method());
-	ASSERT_EQ(Request::Path({"one", "two", "three"}), result.path());
+	ASSERT_EQ(Path({"one", "two", "three"}), result.path());
 
 }
