@@ -7,7 +7,10 @@ add_executable(
 target_link_libraries(
 	resources_vendor_tests
 	PRIVATE
+	data_lib
+    manager
+    request
     resources_vendor
-
+    response
 	gtest
 )

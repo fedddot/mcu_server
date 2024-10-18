@@ -1,11 +1,15 @@
-#include "gtest/gtest.h"
+#include <map>
 #include <memory>
 #include <stdexcept>
 
+#include "gtest/gtest.h"
+
+#include "manager.hpp"
 #include "object.hpp"
 #include "request.hpp"
-#include "string.hpp"
 #include "resources_vendor.hpp"
+#include "response.hpp"
+#include "string.hpp"
 
 using namespace server;
 using namespace vendor;
@@ -38,9 +42,6 @@ static Object retrieve_update_data(const Request& request) {
 }
 
 TEST(ut_resources_vendor, ctor_dtor_id_sanity) {
-	// GIVEN
-	const std::string test_vendor_id("test_vendor_id");
-	
 	// WHEN
 	std::unique_ptr<ResourcesVendor<ResourceId>> instance_ptr(nullptr);
 	
@@ -62,67 +63,119 @@ TEST(ut_resources_vendor, ctor_dtor_id_sanity) {
 	ASSERT_NO_THROW(instance_ptr = nullptr);
 }
 
-// TEST(ut_resources_vendor, register_resource_contains_resource_sanity) {
-// 	// GIVEN
-// 	const std::string test_vendor_id("test_vendor_id");
-// 	const std::string test_resource_id_1("test_resource_id_1");
-// 	const std::string test_resource_id_2("test_resource_id_2");
-// 	auto stub = [](const Request&) -> Response {
-// 		throw std::runtime_error("NOT_IMPLEMENTED");
-// 	};
-// 	const TestResource test_resource_1(stub);
-// 	const TestResource test_resource_2(stub);
+class TestManager: public ResourcesVendor<ResourceId>::ClonableManager {
+public:
+	TestManager() = default;
+	TestManager(const TestManager&) = default;
+	void create_resource(const ResourceId& id, const Object& create_config) override {
+		if (contains(id)) {
+			throw std::invalid_argument("already created");
+		}
+		m_resources_data.insert({id, create_config});
+	}
+
+	Object read_resource(const ResourceId& id) const override {
+		if (!contains(id)) {
+			throw std::invalid_argument("not found");
+		}
+		return m_resources_data.at(id);
+	}
+
+	Object read_all_resources() const override {
+		Object all_resources;
+		for (const auto& [key, val]: m_resources_data) {
+			all_resources.add(key, val);
+		}
+		return all_resources;
+	}
+
+	void update_resource(const ResourceId& id, const Object& update_config) override {
+		if (!contains(id)) {
+			throw std::invalid_argument("not found");
+		}
+		m_resources_data[id] = update_config;
+	}
 	
-// 	// WHEN
-// 	Vendor instance;
+	void delete_resource(const ResourceId& id) override {
+		if (!contains(id)) {
+			throw std::invalid_argument("not found");
+		}
+		auto iter = m_resources_data.find(id);
+		m_resources_data.erase(iter);
+	}
 
-// 	// THEN
-// 	ASSERT_FALSE(instance.contains_resource(test_resource_id_1));
-// 	ASSERT_NO_THROW(instance.register_resource(test_resource_id_1, test_resource_1));
-// 	ASSERT_TRUE(instance.contains_resource(test_resource_id_1));
+	bool contains(const ResourceId& id) const override {
+		return m_resources_data.end() != m_resources_data.find(id);
+	}
 
-// 	ASSERT_FALSE(instance.contains_resource(test_resource_id_2));
-// 	ASSERT_NO_THROW(instance.register_resource(test_resource_id_2, test_resource_2));
-// 	ASSERT_TRUE(instance.contains_resource(test_resource_id_2));
-// }
+	Manager<ResourceId> *clone() const override {
+		return new TestManager(*this);
+	}
+private:
+	std::map<ResourceId, Object> m_resources_data;
+};
 
-// TEST(ut_resources_vendor, run_request_sanity) {
-// 	// GIVEN
-// 	const std::string test_vendor_id("test_vendor_id");
+TEST(ut_resources_vendor, run_request_sanity) {
+	// GIVEN
+	using Path = typename Request::Path;
+	using Method = typename Request::Method;
+	using RequestBody = typename Request::Body;
 	
-// 	using ResponseCode = typename Response::ResponseCode;
-// 	const std::string test_resource_id_1("test_resource_id_1");
-// 	const auto test_response_code_1(ResponseCode::OK);
-	
-// 	const std::string test_resource_id_2("test_resource_id_2");
-// 	const auto test_response_code_2(ResponseCode::NOT_FOUND);
+	using ResponseCode = typename Response::ResponseCode;
+	using ResponseBody = typename Response::Body;
 
-// 	const TestResource test_resource_1(
-// 		[test_resource_id_1, test_response_code_1](const Request&) -> Response {
-// 			Response::Body data;
-// 			data.add("resourse_id", String(test_resource_id_1));
-// 			return Response(test_response_code_1, data);
-// 		}
-// 	);
-// 	const TestResource test_resource_2(
-// 		[test_resource_id_2, test_response_code_2](const Request&) -> Response {
-// 			Response::Body data;
-// 			data.add("resourse_id", String(test_resource_id_2));
-// 			return Response(test_response_code_2, data);
-// 		}
-// 	);
-// 	Request test_request_1(Request::Method::CREATE, {test_resource_id_1}, Request::Body());
-// 	Request test_request_2(Request::Method::READ, {test_resource_id_2}, Request::Body());
-	
-// 	// WHEN
-// 	Vendor instance;
-// 	instance.register_resource(test_resource_id_1, test_resource_1);
-// 	instance.register_resource(test_resource_id_2, test_resource_2);
-// 	std::unique_ptr<Response> response(nullptr);
+	const ResourceId manager_id("test_manager");
+	const ResourceId resourse_id("test_resource");
 
-// 	// THEN
-// 	ASSERT_NO_THROW(response = std::make_unique<Response>(instance.run_request(test_request_1)));
-// 	ASSERT_EQ(test_response_code_1, response->code());
-// 	ASSERT_NO_THROW(response = std::make_unique<Response>(instance.run_request(test_request_2)));
-// 	ASSERT_EQ(test_response_code_2, response->code());
-// }
+	const Path create_path { manager_id };
+	Object create_cfg;
+	create_cfg.add("param", String("val"));
+	RequestBody create_body;
+	create_body.add("id", String(resourse_id));
+	create_body.add("config", create_cfg);
+	const Request create_request(Method::CREATE, create_path, create_body);
+
+	const Path read_path {manager_id, resourse_id};
+	const Request read_request(Method::READ, read_path, RequestBody());
+
+	const Path update_path { manager_id, resourse_id };
+	Object update_cfg;
+	update_cfg.add("param", String("valval"));
+	RequestBody update_body;
+	update_body.add("config", update_cfg);
+	const Request update_request(Method::UPDATE, update_path, update_body);
+
+	const Path delete_path {manager_id, resourse_id};
+	const Request delete_request(Method::DELETE, read_path, RequestBody());
+
+
+	// WHEN
+	ResourcesVendor<ResourceId> instance(
+		retrieve_manager_id,
+		retrieve_resource_id,
+		retrieve_create_data,
+		retrieve_update_data
+	);
+	instance.add_manager(manager_id, TestManager());
+	Response response(ResponseCode::UNSPECIFIED, ResponseBody());
+
+	// THEN
+	ASSERT_NO_THROW(response = instance.run_request(create_request));
+	ASSERT_EQ(ResponseCode::OK, response.code());
+
+	ASSERT_NO_THROW(response = instance.run_request(read_request));
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_TRUE(response.body().contains("param"));
+	ASSERT_EQ(Data::cast<String>(create_cfg.access("param")).get(), Data::cast<String>(response.body().access("param")).get());
+
+	ASSERT_NO_THROW(response = instance.run_request(update_request));
+	ASSERT_EQ(ResponseCode::OK, response.code());
+
+	ASSERT_NO_THROW(response = instance.run_request(read_request));
+	ASSERT_EQ(ResponseCode::OK, response.code());
+	ASSERT_TRUE(response.body().contains("param"));
+	ASSERT_EQ(Data::cast<String>(update_cfg.access("param")).get(), Data::cast<String>(response.body().access("param")).get());
+
+	ASSERT_NO_THROW(response = instance.run_request(delete_request));
+	ASSERT_EQ(ResponseCode::OK, response.code());
+}
