@@ -13,7 +13,7 @@ namespace server {
 		virtual server::Object read_all_resources() const = 0;
 		virtual void update_resource(const Tresource_id& id, const server::Object& update_config) = 0;
 		virtual void delete_resource(const Tresource_id& id) = 0;
-		virtual bool contains() const = 0;
+		virtual bool contains(const Tresource_id& id) const = 0;
 	};
 }
 
