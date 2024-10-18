@@ -4,6 +4,7 @@
 
 #include "gpio.hpp"
 #include "gpio_manager.hpp"
+#include "gpo.hpp"
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
 #include "object.hpp"
@@ -58,15 +59,33 @@ TEST(ut_gpio_manager, crud_methods_sanity) {
 	create_body.add("id", String(id));
 	create_body.add("config", create_cfg);
 
+	Object update_cfg;
+	update_cfg.add("state", Integer(static_cast<int>(state)));
+	Body update_body;
+	update_body.add("config", update_cfg);
+
 	// WHEN
 	InMemoryInventory<ResourceId, Gpio> inventory;
 	GpioManager instance(&inventory, create_test_gpio);
+	Body response_body;
 
 	// THEN
+	// create
 	ASSERT_NO_THROW(instance.create_resource(create_body));
 	ASSERT_TRUE(inventory.contains(id));
 	ASSERT_EQ(dir, inventory.access(id).direction());
 
+	// read
+	ASSERT_NO_THROW(response_body = instance.read_resource({id}));
+	ASSERT_TRUE(response_body.contains("dir"));
+	ASSERT_EQ(dir, static_cast<Gpio::Direction>(Data::cast<Integer>(response_body.access("dir")).get()));
+	ASSERT_EQ(Gpio::State::LOW, static_cast<Gpio::State>(Data::cast<Integer>(response_body.access("state")).get()));
+
+	// update
+	ASSERT_NO_THROW(instance.update_resource({id}, update_body));
+	ASSERT_EQ(state, Gpio::cast<Gpo>(inventory.access(id)).state());	
+
+	// delete
 	ASSERT_NO_THROW(instance.delete_resource({id}));
 	ASSERT_FALSE(inventory.contains(id));
 }

@@ -65,8 +65,10 @@ namespace manager {
 		switch (gpio.direction()) {
 		case Gpio::Direction::IN:
 			response_body.add("state", Integer(static_cast<int>(Gpio::cast<Gpi>(gpio).state())));
+			break;
 		case Gpio::Direction::OUT:
 			response_body.add("state", Integer(static_cast<int>(Gpio::cast<Gpo>(gpio).state())));
+			break;
 		default:
 			throw ServerException(ResponseCode::UNSPECIFIED, "unsupported gpio direction");
 		}
