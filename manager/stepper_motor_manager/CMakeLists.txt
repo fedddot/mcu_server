@@ -7,9 +7,12 @@ target_link_libraries(
     stepper_motor_manager
     INTERFACE
     data_lib
-    inventory_manager
-    resource
+    gpio
     stepper_motor
+    inventory
+    manager
+    server_exception
+    server_types
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

@@ -15,14 +15,11 @@ namespace manager_uts {
 				throw std::invalid_argument("invalid action received");
 			}
 		}
-		TestStepperMotor(const TestStepperMotor&) = default;
+		TestStepperMotor(const TestStepperMotor&) = delete;
 		TestStepperMotor& operator=(const TestStepperMotor&) = delete;
 
 		void steps(const Direction& direction, const unsigned int steps_num, const unsigned int on_time, const unsigned int off_time) override {
 			m_action(direction, steps_num, on_time, off_time);
-		}
-		manager::StepperMotor *clone() const override {
-			return new TestStepperMotor(*this);
 		}
 	private:
 		StepsAction m_action;
