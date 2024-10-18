@@ -10,5 +10,5 @@ target_link_libraries(
 )
 
 add_subdirectory(gpio_manager)
-add_subdirectory(requests_manager)
+add_subdirectory(movement_manager)
 add_subdirectory(stepper_motor_manager)
