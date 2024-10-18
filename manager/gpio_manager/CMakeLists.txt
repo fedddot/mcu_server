@@ -15,12 +15,13 @@ target_link_libraries(
     gpio_manager
     INTERFACE
     data_lib
+    gpi
     gpio
+    gpo
     inventory
-    inventory_manager
-    request
-    resource
-    response
+    manager
+    server_exception
+    server_types
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
