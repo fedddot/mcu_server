@@ -1,23 +1,3 @@
-add_library(server_fixture INTERFACE)
-target_include_directories(server_fixture INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(
-	server_fixture
-	INTERFACE
-    custom_creator
-    data_lib
-    default_gpio_tasks_data_retriever
-    default_stepper_motor_tasks_data_retriever
-    factory
-    gpio
-    gpio_tasks_factory
-    inventory
-    server
-    stepper_motor
-    stepper_motor_tasks_factory
-    test_platform
-    gtest
-)
-
 add_executable(
 	server_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
@@ -29,10 +9,15 @@ target_link_libraries(
 	PRIVATE
     data_lib
     gpio
-    gpio_test_data_creator
+    gpio_manager
+    request
+    response
     server
-    server_fixture
-    stepper_motor_test_data_creator
-
+    test_ipc_connection
+    resources_vendor
+    test_gpi
+    test_gpo
+    vendor
+	
 	gtest
 )

@@ -1,252 +1,146 @@
-#include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
 
-#include "data.hpp"
 #include "gpio.hpp"
-#include "gpio_test_data_creator.hpp"
+#include "gpio_manager.hpp"
+#include "in_memory_inventory.hpp"
+#include "manager.hpp"
 #include "object.hpp"
+#include "test_gpi.hpp"
+#include "test_gpo.hpp"
+#include "integer.hpp"
+#include "resources_vendor.hpp"
+#include "response.hpp"
 #include "server.hpp"
-#include "server_fixture.hpp"
-#include "stepper_motor_test_data_creator.hpp"
+#include "server_types.hpp"
+#include "test_gpi.hpp"
+#include "test_ipc_connection.hpp"
 
 using namespace server;
-using namespace server_uts;
-using namespace mcu_platform;
-using namespace mcu_factory_uts;
+using namespace manager;
+using namespace manager_uts;
+using namespace ipc_uts;
+using namespace vendor;
 
-TEST_F(ServerFixture, ctor_dtor_sanity) {
-	// WHEN
-	Server *instance_ptr(nullptr);
+using TestServer = Server<std::string>;
+using TestConnection = TestIpcConnection<std::string>;
 
-	// THEN
-	ASSERT_NO_THROW(instance_ptr = new Server(factory(), fail_report_creator()));
-	ASSERT_NE(nullptr, instance_ptr);
-	ASSERT_NO_THROW(delete instance_ptr);
+TEST(ut_server, ctor_dtor_sanity) {
+    // GIVEN
+    const std::string test_id("test_server");
+    ResourcesVendor vendor;
+    TestConnection connection(
+        [](const Response&)-> void {
+            throw std::runtime_error("NOT IMPLEMENTED");
+        }
+    );
 
-	instance_ptr = nullptr;
+    // WHEN
+    std::unique_ptr<TestServer> instance_ptr(nullptr);
+
+    // THEN
+    ASSERT_NO_THROW(instance_ptr = std::unique_ptr<TestServer>(new TestServer(&connection, test_id, &vendor)));
+    ASSERT_NE(nullptr, instance_ptr);
+    
+    ASSERT_NO_THROW(instance_ptr = nullptr);
 }
 
-using CheckReportFunction = std::function<void(const Data&)>;
-inline static void run_sanity_tc(const std::string& title, Server *instance_ptr, const Data& test_data, const CheckReportFunction& report_checker) {
-	// WHEN
-	std::unique_ptr<Data> report_ptr(nullptr);
+class ClonableWrapper: public ResourcesVendor::ClonableManager {
+public:
+    ClonableWrapper(Manager *origin): m_manager(origin) {
+        if (!origin) {
+            throw std::invalid_argument("invalid origin ptr received");
+        }
+    }
+    ClonableWrapper(const ClonableWrapper&) = default;
+    ClonableWrapper& operator=(const ClonableWrapper&) = default;
+    
+    void create_resource(const Body& create_request_body) override {
+        m_manager->create_resource(create_request_body);
+    }
+    Body read_resource(const Path& route) const override {
+        return m_manager->read_resource(route);
+    }
+    Body read_all_resources() const override {
+        return m_manager->read_all_resources();
+    }
+    void update_resource(const Path& route, const Body& update_request_body) override {
+        m_manager->update_resource(route, update_request_body);
+    }
+    void delete_resource(const Path& route) override {
+        m_manager->delete_resource(route);
+    }
+    bool contains(const Path& route) const override {
+        return m_manager->contains(route);
+    }
+    Manager *clone() const override {
+        return new ClonableWrapper(*this);
+    }
+private:
+    std::shared_ptr<Manager> m_manager;
+};
 
-	// THEN
-	std::cout << "running TC: " << title << std::endl;
-	ASSERT_NO_THROW(report_ptr = std::unique_ptr<Data>(instance_ptr->run(test_data)));
-	ASSERT_NE(nullptr, report_ptr);
-	report_checker(*report_ptr);
-}
+TEST(ut_server, run_is_running_stop_sanity) {
+    // GIVEN
+    const std::string test_id("test_server");
+    InMemoryInventory<ResourceId, Gpio> gpio_inventory;
 
-TEST_F(ServerFixture, run_gpio_tasks_sanity) {
-	// GIVEN
-	auto check_report = [](const Data& data) {
-		ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
-	};
-	auto check_gpio_state_report = [check_report](const Data& data, const Gpio::State& expected_state) {
-		check_report(data);
-		ASSERT_EQ(expected_state, static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(data).access("gpio_state")).get()));
-	};
+    ResourcesVendor test_vendor;
+    test_vendor.add_manager(
+        "gpios",
+        ClonableWrapper(
+            new GpioManager(
+                &gpio_inventory,
+                [](const Body& data)-> Gpio * {
+                    auto dir = static_cast<Gpio::Direction>(Data::cast<Integer>(Data::cast<Object>(data).access("dir")).get());
+                    switch (dir) {
+                    case Gpio::Direction::IN:
+                        return new manager_uts::TestGpi();
+                    case Gpio::Direction::OUT:
+                        return new TestGpo();
+                    default:
+                        throw std::invalid_argument("invalid dir");
+                    }
+                }
+            )
+        )
+    );
+    TestConnection connection(
+        [](const Response& response)-> void {
+            std::cout << "server sends response, code = " << std::to_string(static_cast<int>(response.code())) << std::endl;
+            ASSERT_EQ(ResponseCode::OK, response.code());
+        }
+    );
 
-	const GpioId test_gpi_id(12);
-	const GpioId test_gpo_id(13);
-	
-	using TestCase = std::pair<std::string, std::pair<Object, CheckReportFunction>>;
-	using GpioDirection = typename Gpio::Direction;
-	using GpioState = typename Gpio::State;
+    Body create_gpio_body;
+    create_gpio_body.add("id", String("1"));
+    create_gpio_body.add("dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
+    Request create_gpio_request(Request::Method::CREATE, Path {"gpios"}, create_gpio_body);
 
-	const std::vector<TestCase> test_cases{
-		{
-			"gpi creation",
-			{
-				GpioTestDataCreator().create_gpio_data(test_gpi_id, GpioDirection::IN),
-				check_report
-			}
-		},
-		{
-			"gpo creation",
-			{
-				GpioTestDataCreator().create_gpio_data(test_gpo_id, GpioDirection::OUT),
-				check_report
-			}
-		},
-		{
-			"gpo set",
-			{
-				GpioTestDataCreator().set_gpio_data(test_gpo_id, GpioState::HIGH),
-				check_report
-			}
-		},
-		{
-			"gpo get",
-			{
-				GpioTestDataCreator().get_gpio_data(test_gpo_id),
-				[check_gpio_state_report](const Data& data) {
-					check_gpio_state_report(data, GpioState::HIGH);
-				}
-			}
-		},
-		{
-			"gpi get",
-			{
-				GpioTestDataCreator().get_gpio_data(test_gpi_id),
-				[check_gpio_state_report](const Data& data) {
-					check_gpio_state_report(data, GpioState::LOW);
-				}
-			}
-		},
-		{
-			"gpi deletion",
-			{
-				GpioTestDataCreator().delete_gpio_data(test_gpi_id),
-				check_report
-			}
-		},
-		{
-			"gpo deletion",
-			{
-				GpioTestDataCreator().delete_gpio_data(test_gpo_id),
-				check_report
-			}
-		}
-	};
-	Server instance(factory(), fail_report_creator());
+    Object update_config;
+    update_config.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
+    Body update_gpio_body;
+    update_gpio_body.add("config", update_config);
+    Request update_gpio_request(Request::Method::UPDATE, Path {"gpios", "1"}, update_gpio_body);
 
-	// THEN
-	for (const auto& [title, tc_data]: test_cases) {
-		run_sanity_tc(title, &instance, tc_data.first, tc_data.second);
-	}
-}
+    Request read_gpio_request(Request::Method::READ, Path {"gpios", "1"}, Body());
 
-TEST_F(ServerFixture, run_motor_tasks_sanity) {
-	// GIVEN
-	using GpioDirection = typename Gpio::Direction;
-	using GpioState = typename Gpio::State;
-	using TestCase = std::pair<std::string, std::pair<Object, CheckReportFunction>>;
+    Request delete_gpio_request(Request::Method::DELETE, Path {"gpios", "1"}, Body());
 
-	auto check_report = [](const Data& data) {
-		ASSERT_EQ(0, Data::cast<Integer>(Data::cast<Object>(data).access("result")).get());
-	};
+    // WHEN
+    TestServer instance(&connection, test_id, &test_vendor);
 
-	const States test_states {
-		State {
-			{Shoulder::IN0, GpioState::HIGH},
-			{Shoulder::IN1, GpioState::LOW},
-			{Shoulder::IN2, GpioState::LOW},
-			{Shoulder::IN3, GpioState::LOW}
-		},
-		State {
-			{Shoulder::IN0, GpioState::LOW},
-			{Shoulder::IN1, GpioState::LOW},
-			{Shoulder::IN2, GpioState::HIGH},
-			{Shoulder::IN3, GpioState::LOW}
-		}
-	};
-
-	const StepperId test_stepper_x(12);
-	const Shoulders stepper_x_shoulders {
-		{Shoulder::IN0, 0},
-		{Shoulder::IN1, 1},
-		{Shoulder::IN2, 2},
-		{Shoulder::IN3, 3}
-	};
-
-	const StepperId test_stepper_y(13);
-	const Shoulders stepper_y_shoulders {
-		{Shoulder::IN0, 4},
-		{Shoulder::IN1, 5},
-		{Shoulder::IN2, 6},
-		{Shoulder::IN3, 7}
-	};
-	
-
-	const std::vector<TestCase> test_cases {
-		{
-			"motor x creation",
-			{
-				StepperMotorTestDataCreator().create_data(test_stepper_x, stepper_x_shoulders, test_states),
-				check_report
-			}
-		},
-		{
-			"motor x steps",
-			{
-				StepperMotorTestDataCreator().steps_data(
-					Steps {
-						.stepper_id = test_stepper_x,
-						.direction = MotorDirection::CCW,
-						.steps_number = 100,
-						.step_duration_ms = 10
-					}
-				),
-				check_report
-			}
-		},
-		{
-			"motor y creation",
-			{
-				StepperMotorTestDataCreator().create_data(test_stepper_y, stepper_y_shoulders, test_states),
-				check_report
-			}
-		},
-		{
-			"motor y steps",
-			{
-				StepperMotorTestDataCreator().steps_data(
-					Steps {
-						.stepper_id = test_stepper_y,
-						.direction = MotorDirection::CW,
-						.steps_number = 50,
-						.step_duration_ms = 3
-					}
-				),
-				check_report
-			}
-		},
-		{
-			"steps sequence",
-			{
-				StepperMotorTestDataCreator().steps_sequence_data(
-					StepsSequence {
-						Steps {
-							.stepper_id = test_stepper_x,
-							.direction = MotorDirection::CCW,
-							.steps_number = 100,
-							.step_duration_ms = 10
-						},
-						Steps {
-							.stepper_id = test_stepper_y,
-							.direction = MotorDirection::CW,
-							.steps_number = 50,
-							.step_duration_ms = 3
-						}
-					}
-				),
-				check_report
-			}
-		},
-		{
-			"motor y deletion",
-			{
-				StepperMotorTestDataCreator().delete_data(test_stepper_y),
-				check_report
-			}
-		},
-		{
-			"motor x deletion",
-			{
-				StepperMotorTestDataCreator().delete_data(test_stepper_x),
-				check_report
-			}
-		}
-	};
-	Server instance(factory(), fail_report_creator());
-
-	// THEN
-	for (const auto& [title, tc_data]: test_cases) {
-		run_sanity_tc(title, &instance, tc_data.first, tc_data.second);
-	}
+    // THEN
+    ASSERT_FALSE(instance.is_running());
+    ASSERT_NO_THROW(instance.run());
+    ASSERT_TRUE(instance.is_running());
+    ASSERT_NO_THROW(connection.publish_request(create_gpio_request));
+    ASSERT_NO_THROW(connection.publish_request(update_gpio_request));
+    ASSERT_NO_THROW(connection.publish_request(read_gpio_request));
+	ASSERT_NO_THROW(connection.publish_request(delete_gpio_request));
+    ASSERT_NO_THROW(instance.stop());
+    ASSERT_FALSE(instance.is_running());
 }
