@@ -7,7 +7,8 @@
 #include "object.hpp"
 
 namespace server {
-	using Path = std::vector<std::string>;
+	using ResourceId = std::string;
+	using Path = std::vector<ResourceId>;
 	using Body = Object;
 	
 	enum class ResponseCode: int {
