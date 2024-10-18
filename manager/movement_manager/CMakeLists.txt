@@ -4,12 +4,12 @@ target_link_libraries(
     movement_manager
     INTERFACE
     data_lib
-    inventory
     stepper_motor
+    inventory
     manager
     server_exception
     server_types
-    movement
+    stepper_motor
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
