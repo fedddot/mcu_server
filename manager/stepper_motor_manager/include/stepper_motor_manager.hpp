@@ -79,10 +79,10 @@ namespace manager {
 			throw ServerException(ResponseCode::NOT_FOUND, "stepper_motor with specified id doesn't exist");
 		}
 		const auto& config(Data::cast<Object>(update_body.access("config")));
-		auto direction(static_cast<StepperMotor::Direction>(Data::cast<Integer>(config.access("dir")).get()));
-		auto steps_num(static_cast<unsigned int>(Data::cast<Integer>(config.access("steps_num")).get()));
-		auto on_time(static_cast<unsigned int>(Data::cast<Integer>(config.access("on_time")).get()));
-		auto off_time(static_cast<unsigned int>(Data::cast<Integer>(config.access("off_time")).get()));
+		const auto direction(static_cast<StepperMotor::Direction>(Data::cast<Integer>(config.access("dir")).get()));
+		const auto steps_num(static_cast<unsigned int>(Data::cast<Integer>(config.access("steps_num")).get()));
+		const auto on_time(static_cast<unsigned int>(Data::cast<Integer>(config.access("on_time")).get()));
+		const auto off_time(static_cast<unsigned int>(Data::cast<Integer>(config.access("off_time")).get()));
 		(m_stepper_motor_inventory->access(stepper_motor_id)).steps(direction, steps_num, on_time, off_time);
 	}
 	
