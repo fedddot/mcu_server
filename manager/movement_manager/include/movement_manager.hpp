@@ -5,21 +5,20 @@
 #include <stdexcept>
 #include <string>
 
-#include "array.hpp"
-#include "integer.hpp"
+#include "movement.hpp"
 #include "object.hpp"
-#include "stepper_motor.hpp"
 #include "inventory.hpp"
 #include "manager.hpp"
 #include "server_exception.hpp"
 #include "server_types.hpp"
-#include "stepper_motor.hpp"
 #include "string.hpp"
 
 namespace manager {
 	class MovementManager: public server::Manager {
 	public:
-		MovementManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory);
+		using MovementCreator = std::function<Movement *(const server::Body&)>;
+		using MovementReader = std::function<server::Body(const Movement&)>;
+		MovementManager(Inventory<server::ResourceId, Movement> *movement_inventory, const MovementCreator& movement_creator, const MovementReader& movement_reader);
 		MovementManager(const MovementManager& other) = delete;
 		MovementManager& operator=(const MovementManager&) = delete;
 
@@ -30,64 +29,78 @@ namespace manager {
 		void delete_resource(const server::Path& route) override;
 		bool contains(const server::Path& route) const override;
 	private:
-		Inventory<server::ResourceId, StepperMotor> *m_stepper_motor_inventory;
+		Inventory<server::ResourceId, Movement> *m_movement_inventory;
+		MovementCreator m_movement_creator;
+		MovementReader m_movement_reader;
 		void run_movement(const server::Object& movement_cfg);
+		static server::ResourceId get_id_from_route(const server::Path& route);
 	};
 	
-	inline MovementManager::MovementManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory): m_stepper_motor_inventory(stepper_motor_inventory) {
-		if (!m_stepper_motor_inventory) {
+	inline MovementManager::MovementManager(Inventory<server::ResourceId, Movement> *movement_inventory, const MovementCreator& movement_creator, const MovementReader& movement_reader): m_movement_inventory(movement_inventory), m_movement_creator(movement_creator), m_movement_reader(movement_reader) {
+		if (!m_movement_inventory) {
 			throw std::invalid_argument("invalid arguments received");
 		}
 	}
 	
 	inline void MovementManager::create_resource(const server::Body& create_request_body) {
 		using namespace server;
-		const auto& config(Data::cast<Object>(create_request_body.access("config")));
-		const auto& movements(Data::cast<Array>(config.access("movements")));
-		const auto repeats(static_cast<unsigned int>(Data::cast<Integer>(config.access("repeats")).get()));
-		for (auto i = 0; repeats > i; ++i) {
-			movements.for_each(
-				[this](int, const Data& movement_cfg) {
-					run_movement(Data::cast<Object>(movement_cfg));
-				}
-			);
+		auto id(static_cast<ResourceId>(Data::cast<String>(create_request_body.access("id")).get()));
+		if (m_movement_inventory->contains(id)) {
+			throw ServerException(ResponseCode::BAD_REQUEST, "movement with id " + id + " already exists");
 		}
+		m_movement_inventory->add(id, m_movement_creator(create_request_body));
 	}
 	
 	inline server::Body MovementManager::read_resource(const server::Path& route) const {
 		using namespace server;
-		throw ServerException(ResponseCode::METHOD_NOT_ALLOWED, "method not supported");
+		const auto movement_id(get_id_from_route(route));
+		if (!(m_movement_inventory->contains(movement_id))) {
+			throw ServerException(ResponseCode::NOT_FOUND, "movement with specified id doesn't exist");
+		}
+		const auto& movement(m_movement_inventory->access(movement_id));
+		return m_movement_reader(movement);
 	}
 
 	inline server::Body MovementManager::read_all_resources() const {
 		using namespace server;
-		throw ServerException(ResponseCode::METHOD_NOT_ALLOWED, "method not supported");
+		Body response_body;
+		for (const auto& id: m_movement_inventory->ids()) {
+			response_body.add(id, read_resource({id}));
+		}
+		return response_body;
 	}
 
 	inline void MovementManager::update_resource(const server::Path& route, const server::Body& update_body) {
 		using namespace server;
-		throw ServerException(ResponseCode::METHOD_NOT_ALLOWED, "method not supported");
+		const auto movement_id(get_id_from_route(route));
+		if (!(m_movement_inventory->contains(movement_id))) {
+			throw ServerException(ResponseCode::NOT_FOUND, "movement with specified id doesn't exist");
+		}
+		const auto& movement_config(update_body.access("config"));
+		(m_movement_inventory->access(movement_id)).perform(movement_config);
 	}
-	
+
 	inline void MovementManager::delete_resource(const server::Path& route) {
 		using namespace server;
-		throw ServerException(ResponseCode::METHOD_NOT_ALLOWED, "method not supported");
+		const auto movement_id(get_id_from_route(route));
+		if (!(m_movement_inventory->contains(movement_id))) {
+			throw ServerException(ResponseCode::NOT_FOUND, "movement with specified id doesn't exist");
+		}
+		std::unique_ptr<Movement> movement_ptr(m_movement_inventory->remove(movement_id));
+		movement_ptr = nullptr;
 	}
 
 	inline bool MovementManager::contains(const server::Path& route) const {
 		using namespace server;
-		throw ServerException(ResponseCode::METHOD_NOT_ALLOWED, "method not supported");
+		return m_movement_inventory->contains(get_id_from_route(route));
 	}
 
-	inline void MovementManager::run_movement(const server::Object& movement_cfg) {
+	inline server::ResourceId MovementManager::get_id_from_route(const server::Path& route) {
 		using namespace server;
-		const auto motor_id(static_cast<ResourceId>(Data::cast<String>(movement_cfg.access("motor_id")).get()));
-		const auto& steps_cfg(Data::cast<Object>(movement_cfg.access("steps_cfg")));
-		const auto direction(static_cast<StepperMotor::Direction>(Data::cast<Integer>(steps_cfg.access("dir")).get()));
-		const auto steps_num(static_cast<unsigned int>(Data::cast<Integer>(steps_cfg.access("steps_num")).get()));
-		const auto on_time(static_cast<unsigned int>(Data::cast<Integer>(steps_cfg.access("on_time")).get()));
-		const auto off_time(static_cast<unsigned int>(Data::cast<Integer>(steps_cfg.access("off_time")).get()));
-		(m_stepper_motor_inventory->access(motor_id)).steps(direction, steps_num, on_time, off_time);
+		if (1UL != route.size()) {
+			throw ServerException(ResponseCode::BAD_REQUEST, "bad route received");
+		}
+		return route[0];
 	}
 }
 
