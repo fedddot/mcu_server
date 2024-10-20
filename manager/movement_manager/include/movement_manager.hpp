@@ -5,10 +5,10 @@
 #include <stdexcept>
 #include <string>
 
-#include "movement.hpp"
-#include "object.hpp"
 #include "inventory.hpp"
 #include "manager.hpp"
+#include "movement.hpp"
+#include "object.hpp"
 #include "server_exception.hpp"
 #include "server_types.hpp"
 #include "string.hpp"

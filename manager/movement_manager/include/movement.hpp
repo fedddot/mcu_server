@@ -2,6 +2,7 @@
 #define	MOVEMENT_HPP
 
 #include "data.hpp"
+
 namespace manager {
 	class Movement {
 	public:
