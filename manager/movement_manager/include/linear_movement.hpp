@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <map>
+#include <stdexcept>
 
 #include "data.hpp"
 #include "integer.hpp"
@@ -17,7 +18,7 @@ namespace manager {
 	class LinearMovement: public Movement {
 	public:
 		using DelayFunction = std::function<void(const unsigned int)>;
-		LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory);
+		LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const bool inverse_direction);
 		void perform(const server::Data& cfg) override;
 	private:
 		Inventory<server::ResourceId, StepperMotor> *m_stepper_motor_inventory;
@@ -35,6 +36,18 @@ namespace manager {
 
 		void run_movement(const MovementVector& vector, const unsigned int steps_number, const unsigned int step_duration);
 	};
+
+	inline LinearMovement::LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const bool inverse_direction): m_stepper_motor_inventory(stepper_motor_inventory), m_delay(delay) {
+		if (!m_stepper_motor_inventory || !m_delay) {
+			throw std::invalid_argument("invalid arguments received");
+		}
+		m_backward_direction = StepperMotor::Direction::CCW;
+		m_backward_direction = StepperMotor::Direction::CW;
+		if (inverse_direction) {
+			m_backward_direction = StepperMotor::Direction::CW;
+			m_backward_direction = StepperMotor::Direction::CCW;
+		}
+	}
 
 	inline void LinearMovement::perform(const server::Data& cfg) {
 		using namespace server;
