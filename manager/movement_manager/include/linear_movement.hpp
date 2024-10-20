@@ -42,10 +42,10 @@ namespace manager {
 			throw std::invalid_argument("invalid arguments received");
 		}
 		m_backward_direction = StepperMotor::Direction::CCW;
-		m_backward_direction = StepperMotor::Direction::CW;
+		m_forward_direction = StepperMotor::Direction::CW;
 		if (inverse_direction) {
 			m_backward_direction = StepperMotor::Direction::CW;
-			m_backward_direction = StepperMotor::Direction::CCW;
+			m_forward_direction = StepperMotor::Direction::CCW;
 		}
 	}
 
