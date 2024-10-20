@@ -28,13 +28,12 @@ namespace manager {
 
 		using MovementVector = std::map<server::ResourceId, int>;
 		
-		static unsigned int retrieve_steps_number(const server::Object& config);
-		static unsigned int retrieve_step_duration(const server::Object& config);
+		static unsigned int retrieve_feed(const server::Object& config);
 		static MovementVector retrieve_coordinates(const server::Object& config);
 
-		void run_step(std::map<server::ResourceId, int> *current_coordinates, const MovementVector& vector, const unsigned int step_number, const unsigned int steps_number, const unsigned int step_duration);
-
-		void run_movement(const MovementVector& vector, const unsigned int steps_number, const unsigned int step_duration);
+		static MovementVector init_vector(const MovementVector& other);
+		static int principal_projection(const MovementVector& vector);
+		void run_movement(const MovementVector& vector, const unsigned int feed);
 	};
 
 	inline LinearMovement::LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const bool inverse_direction): m_stepper_motor_inventory(stepper_motor_inventory), m_delay(delay) {
@@ -54,21 +53,15 @@ namespace manager {
 		const auto& cfg_obj(Data::cast<server::Object>(cfg));
 		run_movement(
 			retrieve_coordinates(cfg_obj),
-			retrieve_steps_number(cfg_obj),
-			retrieve_step_duration(cfg_obj)
+			retrieve_feed(cfg_obj)
 		);
 	}
 
-	inline unsigned int LinearMovement::retrieve_steps_number(const server::Object& config) {
+	inline unsigned int LinearMovement::retrieve_feed(const server::Object& config) {
 		using namespace server;
-		return static_cast<unsigned int>(Data::cast<Integer>(config.access("steps_number")).get());
+		return static_cast<unsigned int>(Data::cast<Integer>(config.access("feed")).get());
 	}
 
-	inline unsigned int LinearMovement::retrieve_step_duration(const server::Object& config) {
-		using namespace server;
-		return static_cast<unsigned int>(Data::cast<Integer>(config.access("step_duration")).get());
-	}
-	
 	inline typename LinearMovement::MovementVector LinearMovement::retrieve_coordinates(const server::Object& config) {
 		using namespace server;
 		MovementVector result;
@@ -80,35 +73,51 @@ namespace manager {
 		return result;
 	}
 
-	inline void LinearMovement::run_step(std::map<server::ResourceId, int> *current_coordinates, const MovementVector& vector, const unsigned int step_number, const unsigned int steps_number, const unsigned int step_duration) {
-		if (0 == steps_number) {
-			throw server::ServerException(server::ResponseCode::BAD_REQUEST, "invalid steps number received");
+	inline typename LinearMovement::MovementVector LinearMovement::init_vector(const MovementVector& other) {
+		MovementVector result;
+		for (const auto& [axis, coordinate]: other) {
+			(void)coordinate;
+			result[axis] = 0;
 		}
-		for (const auto& [motor_id, steps_num]: vector) {
-			const auto model_coordinate = static_cast<int>(step_number) * vector.at(motor_id) / static_cast<int>(steps_number);
-			const auto current_coordinate = (*current_coordinates)[motor_id];
-			if (current_coordinate > model_coordinate) {
-				(m_stepper_motor_inventory->access(motor_id)).step(m_backward_direction);
-				--(*current_coordinates)[motor_id];
-				continue;
-			} else if (current_coordinate < model_coordinate) {
-				(m_stepper_motor_inventory->access(motor_id)).step(m_forward_direction);
-				++(*current_coordinates)[motor_id];
-				continue;
+		return result;
+	}
+	
+	inline int LinearMovement::principal_projection(const MovementVector& vector) {
+		int result(0);
+		for (const auto& [axis, coordinate]: vector) {
+			const auto projection(abs(coordinate));
+			if (projection > result) {
+				result = projection;
 			}
 		}
-		m_delay(step_duration);			
+		return result;
 	}
 
-	inline void LinearMovement::run_movement(const MovementVector& vector, const unsigned int steps_number, const unsigned int step_duration) {
-		std::map<server::ResourceId, int> current_coordinates;
-		for (const auto& [motor_id, steps_num]: vector) {
-			(void)steps_num;
-			(m_stepper_motor_inventory->access(motor_id)).enable();
-			current_coordinates[motor_id] = 0;
+	inline void LinearMovement::run_movement(const MovementVector& vector, const unsigned int feed) {
+		if (feed == 0) {
+			throw server::ServerException(server::ResponseCode::BAD_REQUEST, "invalid feed received");
 		}
-		for (auto step_number = 0; step_number < steps_number; ++step_number) {
-			run_step(&current_coordinates, vector, step_number, steps_number, step_duration);
+		const auto principal_length(principal_projection(vector));
+		if (0 == principal_length) {
+			return;
+		}
+		auto position(init_vector(vector));
+		auto step_duration = 1/feed/principal_length;
+		for (auto step_number = 0; step_number < principal_length; ++step_number) {
+			for (const auto& [axis, coordinate]: vector) {
+				const auto model_coordinate = step_number * vector.at(axis) / principal_length;
+				const auto current_coordinate = position[axis];
+				if (current_coordinate > model_coordinate) {
+					(m_stepper_motor_inventory->access(axis)).step(m_backward_direction);
+					--position[axis];
+					continue;
+				} else if (current_coordinate < model_coordinate) {
+					(m_stepper_motor_inventory->access(axis)).step(m_forward_direction);
+					++position[axis];
+					continue;
+				}
+			}
+			m_delay(step_duration);	
 		}
 		for (const auto& [motor_id, steps_num]: vector) {
 			(void)steps_num;
