@@ -50,7 +50,7 @@ TEST(ut_linear_movement, perform_sanity) {
 	steps.add("motor_z", Integer(14));
 
 	Object config;
-	config.add("feed", Integer(500));
+	config.add("step_duration", Integer(10));
 	config.add("steps", steps);
 
 	const bool inverse_direction(false);

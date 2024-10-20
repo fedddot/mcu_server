@@ -28,12 +28,12 @@ namespace manager {
 
 		using MovementVector = std::map<server::ResourceId, int>;
 		
-		static unsigned int retrieve_feed(const server::Object& config);
+		static unsigned int retrieve_step_duration(const server::Object& config);
 		static MovementVector retrieve_coordinates(const server::Object& config);
 
 		static MovementVector init_vector(const MovementVector& other);
 		static int principal_projection(const MovementVector& vector);
-		void run_movement(const MovementVector& vector, const unsigned int feed);
+		void run_movement(const MovementVector& vector, const unsigned int step_duration);
 	};
 
 	inline LinearMovement::LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const bool inverse_direction): m_stepper_motor_inventory(stepper_motor_inventory), m_delay(delay) {
@@ -53,13 +53,13 @@ namespace manager {
 		const auto& cfg_obj(Data::cast<server::Object>(cfg));
 		run_movement(
 			retrieve_coordinates(cfg_obj),
-			retrieve_feed(cfg_obj)
+			retrieve_step_duration(cfg_obj)
 		);
 	}
 
-	inline unsigned int LinearMovement::retrieve_feed(const server::Object& config) {
+	inline unsigned int LinearMovement::retrieve_step_duration(const server::Object& config) {
 		using namespace server;
-		return static_cast<unsigned int>(Data::cast<Integer>(config.access("feed")).get());
+		return static_cast<unsigned int>(Data::cast<Integer>(config.access("step_duration")).get());
 	}
 
 	inline typename LinearMovement::MovementVector LinearMovement::retrieve_coordinates(const server::Object& config) {
@@ -93,16 +93,15 @@ namespace manager {
 		return result;
 	}
 
-	inline void LinearMovement::run_movement(const MovementVector& vector, const unsigned int feed) {
-		if (feed == 0) {
-			throw server::ServerException(server::ResponseCode::BAD_REQUEST, "invalid feed received");
+	inline void LinearMovement::run_movement(const MovementVector& vector, const unsigned int step_duration) {
+		if (step_duration == 0) {
+			throw server::ServerException(server::ResponseCode::BAD_REQUEST, "invalid step_duration received");
 		}
 		const auto principal_length(principal_projection(vector));
 		if (0 == principal_length) {
 			return;
 		}
 		auto position(init_vector(vector));
-		auto step_duration = 1/feed/principal_length;
 		for (auto step_number = 0; step_number < principal_length; ++step_number) {
 			for (const auto& [axis, coordinate]: vector) {
 				const auto model_coordinate = step_number * vector.at(axis) / principal_length;
