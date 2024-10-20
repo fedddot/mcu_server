@@ -9,7 +9,10 @@ namespace manager {
 			CCW
 		};
 		virtual ~StepperMotor() noexcept = default;
-		virtual void steps(const Direction& direction, const unsigned int steps_num, const unsigned int on_time, const unsigned int off_time) = 0;
+		virtual void enable() = 0;
+		virtual void disable() = 0;
+		virtual bool enabled() const = 0;
+		virtual void step(const Direction& direction) = 0;
 	};
 }
 

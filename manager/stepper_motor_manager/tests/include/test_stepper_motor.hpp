@@ -9,8 +9,8 @@
 namespace manager_uts {
 	class TestStepperMotor: public manager::StepperMotor {
 	public:
-		using StepsAction = std::function<void(const Direction&, unsigned int, unsigned int, unsigned int)>;
-		TestStepperMotor(const StepsAction& action): m_action(action) {
+		using StepAction = std::function<void(const Direction&)>;
+		TestStepperMotor(const StepAction& action): m_action(action), m_enabled(false) {
 			if (!m_action) {
 				throw std::invalid_argument("invalid action received");
 			}
@@ -18,11 +18,21 @@ namespace manager_uts {
 		TestStepperMotor(const TestStepperMotor&) = delete;
 		TestStepperMotor& operator=(const TestStepperMotor&) = delete;
 
-		void steps(const Direction& direction, const unsigned int steps_num, const unsigned int on_time, const unsigned int off_time) override {
-			m_action(direction, steps_num, on_time, off_time);
+		void enable() override {
+			m_enabled = true;
+		}
+		virtual void disable() override {
+			m_enabled = false;
+		}
+		virtual bool enabled() const override {
+			return m_enabled;
+		}
+		virtual void step(const Direction& direction) override {
+			m_action(direction);
 		}
 	private:
-		StepsAction m_action;
+		StepAction m_action;
+		bool m_enabled;
 	};
 }
 

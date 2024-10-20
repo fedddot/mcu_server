@@ -3,6 +3,7 @@
 
 #include "gtest/gtest.h"
 
+#include "data.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_manager.hpp"
 #include "in_memory_inventory.hpp"
@@ -22,6 +23,10 @@ static Body read_stepper_motor(const StepperMotor& motor) {
 	return Body();
 }
 
+static void write_stepper_motor(StepperMotor *motor, const Data& config) {
+	
+}
+
 TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 	// GIVEN
 	InMemoryInventory<ResourceId, StepperMotor> inventory;
@@ -32,7 +37,7 @@ TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 	
 	// THEN
 	// ctor
-	ASSERT_NO_THROW(instance_ptr = StepperMotorManagerUnqPtr(new StepperMotorManager(&inventory, create_test_stepper_motor, read_stepper_motor)));
+	ASSERT_NO_THROW(instance_ptr = StepperMotorManagerUnqPtr(new StepperMotorManager(&inventory, create_test_stepper_motor, read_stepper_motor, write_stepper_motor)));
 	ASSERT_NE(nullptr, instance_ptr);
 
 	// dtor
@@ -42,9 +47,6 @@ TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 TEST(ut_stepper_motor_manager, crud_methods_sanity) {
 	// GIVEN
 	const auto expected_direction(StepperMotor::Direction::CCW);
-	const unsigned int expected_steps_num(120);
-	const unsigned int expected_on_time(20);
-	const unsigned int expected_off_time(30);
 	const ResourceId id("test_motor");
 
 	Body create_body;
@@ -53,17 +55,11 @@ TEST(ut_stepper_motor_manager, crud_methods_sanity) {
 
 	Object update_cfg;
 	update_cfg.add("dir", Integer(static_cast<int>(expected_direction)));
-	update_cfg.add("steps_num", Integer(expected_steps_num));
-	update_cfg.add("on_time", Integer(expected_on_time));
-	update_cfg.add("off_time", Integer(expected_off_time));
 	Body update_body;
 	update_body.add("config", update_cfg);
 
-	auto steps_action = [expected_direction, expected_steps_num, expected_on_time, expected_off_time](const StepperMotor::Direction& direction, const unsigned int steps_num, const unsigned int on_time, const unsigned int off_time) {
+	auto steps_action = [expected_direction](const StepperMotor::Direction& direction) {
 		ASSERT_EQ(expected_direction, direction);
-		ASSERT_EQ(expected_steps_num, steps_num);
-		ASSERT_EQ(expected_on_time, on_time);
-		ASSERT_EQ(expected_off_time, off_time);
 	};
 	auto creator = [steps_action](const Body& request_body) {
 		(void)request_body;
@@ -72,7 +68,7 @@ TEST(ut_stepper_motor_manager, crud_methods_sanity) {
 
 	// WHEN
 	InMemoryInventory<ResourceId, StepperMotor> inventory;
-	StepperMotorManager instance(&inventory, creator, read_stepper_motor);
+	StepperMotorManager instance(&inventory, creator, read_stepper_motor, write_stepper_motor);
 	Body response_body;
 
 	// THEN

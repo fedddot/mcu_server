@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "integer.hpp"
 #include "object.hpp"
 #include "stepper_motor.hpp"
 #include "inventory.hpp"
@@ -21,7 +20,9 @@ namespace manager {
 	public:
 		using StepperMotorCreator = std::function<StepperMotor *(const server::Body&)>;
 		using StepperMotorReader = std::function<server::Body(const StepperMotor&)>;
-		StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const StepperMotorCreator& stepper_motor_creator, const StepperMotorReader& stepper_motor_reader);
+		using StepperMotorWriter = std::function<void(StepperMotor *, const server::Object&)>;
+		
+		StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const StepperMotorCreator& stepper_motor_creator, const StepperMotorReader& stepper_motor_reader, const StepperMotorWriter& stepper_motor_writer);
 		StepperMotorManager(const StepperMotorManager& other) = delete;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 
@@ -35,22 +36,35 @@ namespace manager {
 		Inventory<server::ResourceId, StepperMotor> *m_stepper_motor_inventory;
 		StepperMotorCreator m_stepper_motor_creator;
 		StepperMotorReader m_stepper_motor_reader;
+		StepperMotorWriter m_stepper_motor_writer;
 		static server::ResourceId get_id_from_route(const server::Path& route);
+		static server::ResourceId get_id_from_body(const server::Body& body);
+		static server::Object get_config_from_body(const server::Body& body);
 	};
 	
-	inline StepperMotorManager::StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const StepperMotorCreator& stepper_motor_creator, const StepperMotorReader& stepper_motor_reader): m_stepper_motor_inventory(stepper_motor_inventory), m_stepper_motor_creator(stepper_motor_creator), m_stepper_motor_reader(stepper_motor_reader) {
-		if (!m_stepper_motor_inventory || !m_stepper_motor_creator || !m_stepper_motor_reader) {
+	inline StepperMotorManager::StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const StepperMotorCreator& stepper_motor_creator, const StepperMotorReader& stepper_motor_reader, const StepperMotorWriter& stepper_motor_writer): m_stepper_motor_inventory(stepper_motor_inventory), m_stepper_motor_creator(stepper_motor_creator), m_stepper_motor_reader(stepper_motor_reader), m_stepper_motor_writer(stepper_motor_writer) {
+		if (!m_stepper_motor_inventory || !m_stepper_motor_creator || !m_stepper_motor_reader || !m_stepper_motor_writer) {
 			throw std::invalid_argument("invalid arguments received");
 		}
+	}
+
+	inline server::ResourceId StepperMotorManager::get_id_from_body(const server::Body& body) {
+		using namespace server;
+		return static_cast<ResourceId>(Data::cast<String>(body.access("id")).get());
+	}
+
+	inline server::Object StepperMotorManager::get_config_from_body(const server::Body& body) {
+		using namespace server;
+		return Data::cast<Object>(body.access("config"));
 	}
 	
 	inline void StepperMotorManager::create_resource(const server::Body& create_request_body) {
 		using namespace server;
-		auto id(static_cast<ResourceId>(Data::cast<String>(create_request_body.access("id")).get()));
+		const auto id(get_id_from_body(create_request_body));
 		if (m_stepper_motor_inventory->contains(id)) {
 			throw ServerException(ResponseCode::BAD_REQUEST, "stepper_motor with id " + id + " already exists");
 		}
-		m_stepper_motor_inventory->add(id, m_stepper_motor_creator(create_request_body));
+		m_stepper_motor_inventory->add(id, m_stepper_motor_creator(get_config_from_body(create_request_body)));
 	}
 	
 	inline server::Body StepperMotorManager::read_resource(const server::Path& route) const {
@@ -59,8 +73,8 @@ namespace manager {
 		if (!(m_stepper_motor_inventory->contains(stepper_motor_id))) {
 			throw ServerException(ResponseCode::NOT_FOUND, "stepper_motor with specified id doesn't exist");
 		}
-		const auto& gpio(m_stepper_motor_inventory->access(stepper_motor_id));
-		return m_stepper_motor_reader(gpio);
+		const auto& stepper(m_stepper_motor_inventory->access(stepper_motor_id));
+		return m_stepper_motor_reader(stepper);
 	}
 
 	inline server::Body StepperMotorManager::read_all_resources() const {
@@ -78,12 +92,7 @@ namespace manager {
 		if (!(m_stepper_motor_inventory->contains(stepper_motor_id))) {
 			throw ServerException(ResponseCode::NOT_FOUND, "stepper_motor with specified id doesn't exist");
 		}
-		const auto& config(Data::cast<Object>(update_body.access("config")));
-		const auto direction(static_cast<StepperMotor::Direction>(Data::cast<Integer>(config.access("dir")).get()));
-		const auto steps_num(static_cast<unsigned int>(Data::cast<Integer>(config.access("steps_num")).get()));
-		const auto on_time(static_cast<unsigned int>(Data::cast<Integer>(config.access("on_time")).get()));
-		const auto off_time(static_cast<unsigned int>(Data::cast<Integer>(config.access("off_time")).get()));
-		(m_stepper_motor_inventory->access(stepper_motor_id)).steps(direction, steps_num, on_time, off_time);
+		m_stepper_motor_writer(&(m_stepper_motor_inventory->access(stepper_motor_id)), get_config_from_body(update_body));
 	}
 	
 	inline void StepperMotorManager::delete_resource(const server::Path& route) {
