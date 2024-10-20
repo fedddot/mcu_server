@@ -1,16 +1,16 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-
-#include "gtest/gtest.h"
 #include <string>
 
-#include "integer.hpp"
-#include "object.hpp"
-#include "stepper_motor.hpp"
-#include "linear_movement.hpp"
+#include "gtest/gtest.h"
+
 #include "in_memory_inventory.hpp"
+#include "integer.hpp"
+#include "linear_movement.hpp"
+#include "object.hpp"
 #include "server_types.hpp"
+#include "stepper_motor.hpp"
 #include "test_stepper_motor.hpp"
 
 using namespace server;
