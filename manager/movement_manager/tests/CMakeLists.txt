@@ -17,6 +17,8 @@ target_link_libraries(
     movement
     movement_manager
     server_types
+    stepper_motor
     test_movement
+    test_stepper_motor
     gtest
 )
