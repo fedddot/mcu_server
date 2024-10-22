@@ -5,6 +5,7 @@
 
 #include "gtest/gtest.h"
 
+#include "array.hpp"
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
 #include "linear_movement.hpp"
@@ -44,10 +45,17 @@ TEST(ut_linear_movement, ctor_dtor_sanity) {
 
 TEST(ut_linear_movement, perform_sanity) {
 	// GIVEN
-	Object steps;
-	steps.add("motor_x", Integer(-120));
-	steps.add("motor_y", Integer(13));
-	steps.add("motor_z", Integer(14));
+	Object steps1;
+	steps1.add("motor_x", Integer(-120));
+	steps1.add("motor_y", Integer(13));
+	steps1.add("motor_z", Integer(14));
+	Object steps2;
+	steps2.add("motor_x", Integer(+120));
+	steps2.add("motor_y", Integer(-13));
+	steps2.add("motor_z", Integer(-14));
+	Array steps;
+	steps.push_back(steps1);
+	steps.push_back(steps2);
 
 	Object config;
 	config.add("step_duration", Integer(10));
@@ -60,7 +68,7 @@ TEST(ut_linear_movement, perform_sanity) {
 
 	// WHEN
 	InMemoryInventory<ResourceId, StepperMotor> inventory;
-	steps.for_each(
+	Data::cast<Object>(steps.access(0)).for_each(
 		[&inventory](const std::string& motor_id, const Data&) {
 			inventory.add(
 				motor_id,

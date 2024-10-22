@@ -4,7 +4,9 @@
 #include <functional>
 #include <map>
 #include <stdexcept>
+#include <vector>
 
+#include "array.hpp"
 #include "data.hpp"
 #include "integer.hpp"
 #include "inventory.hpp"
@@ -27,9 +29,10 @@ namespace manager {
 		StepperMotor::Direction m_backward_direction;
 
 		using MovementVector = std::map<server::ResourceId, int>;
+		using MovementVectors = std::vector<MovementVector>;
 		
 		static unsigned int retrieve_step_duration(const server::Object& config);
-		static MovementVector retrieve_coordinates(const server::Object& config);
+		static MovementVectors retrieve_vectors(const server::Object& config);
 
 		static MovementVector init_vector(const MovementVector& other);
 		static int principal_projection(const MovementVector& vector);
@@ -51,10 +54,11 @@ namespace manager {
 	inline void LinearMovement::perform(const server::Data& cfg) {
 		using namespace server;
 		const auto& cfg_obj(Data::cast<server::Object>(cfg));
-		run_movement(
-			retrieve_coordinates(cfg_obj),
-			retrieve_step_duration(cfg_obj)
-		);
+		const auto movement_vectors(retrieve_vectors(cfg_obj));
+		const auto step_duration(retrieve_step_duration(cfg_obj));
+		for (const auto& vector: movement_vectors) {
+			run_movement(vector, step_duration);
+		}
 	}
 
 	inline unsigned int LinearMovement::retrieve_step_duration(const server::Object& config) {
@@ -62,12 +66,18 @@ namespace manager {
 		return static_cast<unsigned int>(Data::cast<Integer>(config.access("step_duration")).get());
 	}
 
-	inline typename LinearMovement::MovementVector LinearMovement::retrieve_coordinates(const server::Object& config) {
+	inline typename LinearMovement::MovementVectors LinearMovement::retrieve_vectors(const server::Object& config) {
 		using namespace server;
-		MovementVector result;
-		Data::cast<Object>(config.access("steps")).for_each(
-			[&result](const std::string& motor_id, const Data& steps_num) {
-				result.insert({ResourceId(motor_id), Data::cast<Integer>(steps_num).get()});
+		MovementVectors result;
+		Data::cast<Array>(config.access("steps")).for_each(
+			[&result](int, const Data& steps_data) {
+				MovementVector vector;
+				Data::cast<Object>(steps_data).for_each(
+					[&vector](const std::string& motor_id, const Data& steps_num) {
+						vector.insert({ResourceId(motor_id), Data::cast<Integer>(steps_num).get()});
+					}
+				);
+				result.push_back(vector);
 			}
 		);
 		return result;
