@@ -1,11 +1,13 @@
 #ifndef	RESOURCES_VENDOR_HPP
 #define	RESOURCES_VENDOR_HPP
 
+#include <exception>
 #include <stdexcept>
 #include <string>
 
-#include "array.hpp"
+#include "data.hpp"
 #include "manager.hpp"
+#include "object.hpp"
 #include "request.hpp"
 #include "response.hpp"
 #include "server_exception.hpp"
@@ -36,17 +38,27 @@ namespace vendor {
 		server::Response run_read(server::Manager *manager, const server::Path& route) const;
 		server::Response run_update(server::Manager *manager, const server::Path& route, const server::Body& request_body) const;
 		server::Response run_delete(server::Manager *manager, const server::Path& route) const;
+
+		static server::ResourceId retrieve_manager_id_from_path(const server::Path& route);
 	};
 	
+	inline server::ResourceId ResourcesVendor::retrieve_manager_id_from_path(const server::Path& route) {
+		using namespace server;
+		if (1UL > route.size()) {
+			throw ServerException(ResponseCode::NOT_FOUND, "failed to retrieve manager id from path");
+		}
+		return route[0];
+	}
+
 	inline server::Response ResourcesVendor::run_request(const server::Request& request) const {
 		using namespace server;
 		if (Request::Method::READ == request.method() && request.path().empty()) {
 			return report_managers();
 		}
-		const auto manager_id(request.path()[0]);
+		const auto manager_id(retrieve_manager_id_from_path(request.path()));
 		const auto iter = m_managers.find(manager_id);
 		if (m_managers.end() == iter) {
-			throw ServerException(ResponseCode::NOT_FOUND, "manager not found");
+			throw ServerException(ResponseCode::NOT_FOUND, "manager " + manager_id + " not registered");
 		}
 		auto manager_ptr((iter->second).get());
 		const auto vendor_route(request.path());
@@ -75,25 +87,30 @@ namespace vendor {
 
 	inline server::Response ResourcesVendor::report_managers() const {
 		using namespace server;
-		Array managers_ids;
+		Object managers;
 		for (const auto& [id, manager_ptr]: m_managers) {
-			(void)manager_ptr;
-			managers_ids.push_back(String(id));
+			managers.add(id, manager_ptr->read_all_resources());
 		}
-		Body managers_body;
-		managers_body.add("managers", managers_ids);
-		return Response(ResponseCode::OK, managers_body);
+		return Response(ResponseCode::OK, Body(managers));
 	}
 	
 	inline server::Response ResourcesVendor::run_create(server::Manager *manager, const server::Body& request_body) const {
 		using namespace server;
-		manager->create_resource(request_body);
+		ResourceId resource_id("");
+		Object create_cfg;
+		try {
+			resource_id = static_cast<ResourceId>(Data::cast<String>(request_body.access("id")).get());
+			create_cfg = Data::cast<Object>(request_body.access("config"));
+		} catch (const std::exception& e) {
+			throw ServerException(ResponseCode::BAD_REQUEST, "failed to retrieve resource id or config fields crom create request: " + std::string(e.what()));
+		}
+		manager->create_resource(resource_id, create_cfg);
 		return Response(ResponseCode::OK, Body());
 	}
 
 	inline server::Response ResourcesVendor::run_read(server::Manager *manager, const server::Path& route) const {
 		using namespace server;
-		return Response(ResponseCode::OK, manager->read_resource(route));
+		return Response(ResponseCode::OK, Body(manager->read_resource(route)));
 	}
 	
 	inline server::Response ResourcesVendor::run_update(server::Manager *manager, const server::Path& route, const server::Body& request_body) const {
