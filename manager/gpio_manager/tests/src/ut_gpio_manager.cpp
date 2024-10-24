@@ -2,6 +2,7 @@
 
 #include "gtest/gtest.h"
 
+#include "data.hpp"
 #include "gpio.hpp"
 #include "gpio_manager.hpp"
 #include "gpo.hpp"
@@ -17,8 +18,8 @@ using namespace server;
 using namespace manager;
 using namespace manager_uts;
 
-static Gpio *create_test_gpio(const Body& request_body) {
-	const auto direction(static_cast<Gpio::Direction>(Data::cast<Integer>(Data::cast<Object>(request_body.access("config")).access("dir")).get()));
+static Gpio *create_test_gpio(const Data& create_cfg) {
+	const auto direction(static_cast<Gpio::Direction>(Data::cast<Integer>(Data::cast<Object>(create_cfg).access("dir")).get()));
 	switch (direction) {
 	case Gpio::Direction::IN:
 		return new TestGpi();
@@ -55,14 +56,8 @@ TEST(ut_gpio_manager, crud_methods_sanity) {
 	Object create_cfg;
 	create_cfg.add("dir", Integer(static_cast<int>(dir)));
 	
-	Body create_body;
-	create_body.add("id", String(id));
-	create_body.add("config", create_cfg);
-
 	Object update_cfg;
 	update_cfg.add("state", Integer(static_cast<int>(state)));
-	Body update_body;
-	update_body.add("config", update_cfg);
 
 	// WHEN
 	InMemoryInventory<ResourceId, Gpio> inventory;
@@ -71,18 +66,18 @@ TEST(ut_gpio_manager, crud_methods_sanity) {
 
 	// THEN
 	// create
-	ASSERT_NO_THROW(instance.create_resource(create_body));
+	ASSERT_NO_THROW(instance.create_resource(id, create_cfg));
 	ASSERT_TRUE(inventory.contains(id));
 	ASSERT_EQ(dir, inventory.access(id).direction());
 
 	// read
 	ASSERT_NO_THROW(response_body = instance.read_resource({id}));
-	ASSERT_TRUE(response_body.contains("dir"));
-	ASSERT_EQ(dir, static_cast<Gpio::Direction>(Data::cast<Integer>(response_body.access("dir")).get()));
+	ASSERT_TRUE(response_body.contains("direction"));
+	ASSERT_EQ(dir, static_cast<Gpio::Direction>(Data::cast<Integer>(response_body.access("direction")).get()));
 	ASSERT_EQ(Gpio::State::LOW, static_cast<Gpio::State>(Data::cast<Integer>(response_body.access("state")).get()));
 
 	// update
-	ASSERT_NO_THROW(instance.update_resource({id}, update_body));
+	ASSERT_NO_THROW(instance.update_resource({id}, update_cfg));
 	ASSERT_EQ(state, Gpio::cast<Gpo>(inventory.access(id)).state());	
 
 	// delete
