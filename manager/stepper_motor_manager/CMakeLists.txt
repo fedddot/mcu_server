@@ -9,10 +9,9 @@ target_link_libraries(
     data_lib
     stepper_motor
     inventory
-    manager
+    inventory_manager
     server_exception
     server_types
-    stepper_motor
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
