@@ -9,7 +9,7 @@ namespace server {
 	class Manager {
 	public:
 		virtual ~Manager() noexcept = default;
-		virtual void create_resource(const Data& create_cfg) = 0;
+		virtual void create_resource(const ResourceId& id, const Data& create_cfg) = 0;
 		virtual Object read_resource(const Path& route) const = 0;
 		virtual Object read_all_resources() const = 0;
 		virtual void update_resource(const Path& route, const Data& update_cfg) = 0;
