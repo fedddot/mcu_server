@@ -144,7 +144,7 @@ namespace manager {
 		};
 		for (auto step_number = 0; step_number < principal_length; ++step_number) {
 			for (const auto& [axis, coordinate]: vector) {
-				const auto model_coordinate = step_number * vector.at(axis) / principal_length;
+				const auto model_coordinate = static_cast<long>(step_number) * vector.at(axis) / static_cast<long>(principal_length);
 				const auto current_coordinate = position[axis];
 				if (current_coordinate > model_coordinate) {
 					(m_stepper_motor_inventory->access(m_axes_assignment.at(axis))).step(m_backward_direction);
