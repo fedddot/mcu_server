@@ -4,6 +4,7 @@
 
 #include "gtest/gtest.h"
 
+#include "data.hpp"
 #include "gpio.hpp"
 #include "gpio_manager.hpp"
 #include "in_memory_inventory.hpp"
@@ -58,17 +59,17 @@ public:
     ClonableWrapper(const ClonableWrapper&) = default;
     ClonableWrapper& operator=(const ClonableWrapper&) = default;
     
-    void create_resource(const Body& create_request_body) override {
-        m_manager->create_resource(create_request_body);
+    void create_resource(const ResourceId& id, const Data& create_cfg) override {
+        m_manager->create_resource(id, create_cfg);
     }
-    Body read_resource(const Path& route) const override {
+    Object read_resource(const Path& route) const override {
         return m_manager->read_resource(route);
     }
-    Body read_all_resources() const override {
+    Object read_all_resources() const override {
         return m_manager->read_all_resources();
     }
-    void update_resource(const Path& route, const Body& update_request_body) override {
-        m_manager->update_resource(route, update_request_body);
+    void update_resource(const Path& route, const Data& update_cfg) override {
+        m_manager->update_resource(route, update_cfg);
     }
     void delete_resource(const Path& route) override {
         m_manager->delete_resource(route);

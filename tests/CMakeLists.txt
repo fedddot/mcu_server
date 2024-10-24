@@ -14,6 +14,7 @@ target_link_libraries(
     response
     server
     test_ipc_connection
+    in_memory_inventory
     resources_vendor
     test_gpi
     test_gpo
