@@ -40,7 +40,7 @@ namespace manager {
 		const auto update_type(Data::cast<String>(update_cfg_obj.access("type")).get());
 		if ("update_enable_status" == update_type) {
 			const auto enable_status(Data::cast<Integer>(update_cfg_obj.access("enable")).get());
-			if (!enable_status) {
+			if (enable_status) {
 				stepper_motor->enable();
 				return;
 			}
@@ -53,6 +53,7 @@ namespace manager {
 				stepper_motor->step(direction);
 				--steps_number;
 			}
+			return;
 		}
 		throw ServerException(ResponseCode::BAD_REQUEST, "wrong update type: " + update_type);
 	}

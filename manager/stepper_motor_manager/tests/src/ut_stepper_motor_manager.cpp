@@ -1,5 +1,8 @@
+#include <iostream>
 #include <memory>
+
 #include <stdexcept>
+#include <string>
 
 #include "gtest/gtest.h"
 
@@ -14,22 +17,19 @@
 
 using namespace server;
 using namespace manager;
+using namespace manager_uts;
 
-static StepperMotor *create_test_stepper_motor(const Body& request_body) {
-	throw std::runtime_error("NOT_IMPLEMENTED");
-}
-
-static Body read_stepper_motor(const StepperMotor& motor) {
-	return Body();
-}
-
-static void write_stepper_motor(StepperMotor *motor, const Data& config) {
-	
+static StepperMotor *create_test_stepper_motor(const TestStepperMotor::StepAction& action, const Data& create_cfg) {
+	(void)create_cfg;
+	return new TestStepperMotor(action);
 }
 
 TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 	// GIVEN
 	InMemoryInventory<ResourceId, StepperMotor> inventory;
+	auto create_action = [](const Data& create_cfg)-> StepperMotor * {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
 
 	// WHEN
 	using StepperMotorManagerUnqPtr = std::unique_ptr<StepperMotorManager>;
@@ -37,7 +37,7 @@ TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 	
 	// THEN
 	// ctor
-	ASSERT_NO_THROW(instance_ptr = StepperMotorManagerUnqPtr(new StepperMotorManager(&inventory, create_test_stepper_motor, read_stepper_motor, write_stepper_motor)));
+	ASSERT_NO_THROW(instance_ptr = StepperMotorManagerUnqPtr(new StepperMotorManager(&inventory, create_action)));
 	ASSERT_NE(nullptr, instance_ptr);
 
 	// dtor
@@ -46,41 +46,50 @@ TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 
 TEST(ut_stepper_motor_manager, crud_methods_sanity) {
 	// GIVEN
-	const auto expected_direction(StepperMotor::Direction::CCW);
-	const ResourceId id("test_motor");
-
-	Body create_body;
-	create_body.add("id", String(id));
-	create_body.add("config", Object());
-
-	Object update_cfg;
-	update_cfg.add("dir", Integer(static_cast<int>(expected_direction)));
-	Body update_body;
-	update_body.add("config", update_cfg);
-
-	auto steps_action = [expected_direction](const StepperMotor::Direction& direction) {
-		ASSERT_EQ(expected_direction, direction);
+	const auto id(ResourceId("test_motor"));
+	auto steps_action_called(false);
+	auto step_action = [&steps_action_called](const StepperMotor::Direction& dir) {
+		std::cout << "a step in direction " << std::to_string(static_cast<int>(dir)) << std::endl;
+		steps_action_called = true;
 	};
-	auto creator = [steps_action](const Body& request_body) {
-		(void)request_body;
-		return new manager_uts::TestStepperMotor(steps_action);
-	};
+	Object create_cfg;
+	
+	Object update_enable_cfg;
+	update_enable_cfg.add("type", String("update_enable_status"));
+	update_enable_cfg.add("enable", Integer(1));
+	Object update_steps_cfg;
+	update_steps_cfg.add("type", String("steps"));
+	update_steps_cfg.add("direction", Integer(static_cast<int>(StepperMotor::Direction::CCW)));
+	update_steps_cfg.add("steps_number", Integer(10));
 
 	// WHEN
 	InMemoryInventory<ResourceId, StepperMotor> inventory;
-	StepperMotorManager instance(&inventory, creator, read_stepper_motor, write_stepper_motor);
-	Body response_body;
+	StepperMotorManager instance(
+		&inventory,
+		[step_action](const Data& create_cfg) {
+			return create_test_stepper_motor(step_action, create_cfg);
+		}
+	);
+	Object read_data;
 
 	// THEN
 	// create
-	ASSERT_NO_THROW(instance.create_resource(create_body));
+	ASSERT_NO_THROW(instance.create_resource(id, create_cfg));
 	ASSERT_TRUE(inventory.contains(id));
+	ASSERT_FALSE(inventory.access(id).enabled());
 
 	// read
-	ASSERT_NO_THROW(response_body = instance.read_resource({id}));
+	ASSERT_NO_THROW(read_data = instance.read_resource({id}));
+	ASSERT_TRUE(read_data.contains("enabled"));
+	ASSERT_FALSE(static_cast<bool>(Data::cast<Integer>(read_data.access("enabled")).get()));
 
 	// update
-	ASSERT_NO_THROW(instance.update_resource({id}, update_body));
+	ASSERT_NO_THROW(instance.update_resource({id}, update_enable_cfg));
+	ASSERT_TRUE(inventory.access(id).enabled());
+	
+	// update
+	ASSERT_NO_THROW(instance.update_resource({id}, update_steps_cfg));
+	ASSERT_TRUE(steps_action_called);
 
 	// delete
 	ASSERT_NO_THROW(instance.delete_resource({id}));
