@@ -39,10 +39,6 @@ namespace cnc_server {
 		);
 		CncServer(const CncServer& other) = delete;
 		CncServer& operator=(const CncServer& other) = delete;
-
-		void run();
-		bool is_running() const;
-		void stop();
 	private:
 		std::unique_ptr<server::Vendor> m_vendor;
 
@@ -62,8 +58,17 @@ namespace cnc_server {
 	};
 
 	template <typename Tsubscriber_id>
-	inline CncServer<Tsubscriber_id>::CncServer(IpcConnection *connection, const Tsubscriber_id& id, server::Vendor *vendor): server::Server<Tsubscriber_id>(connection, id, init_vendor()) {
-
+	inline CncServer<Tsubscriber_id>::CncServer(
+		IpcConnection *connection,
+		const Tsubscriber_id& id,
+		server::Vendor *vendor,
+		const GpioCreator& gpio_creator,
+		const StepperMotorCreator& stepper_motor_creator,
+		const DelayFunction& delay_function
+	): server::Server<Tsubscriber_id>(connection, id, init_vendor()), m_gpio_creator(gpio_creator), m_stepper_motor_creator(stepper_motor_creator), m_delay_function(delay_function) {
+		if (!m_gpio_creator || !m_stepper_motor_creator || !m_delay_function) {
+			throw std::invalid_argument("invalid action received");
+		}
 	}
 
 	template <typename Tsubscriber_id>
@@ -108,7 +113,7 @@ namespace cnc_server {
 		const auto& cfg_obj(Data::cast<Object>(cfg));
 		const auto movement_type(static_cast<Movement::Type>(Data::cast<Integer>(cfg_obj.access("type")).get()));
 		auto parse_motors_assignments = [](const Data& data)-> LinearMovement::AxesAssignment {
-
+			throw std::runtime_error("NOT IMPLEMENTED");
 		};
 		
 		switch (movement_type) {
