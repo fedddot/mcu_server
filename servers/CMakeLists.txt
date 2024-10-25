@@ -3,16 +3,19 @@ target_include_directories(cnc_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/includ
 target_link_libraries(
     cnc_server
     INTERFACE
-    server
+    clonable_manager_wrapper
     data_lib
-    ipc_connection
-    request
-    response
-    resources_vendor
+    gpio
+    gpio_manager
+    in_memory_inventory
+    linear_movement
+    movement
+    movement_manager
+    server
     server_exception
     server_types
+    stepper_motor
     stepper_motor_manager
-    movement_manager
     vendor
 )
 

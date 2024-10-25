@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <stdexcept>
+
 #include "clonable_manager_wrapper.hpp"
 #include "data.hpp"
 #include "gpio.hpp"
