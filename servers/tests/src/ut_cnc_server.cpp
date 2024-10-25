@@ -96,8 +96,8 @@ TEST(ut_cnc_server, run_is_running_stop_sanity) {
     );
 
     Object create_gpio_cfg;
+    create_gpio_cfg.add("direction", Integer(static_cast<int>(Gpio::Direction::OUT)));
     Body create_gpio_body;
-    create_gpio_cfg.add("dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
     create_gpio_body.add("id", String("1"));
     create_gpio_body.add("config", create_gpio_cfg);
     Request create_gpio_request(Request::Method::CREATE, Path {"gpios"}, create_gpio_body);

@@ -40,7 +40,7 @@ namespace cnc_server {
 		CncServer(const CncServer& other) = delete;
 		CncServer& operator=(const CncServer& other) = delete;
 	private:
-		std::unique_ptr<server::Vendor> m_vendor;
+		std::shared_ptr<server::Vendor> m_vendor;
 
 		manager::InMemoryInventory<server::ResourceId, manager::Gpio> m_gpio_inventory;
 		
@@ -90,7 +90,7 @@ namespace cnc_server {
 				}
 			)
 		);
-		m_vendor = std::unique_ptr<Vendor>(new ResourcesVendor());
+		m_vendor = std::shared_ptr<Vendor>(new ResourcesVendor());
 		auto& vendor_ref = dynamic_cast<ResourcesVendor&>(*m_vendor);
 		vendor_ref.add_manager("gpios", gpio_manager);
 		vendor_ref.add_manager("steppers", stepper_motor_manager);
