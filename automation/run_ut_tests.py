@@ -17,6 +17,7 @@ if not os.path.isdir(build_path):
 subprocess.run(["cmake", ".."], cwd=build_path).check_returncode()
 
 uts = [
+    "cnc_server_tests",
     "data_tests",
     "gpio_manager_tests",
     "ipc_tests",
