@@ -15,6 +15,7 @@ target_link_libraries(
     resources_vendor
     response
     server_types
-
+    clonable_manager_wrapper
+    
 	gtest
 )

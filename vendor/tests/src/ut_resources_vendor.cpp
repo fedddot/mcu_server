@@ -6,12 +6,12 @@
 #include "data.hpp"
 #include "in_memory_inventory.hpp"
 #include "inventory_manager.hpp"
-#include "manager.hpp"
 #include "object.hpp"
 #include "request.hpp"
 #include "resources_vendor.hpp"
 #include "response.hpp"
 #include "server_types.hpp"
+#include "clonable_manager_wrapper.hpp"
 #include "string.hpp"
 
 using namespace server;
@@ -30,38 +30,6 @@ TEST(ut_resources_vendor, ctor_dtor_id_sanity) {
 	// dtor
 	ASSERT_NO_THROW(instance_ptr = nullptr);
 }
-
-class TestClonableManager: public ResourcesVendor::ClonableManager {
-public:
-	TestClonableManager(Manager *manager): m_manager(manager) {
-
-	}
-	TestClonableManager(const TestClonableManager& other) = default;
-	TestClonableManager& operator=(const TestClonableManager& other) = delete;
-	void create_resource(const ResourceId& id, const Data& create_cfg) override {
-		m_manager->create_resource(id, create_cfg);
-	}
-	Object read_resource(const Path& route) const override {
-		return m_manager->read_resource(route);
-	}
-	Object read_all_resources() const override {
-		return m_manager->read_all_resources();
-	}
-	void update_resource(const Path& route, const Data& update_cfg) override {
-		m_manager->update_resource(route, update_cfg);
-	}
-	void delete_resource(const Path& route) override {
-		m_manager->delete_resource(route);
-	}
-	bool contains(const Path& route) const override {
-		return m_manager->contains(route);
-	}
-	server::Manager *clone() const override {
-		return new TestClonableManager(*this);
-	}
-private:
-	std::shared_ptr<Manager> m_manager;
-};
 
 TEST(ut_resources_vendor, run_request_sanity) {
 	// GIVEN
@@ -95,7 +63,7 @@ TEST(ut_resources_vendor, run_request_sanity) {
 	ResourcesVendor instance;
 	instance.add_manager(
 		manager_id,
-		TestClonableManager(
+		ClonableManagerWrapper(
 			new InventoryManager<std::string>(
 				&inventory,
 				[](const Data& cfg) {
