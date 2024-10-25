@@ -4,10 +4,11 @@
 
 #include "gtest/gtest.h"
 
+#include "clonable_manager_wrapper.hpp"
+#include "data.hpp"
 #include "gpio.hpp"
 #include "gpio_manager.hpp"
 #include "in_memory_inventory.hpp"
-#include "manager.hpp"
 #include "object.hpp"
 #include "test_gpi.hpp"
 #include "test_gpo.hpp"
@@ -48,41 +49,6 @@ TEST(ut_server, ctor_dtor_sanity) {
     ASSERT_NO_THROW(instance_ptr = nullptr);
 }
 
-class ClonableWrapper: public ResourcesVendor::ClonableManager {
-public:
-    ClonableWrapper(Manager *origin): m_manager(origin) {
-        if (!origin) {
-            throw std::invalid_argument("invalid origin ptr received");
-        }
-    }
-    ClonableWrapper(const ClonableWrapper&) = default;
-    ClonableWrapper& operator=(const ClonableWrapper&) = default;
-    
-    void create_resource(const Body& create_request_body) override {
-        m_manager->create_resource(create_request_body);
-    }
-    Body read_resource(const Path& route) const override {
-        return m_manager->read_resource(route);
-    }
-    Body read_all_resources() const override {
-        return m_manager->read_all_resources();
-    }
-    void update_resource(const Path& route, const Body& update_request_body) override {
-        m_manager->update_resource(route, update_request_body);
-    }
-    void delete_resource(const Path& route) override {
-        m_manager->delete_resource(route);
-    }
-    bool contains(const Path& route) const override {
-        return m_manager->contains(route);
-    }
-    Manager *clone() const override {
-        return new ClonableWrapper(*this);
-    }
-private:
-    std::shared_ptr<Manager> m_manager;
-};
-
 TEST(ut_server, run_is_running_stop_sanity) {
     // GIVEN
     const std::string test_id("test_server");
@@ -91,10 +57,10 @@ TEST(ut_server, run_is_running_stop_sanity) {
     ResourcesVendor test_vendor;
     test_vendor.add_manager(
         "gpios",
-        ClonableWrapper(
+        ClonableManagerWrapper(
             new GpioManager(
                 &gpio_inventory,
-                [](const Body& data)-> Gpio * {
+                [](const Data& data)-> Gpio * {
                     auto dir = static_cast<Gpio::Direction>(Data::cast<Integer>(Data::cast<Object>(data).access("dir")).get());
                     switch (dir) {
                     case Gpio::Direction::IN:
@@ -115,16 +81,16 @@ TEST(ut_server, run_is_running_stop_sanity) {
         }
     );
 
+    Object create_gpio_cfg;
     Body create_gpio_body;
+    create_gpio_cfg.add("dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
     create_gpio_body.add("id", String("1"));
-    create_gpio_body.add("dir", Integer(static_cast<int>(Gpio::Direction::OUT)));
+    create_gpio_body.add("config", create_gpio_cfg);
     Request create_gpio_request(Request::Method::CREATE, Path {"gpios"}, create_gpio_body);
 
-    Object update_config;
-    update_config.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
-    Body update_gpio_body;
-    update_gpio_body.add("config", update_config);
-    Request update_gpio_request(Request::Method::UPDATE, Path {"gpios", "1"}, update_gpio_body);
+    Body update_body;
+    update_body.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
+    Request update_gpio_request(Request::Method::UPDATE, Path {"gpios", "1"}, update_body);
 
     Request read_gpio_request(Request::Method::READ, Path {"gpios", "1"}, Body());
 

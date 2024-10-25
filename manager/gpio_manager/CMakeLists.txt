@@ -19,7 +19,7 @@ target_link_libraries(
     gpio
     gpo
     inventory
-    manager
+    inventory_manager
     server_exception
     server_types
 )

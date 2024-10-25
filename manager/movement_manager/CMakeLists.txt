@@ -21,10 +21,9 @@ target_link_libraries(
     movement_manager
     INTERFACE
     data_lib
-    inventory
-    manager
     movement
-    server_exception
+    inventory
+    inventory_manager
     server_types
 )
 

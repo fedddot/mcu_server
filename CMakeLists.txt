@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(mcu_server C CXX ASM)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -25,7 +25,7 @@ target_link_libraries(response INTERFACE server_types)
 
 add_library(manager INTERFACE)
 target_include_directories(manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(manager INTERFACE server_types)
+target_link_libraries(manager INTERFACE data_lib server_types)
 
 add_library(vendor INTERFACE)
 target_include_directories(vendor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)

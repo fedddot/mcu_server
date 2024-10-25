@@ -7,6 +7,7 @@ add_executable(
 target_link_libraries(
 	server_tests
 	PRIVATE
+    clonable_manager_wrapper
     data_lib
     gpio
     gpio_manager
@@ -14,6 +15,7 @@ target_link_libraries(
     response
     server
     test_ipc_connection
+    in_memory_inventory
     resources_vendor
     test_gpi
     test_gpo

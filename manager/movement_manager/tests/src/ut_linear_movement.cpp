@@ -1,14 +1,16 @@
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "gtest/gtest.h"
 
-#include "array.hpp"
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
 #include "linear_movement.hpp"
+#include "movement_types.hpp"
 #include "object.hpp"
 #include "server_types.hpp"
 #include "stepper_motor.hpp"
@@ -20,20 +22,29 @@ using namespace manager_uts;
 
 TEST(ut_linear_movement, ctor_dtor_sanity) {
 	// GIVEN
+	const LinearMovement::AxesAssignment test_assignment {
+		{Axis::X, "test_motor_1"},
+		{Axis::Y, "test_motor_2"},
+		{Axis::Z, "test_motor_3"}
+	};
+	const unsigned int time_multiplier(1000);
+	const auto delay_function = [](const LinearMovement::TimeUnit& time) {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
 	InMemoryInventory<ResourceId, StepperMotor> inventory;
 
 	// WHEN
-	using LinearMovementUnqPtr = std::unique_ptr<LinearMovement>;
-	LinearMovementUnqPtr instance_ptr(nullptr);
+	std::unique_ptr<LinearMovement> instance_ptr(nullptr);
 	
 	// THEN
 	// ctor
 	ASSERT_NO_THROW(
-		instance_ptr = LinearMovementUnqPtr(
+		instance_ptr = std::unique_ptr<LinearMovement>(
 			new LinearMovement(
 				&inventory,
-				[](const unsigned int) {throw std::runtime_error("NOT IMPLEMENTED");},
-				false
+				delay_function,
+				test_assignment,
+				time_multiplier	
 			)
 		)
 	);
@@ -45,45 +56,43 @@ TEST(ut_linear_movement, ctor_dtor_sanity) {
 
 TEST(ut_linear_movement, perform_sanity) {
 	// GIVEN
-	Object steps1;
-	steps1.add("motor_x", Integer(-120));
-	steps1.add("motor_y", Integer(13));
-	steps1.add("motor_z", Integer(14));
-	Object steps2;
-	steps2.add("motor_x", Integer(+120));
-	steps2.add("motor_y", Integer(-13));
-	steps2.add("motor_z", Integer(-14));
-	Array steps;
-	steps.push_back(steps1);
-	steps.push_back(steps2);
-
-	Object config;
-	config.add("step_duration", Integer(10));
-	config.add("steps", steps);
-
-	const bool inverse_direction(false);
-	auto delay = [](const unsigned int delay) {
-		std::cout << "delay: " << std::to_string(delay) << std::endl;
+	const LinearMovement::AxesAssignment test_assignment {
+		{Axis::X, "test_motor_1"},
+		{Axis::Y, "test_motor_2"},
+		{Axis::Z, "test_motor_3"}
 	};
+	const unsigned int time_multiplier(1000); // ms
+	const auto delay_function = [](const LinearMovement::TimeUnit& time) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(time));
+	};
+
+	Object test_vector;
+	test_vector.add("x", Integer(-12));
+	test_vector.add("y", Integer(5));
+	test_vector.add("z", Integer(-3));
+
+	const unsigned int test_feed(500);
+	Object config;
+	config.add("feed", Integer(static_cast<int>(test_feed)));
+	config.add("vector", test_vector);
 
 	// WHEN
 	InMemoryInventory<ResourceId, StepperMotor> inventory;
-	Data::cast<Object>(steps.access(0)).for_each(
-		[&inventory](const std::string& motor_id, const Data&) {
-			inventory.add(
-				motor_id,
-				new TestStepperMotor(
-					[motor_id](const StepperMotor::Direction& direction) {
-						std::cout << motor_id << " steps in direction " << std::to_string(static_cast<int>(direction)) << std::endl;
-					}
-				)
-			);
-		}
-	);
+	auto step_action = [](const ResourceId& motor_id, const StepperMotor::Direction& dir) {
+		std::cout << motor_id << " steps in " << std::to_string(static_cast<int>(dir)) << " direction" << std::endl;
+	};
+	for (const auto [axis, motor_id]: test_assignment) {
+		auto action = [step_action, motor_id](const StepperMotor::Direction& dir) {
+			step_action(motor_id, dir);
+		};
+		inventory.add(motor_id, new TestStepperMotor(action));
+	}
+
 	LinearMovement instance(
 		&inventory,
-		delay,
-		inverse_direction
+		delay_function,
+		test_assignment,
+		time_multiplier
 	);
 	
 	// THEN

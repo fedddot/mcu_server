@@ -12,4 +12,5 @@ target_link_libraries(
     vendor
 )
 
+add_subdirectory(util)
 add_subdirectory(tests EXCLUDE_FROM_ALL)
