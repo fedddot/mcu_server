@@ -32,7 +32,6 @@ namespace cnc_server {
 		CncServer(
 			IpcConnection *connection,
 			const Tsubscriber_id& id,
-			server::Vendor *vendor,
 			const GpioCreator& gpio_creator,
 			const StepperMotorCreator& stepper_motor_creator,
 			const DelayFunction& delay_function
@@ -43,57 +42,50 @@ namespace cnc_server {
 		std::unique_ptr<server::Vendor> m_vendor;
 
 		manager::InMemoryInventory<server::ResourceId, manager::Gpio> m_gpio_inventory;
-		GpioCreator m_gpio_creator;
 		
 		manager::InMemoryInventory<server::ResourceId, manager::StepperMotor> m_stepper_motor_inventory;
-		StepperMotorCreator m_stepper_motor_creator;
 		
 		manager::InMemoryInventory<server::ResourceId, manager::Movement> m_movement_inventory;
 
-		DelayFunction m_delay_function;
-		
-		
-		server::Vendor *init_vendor();
-		manager::Movement *create_movement(const server::Data& cfg) const;
+		server::Vendor *init_vendor(const GpioCreator& gpio_creator, const StepperMotorCreator& stepper_motor_creator, const DelayFunction& delay_function);
+		manager::Movement *create_movement(const server::Data& cfg, const DelayFunction& delay_function);
 	};
 
 	template <typename Tsubscriber_id>
 	inline CncServer<Tsubscriber_id>::CncServer(
 		IpcConnection *connection,
 		const Tsubscriber_id& id,
-		server::Vendor *vendor,
 		const GpioCreator& gpio_creator,
 		const StepperMotorCreator& stepper_motor_creator,
 		const DelayFunction& delay_function
-	): server::Server<Tsubscriber_id>(connection, id, init_vendor()), m_gpio_creator(gpio_creator), m_stepper_motor_creator(stepper_motor_creator), m_delay_function(delay_function) {
-		if (!m_gpio_creator || !m_stepper_motor_creator || !m_delay_function) {
-			throw std::invalid_argument("invalid action received");
-		}
+	): server::Server<Tsubscriber_id>(connection, id, init_vendor(gpio_creator, stepper_motor_creator, delay_function)) {
 	}
 
 	template <typename Tsubscriber_id>
-	inline server::Vendor *CncServer<Tsubscriber_id>::init_vendor() {
+	inline server::Vendor *CncServer<Tsubscriber_id>::init_vendor(const GpioCreator& gpio_creator, const StepperMotorCreator& stepper_motor_creator, const DelayFunction& delay_function) {
 		using namespace server;
 		using namespace vendor;
 		using namespace manager;
-
+		if (!gpio_creator || !stepper_motor_creator || !delay_function) {
+			throw std::invalid_argument("invalid actions received");
+		}
 		ClonableManagerWrapper gpio_manager(
 			new GpioManager(
 				&m_gpio_inventory,
-				m_gpio_creator
+				gpio_creator
 			)
 		);
 		ClonableManagerWrapper stepper_motor_manager(
 			new StepperMotorManager(
 				&m_stepper_motor_inventory,
-				m_stepper_motor_creator
+				stepper_motor_creator
 			)
 		);
 		ClonableManagerWrapper movement_manager(
 			new MovementManager(
 				&m_movement_inventory,
-				[this](const Data& cfg) {
-					return create_movement(cfg); 
+				[this, &delay_function](const Data& cfg) {
+					return create_movement(cfg, delay_function); 
 				}
 			)
 		);
@@ -106,7 +98,7 @@ namespace cnc_server {
 	}
 
 	template <typename Tsubscriber_id>
-	inline manager::Movement *CncServer<Tsubscriber_id>::create_movement(const server::Data& cfg) const {
+	inline manager::Movement *CncServer<Tsubscriber_id>::create_movement(const server::Data& cfg, const DelayFunction& delay_function) {
 		using namespace server;
 		using namespace manager;
 
@@ -115,13 +107,17 @@ namespace cnc_server {
 		auto parse_motors_assignments = [](const Data& data)-> LinearMovement::AxesAssignment {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		};
+		auto parse_time_multiplier = [](const Data& data)-> unsigned int {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		};
 		
 		switch (movement_type) {
 		case Movement::Type::LINEAR:
 			return new LinearMovement(
 				&m_stepper_motor_inventory,
-				m_delay_function,
-				parse_motors_assignments(cfg_obj.access("steppers"))
+				delay_function,
+				parse_motors_assignments(cfg_obj.access("steppers")),
+				parse_time_multiplier(cfg_obj.access("time_multiplier"))
 			);
 		default:
 			throw ServerException(ResponseCode::BAD_REQUEST, "movement type is not supported");
