@@ -7,6 +7,7 @@ add_executable(
 target_link_libraries(
 	server_tests
 	PRIVATE
+    clonable_manager_wrapper
     data_lib
     gpio
     gpio_manager
