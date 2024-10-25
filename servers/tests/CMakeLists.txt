@@ -7,20 +7,17 @@ add_executable(
 target_link_libraries(
 	cnc_server_tests
 	PRIVATE
-    clonable_manager_wrapper
+    cnc_server
     data_lib
     gpio
-    gpio_manager
-    request
+    linear_movement
     response
-    cnc_server
     server_types
-    test_ipc_connection
-    in_memory_inventory
-    resources_vendor
+    stepper_motor
     test_gpi
     test_gpo
-    vendor
+    test_ipc_connection
+    test_stepper_motor
 	
 	gtest
 )
