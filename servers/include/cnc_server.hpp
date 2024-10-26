@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 #include "clonable_manager_wrapper.hpp"
 #include "data.hpp"
@@ -13,12 +14,14 @@
 #include "linear_movement.hpp"
 #include "movement.hpp"
 #include "movement_manager.hpp"
+#include "movement_types.hpp"
 #include "object.hpp"
 #include "server.hpp"
 #include "server_exception.hpp"
 #include "server_types.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_manager.hpp"
+#include "string.hpp"
 #include "vendor.hpp"
 
 namespace cnc_server {
@@ -105,11 +108,27 @@ namespace cnc_server {
 
 		const auto& cfg_obj(Data::cast<Object>(cfg));
 		const auto movement_type(static_cast<Movement::Type>(Data::cast<Integer>(cfg_obj.access("type")).get()));
-		auto parse_motors_assignments = [](const Data& data)-> LinearMovement::AxesAssignment {
-			throw std::runtime_error("NOT IMPLEMENTED");
+		auto str_to_axis = [](const std::string& tag) {
+			if ("x" == tag) {
+				return Axis::X;
+			} else if ("y" == tag) {
+				return Axis::Y;
+			} else if ("z" == tag) {
+				return Axis::Z;
+			}
+			throw ServerException(ResponseCode::BAD_REQUEST, "invalid axis tag received: " + tag);
+		};
+		auto parse_motors_assignments = [str_to_axis](const Data& data) {
+			LinearMovement::AxesAssignment assignment;
+			Data::cast<Object>(data).for_each(
+				[&assignment, str_to_axis](const std::string& tag, const Data& gpio_id) {
+					assignment.insert({str_to_axis(tag), static_cast<ResourceId>(Data::cast<String>(gpio_id).get())});
+				}
+			);
+			return assignment;
 		};
 		auto parse_time_multiplier = [](const Data& data)-> unsigned int {
-			throw std::runtime_error("NOT IMPLEMENTED");
+			return static_cast<unsigned int>(Data::cast<Integer>(data).get());
 		};
 		
 		switch (movement_type) {
