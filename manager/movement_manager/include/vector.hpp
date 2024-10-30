@@ -15,6 +15,7 @@ namespace manager {
 		
 		T projection(const Axis& axis) const;
 		void set_projection(const Axis& axis, const T& value);
+		Vector<T> scale(const float& factor) const;
 	private:
 		std::map<Axis, T> m_projections;
 	};
@@ -32,6 +33,15 @@ namespace manager {
 	template <typename T>
 	inline void Vector<T>::set_projection(const Axis& axis, const T& value) {
 		m_projections[axis] = value;
+	}
+
+	template <typename T>
+	inline Vector<T> Vector<T>::scale(const float& factor) const {
+		return Vector<T>(
+			static_cast<T>(factor * projection(Axis::X)),
+			static_cast<T>(factor * projection(Axis::Y)),
+			static_cast<T>(factor * projection(Axis::Z))
+		);
 	}
 
 	template <typename T>
