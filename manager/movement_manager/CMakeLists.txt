@@ -30,4 +30,8 @@ target_link_libraries(
 add_library(vector INTERFACE)
 target_include_directories(movement_manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(movement_model INTERFACE)
+target_include_directories(movement_model INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(movement_model INTERFACE vector)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)
