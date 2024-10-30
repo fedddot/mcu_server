@@ -10,7 +10,6 @@
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
 #include "linear_movement.hpp"
-#include "movement_types.hpp"
 #include "object.hpp"
 #include "server_types.hpp"
 #include "stepper_motor.hpp"
@@ -19,6 +18,7 @@
 using namespace server;
 using namespace manager;
 using namespace manager_uts;
+using Axis = typename Vector<int>::Axis;
 
 TEST(ut_linear_movement, ctor_dtor_sanity) {
 	// GIVEN

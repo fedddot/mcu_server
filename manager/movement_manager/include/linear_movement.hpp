@@ -12,17 +12,18 @@
 #include "integer.hpp"
 #include "inventory.hpp"
 #include "movement.hpp"
-#include "movement_types.hpp"
 #include "object.hpp"
 #include "server_exception.hpp"
 #include "server_types.hpp"
 #include "stepper_motor.hpp"
+#include "vector.hpp"
 
 namespace manager {
 	class LinearMovement: public Movement {
 	public:
 		using TimeUnit = unsigned int;
 		using DelayFunction = std::function<void(const TimeUnit&)>;
+		using Axis = typename Vector<int>::Axis;
 		using AxesAssignment = std::map<Axis, server::ResourceId>;
 		
 		LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int time_multiplicator);

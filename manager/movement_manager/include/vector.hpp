@@ -17,6 +17,7 @@ namespace manager {
 		T projection(const Axis& axis) const;
 		void set_projection(const Axis& axis, const T& value);
 		Vector<T> scale(const float& factor) const;
+		Vector<T> negate() const;
 		float norm() const;
 	private:
 		std::map<Axis, T> m_projections;
