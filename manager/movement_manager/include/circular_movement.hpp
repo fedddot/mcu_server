@@ -22,6 +22,8 @@ namespace manager {
 	class CircularMovement: public Movement {
 	public:
 		using TimeUnit = unsigned int;
+		using Feed = unsigned int;
+		using Direction = typename CircularMovementModel<int, TimeUnit, Feed>::Direction;
 		using DelayFunction = std::function<void(const TimeUnit&)>;
 		using Axis = typename Vector<int>::Axis;
 		using AxesAssignment = std::map<Vector<int>::Axis, server::ResourceId>;
@@ -38,9 +40,7 @@ namespace manager {
 		StepperMotor::Direction m_backward_direction;
 		TimeUnit m_hold_time;
 
-		using Feed = unsigned int;
 		using Model = CircularMovementModel<int, TimeUnit, Feed>;
-		using Direction = typename Model::Direction;
 
 		static Feed retrieve_feed(const server::Object& config);
 		static Vector<int> retrieve_vector(const server::Object& config, const std::string& vector_name);
@@ -111,6 +111,11 @@ namespace manager {
 		return feed;
 	}
 
+	inline typename CircularMovement::Direction CircularMovement::retrieve_direction(const server::Object& config) {
+		using namespace server;
+		return static_cast<Direction>(Data::cast<Integer>(config.access("direction")).get());
+	}
+	
 	inline Vector<int> CircularMovement::retrieve_vector(const server::Object& config, const std::string& name) {
 		using namespace server;
 		Vector<int> result(0, 0, 0);
