@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <vector>
 
 #include "movement_model.hpp"
 #include "vector.hpp"
@@ -39,14 +38,7 @@ namespace manager {
 		const Tspeed& speed
 	): m_target(target), m_rotation_center(rotation_center) {
 		using Axis = typename Vector<T>::Axis;
-		auto norm = [](const Vector<T>& vector) {
-			T normL2(0);
-			for (const auto& axis: std::vector<Axis>{Axis::X, Axis::Y, Axis::Z}) {
-				normL2 += vector.projection(axis) * vector.projection(axis);
-			}
-			return std::sqrt(normL2);
-		};
-		const auto rotation_center_distance = norm(m_rotation_center);
+		const auto rotation_center_distance = m_rotation_center.norm();
 		if (0 == rotation_center_distance) {
 			throw std::invalid_argument("invalid rotation center received (it's norm is zero)");
 		}
