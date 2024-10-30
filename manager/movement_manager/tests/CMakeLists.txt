@@ -7,6 +7,7 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ut_circular_movement_model.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/ut_circular_movement.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ut_linear_movement.cpp
 )
 
@@ -18,6 +19,7 @@ target_link_libraries(
     movement
     movement_manager
     circular_movement_model
+    circular_movement
     server_types
     stepper_motor
     test_movement
