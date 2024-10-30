@@ -34,4 +34,8 @@ add_library(movement_model INTERFACE)
 target_include_directories(movement_model INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(movement_model INTERFACE vector)
 
+add_library(circular_movement_model INTERFACE)
+target_include_directories(circular_movement_model INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(circular_movement_model INTERFACE movement_model vector)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)
