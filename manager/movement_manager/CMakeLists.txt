@@ -27,4 +27,7 @@ target_link_libraries(
     server_types
 )
 
+add_library(vector INTERFACE)
+target_include_directories(movement_manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)
