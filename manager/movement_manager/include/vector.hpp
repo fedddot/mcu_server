@@ -48,6 +48,11 @@ namespace manager {
 	}
 
 	template <typename T>
+	inline Vector<T> Vector<T>::negate() const {
+		return Vector<T>(-projection(Axis::X), -projection(Axis::Y), -projection(Axis::Z));
+	}
+	
+	template <typename T>
 	inline float Vector<T>::norm() const {
 		T normL2(0);
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
