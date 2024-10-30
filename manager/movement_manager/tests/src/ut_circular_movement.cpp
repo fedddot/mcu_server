@@ -67,14 +67,20 @@ TEST(ut_circular_movement, perform_sanity) {
 	};
 
 	Object test_vector;
-	test_vector.add("x", Integer(-12));
-	test_vector.add("y", Integer(5));
-	test_vector.add("z", Integer(-3));
+	test_vector.add("x", Integer(10));
+	test_vector.add("y", Integer(10));
+	test_vector.add("z", Integer(0));
 
+	Object test_rotation_vector;
+	test_rotation_vector.add("x", Integer(10));
+	test_rotation_vector.add("y", Integer(0));
+	test_rotation_vector.add("z", Integer(0));
 	const unsigned int test_feed(500);
 	Object config;
 	config.add("feed", Integer(static_cast<int>(test_feed)));
-	config.add("vector", test_vector);
+	config.add("target", test_vector);
+	config.add("direction", Integer(static_cast<int>(CircularMovement::Direction::CCW)));
+	config.add("rotation_center", test_rotation_vector);
 
 	// WHEN
 	InMemoryInventory<ResourceId, StepperMotor> inventory;
