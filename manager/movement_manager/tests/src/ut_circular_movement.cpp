@@ -61,21 +61,20 @@ TEST(ut_circular_movement, perform_sanity) {
 		{Axis::Y, "test_motor_2"},
 		{Axis::Z, "test_motor_3"}
 	};
-	const unsigned int time_multiplier(1000); // ms
+	const unsigned int time_multiplier(1000000); // us
 	const auto delay_function = [](const CircularMovement::TimeUnit& time) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(time));
+		std::this_thread::sleep_for(std::chrono::microseconds(time));
 	};
-
 	Object test_vector;
-	test_vector.add("x", Integer(100));
-	test_vector.add("y", Integer(100));
+	test_vector.add("x", Integer(-1000));
+	test_vector.add("y", Integer(-1000));
 	test_vector.add("z", Integer(0));
 
 	Object test_rotation_vector;
-	test_rotation_vector.add("x", Integer(100));
+	test_rotation_vector.add("x", Integer(1000));
 	test_rotation_vector.add("y", Integer(0));
 	test_rotation_vector.add("z", Integer(0));
-	const unsigned int test_feed(500);
+	const unsigned int test_feed(200);
 	Object config;
 	config.add("feed", Integer(static_cast<int>(test_feed)));
 	config.add("target", test_vector);
