@@ -14,7 +14,6 @@
 #include "linear_movement.hpp"
 #include "movement.hpp"
 #include "movement_manager.hpp"
-#include "movement_types.hpp"
 #include "object.hpp"
 #include "server.hpp"
 #include "server_exception.hpp"

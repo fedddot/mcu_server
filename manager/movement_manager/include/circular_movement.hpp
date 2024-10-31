@@ -22,7 +22,7 @@ namespace manager {
 	class CircularMovement: public Movement {
 	public:
 		using TimeUnit = unsigned int;
-		using Feed = unsigned int;
+		using Feed = float;
 		using Direction = typename CircularMovementModel<int, TimeUnit, Feed>::Direction;
 		using DelayFunction = std::function<void(const TimeUnit&)>;
 		using Axis = typename Vector<int>::Axis;
@@ -42,7 +42,7 @@ namespace manager {
 
 		using Model = CircularMovementModel<int, TimeUnit, Feed>;
 
-		static Feed retrieve_feed(const server::Object& config);
+		Feed retrieve_feed(const server::Object& config) const;
 		static Vector<int> retrieve_vector(const server::Object& config, const std::string& vector_name);
 		static Direction retrieve_direction(const server::Object& config);
 		static TimeUnit retrieve_time_resolution(const server::Object& config);
@@ -79,8 +79,8 @@ namespace manager {
 		const auto feed(retrieve_feed(cfg_obj));
 		const auto phi_max(opening_angle(target_vector, rotation_vector));
 		const int dl(1);
-		const auto dt(static_cast<TimeUnit>(m_time_multiplicator * dl / feed));
-		const auto tmax(static_cast<TimeUnit>(m_time_multiplicator * phi_max * rotation_radius / feed));
+		const auto dt(static_cast<TimeUnit>(dl / feed));
+		const auto tmax(static_cast<TimeUnit>(phi_max * rotation_radius / feed));
 		
 		const Model model(
 			target_vector,
@@ -102,11 +102,11 @@ namespace manager {
 		return Type::CIRCULAR;
 	}
 
-	inline unsigned int CircularMovement::retrieve_feed(const server::Object& config) {
+	inline typename CircularMovement::Feed CircularMovement::retrieve_feed(const server::Object& config) const {
 		using namespace server;
-		const auto feed(static_cast<unsigned int>(Data::cast<Integer>(config.access("feed")).get()));
+		const auto feed = static_cast<Feed>(Data::cast<Integer>(config.access("feed")).get()) / m_time_multiplicator;
 		if (0 == feed) {
-			throw ServerException(ResponseCode::BAD_REQUEST, "bad feed received");
+			throw ServerException(ResponseCode::BAD_REQUEST, "feed is zero");
 		}
 		return feed;
 	}
