@@ -18,6 +18,7 @@ target_link_libraries(
     stepper_motor_manager
     vendor
     vector
+    circular_movement
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

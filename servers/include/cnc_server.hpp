@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "circular_movement.hpp"
 #include "clonable_manager_wrapper.hpp"
 #include "data.hpp"
 #include "gpio.hpp"
@@ -135,6 +136,13 @@ namespace cnc_server {
 		switch (movement_type) {
 		case Movement::Type::LINEAR:
 			return new LinearMovement(
+				&m_stepper_motor_inventory,
+				delay_function,
+				parse_motors_assignments(cfg_obj.access("steppers")),
+				parse_time_multiplier(cfg_obj.access("time_multiplier"))
+			);
+		case Movement::Type::CIRCULAR:
+			return new CircularMovement(
 				&m_stepper_motor_inventory,
 				delay_function,
 				parse_motors_assignments(cfg_obj.access("steppers")),
