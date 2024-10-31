@@ -43,7 +43,7 @@ namespace manager {
 			throw std::invalid_argument("invalid rotation center received (it's norm is zero)");
 		}
 		const auto dir_coefficient((direction == Direction::CCW) ? 1 : -1);
-		m_rotation_speed = static_cast<float>(dir_coefficient * speed / rotation_center_distance);
+		m_rotation_speed = static_cast<float>(dir_coefficient) * speed / rotation_center_distance;
 	}
 
 	template <typename T, typename Ttime, typename Tspeed>
