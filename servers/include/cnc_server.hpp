@@ -22,6 +22,7 @@
 #include "stepper_motor_manager.hpp"
 #include "string.hpp"
 #include "vendor.hpp"
+#include "vector.hpp"
 
 namespace cnc_server {
 	template <typename Tsubscriber_id>
@@ -104,6 +105,7 @@ namespace cnc_server {
 	inline manager::Movement *CncServer<Tsubscriber_id>::create_movement(const server::Data& cfg, const DelayFunction& delay_function) {
 		using namespace server;
 		using namespace manager;
+		using Axis = typename Vector<int>::Axis;
 
 		const auto& cfg_obj(Data::cast<Object>(cfg));
 		const auto movement_type(static_cast<Movement::Type>(Data::cast<Integer>(cfg_obj.access("type")).get()));
