@@ -186,7 +186,7 @@ namespace manager {
 		auto result(std::acos(cos_opening_angle));
 		if (Direction::CCW == direction) {
 			const float pi(3.14159265358979323846);
-			result = pi - result;
+			result = 2 * pi - result;
 		}
 		return result;
 	}
