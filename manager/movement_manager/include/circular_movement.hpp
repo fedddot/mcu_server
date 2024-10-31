@@ -94,6 +94,7 @@ namespace manager {
 			const auto model_position(model.evaluate(t));
 			const auto deviation(model_position - position);
 			process_deviation(&position, deviation);
+			m_delay(dt);
 		}
 		disable_motors();
 	}
