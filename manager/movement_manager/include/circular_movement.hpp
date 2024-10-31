@@ -47,7 +47,7 @@ namespace manager {
 		static Direction retrieve_direction(const server::Object& config);
 		static TimeUnit retrieve_time_resolution(const server::Object& config);
 		
-		static float opening_angle(const Vector<int>& target, const Vector<int>& rotation_center);
+		static float opening_angle(const Vector<int>& target, const Vector<int>& rotation_center, const Direction& direction);
 
 		static Axis str_to_axis(const std::string& axis_str);
 
@@ -77,7 +77,8 @@ namespace manager {
 		const auto target_vector(retrieve_vector(cfg_obj, "target"));
 		const auto rotation_radius(rotation_vector.norm());
 		const auto feed(retrieve_feed(cfg_obj));
-		const auto phi_max(opening_angle(target_vector, rotation_vector));
+		const auto direction(retrieve_direction(cfg_obj));
+		const auto phi_max(opening_angle(target_vector, rotation_vector, direction));
 		const int dl(1);
 		const auto dt(static_cast<TimeUnit>(dl / feed));
 		const auto tmax(static_cast<TimeUnit>(phi_max * rotation_radius / feed));
@@ -85,7 +86,7 @@ namespace manager {
 		const Model model(
 			target_vector,
 			rotation_vector,
-			retrieve_direction(cfg_obj),
+			direction,
 			feed
 		);
 		enable_motors();
@@ -166,7 +167,7 @@ namespace manager {
 		}
 	}
 
-	inline float CircularMovement::opening_angle(const Vector<int>& target, const Vector<int>& rotation_center) {
+	inline float CircularMovement::opening_angle(const Vector<int>& target, const Vector<int>& rotation_center, const Direction& direction) {
 		using Axis = typename Vector<int>::Axis;			
 		auto mul_scalar = [](const Vector<int>& one, const Vector<int>& other) {
 			unsigned long result(0UL);
@@ -182,7 +183,12 @@ namespace manager {
 			throw std::invalid_argument("rotation center can't be of length 0");
 		}
 		const auto cos_opening_angle(static_cast<float>(mul_scalar(rco, rca)) / (radius * radius));
-		return std::acos(cos_opening_angle);
+		auto result(std::acos(cos_opening_angle));
+		if (Direction::CCW == direction) {
+			const float pi(3.14159265358979323846);
+			result = pi - result;
+		}
+		return result;
 	}
 }
 
