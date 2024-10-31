@@ -181,7 +181,7 @@ namespace manager {
 		if (0 == radius) {
 			throw std::invalid_argument("rotation center can't be of length 0");
 		}
-		const auto cos_opening_angle(static_cast<float>(mul_scalar(rco, rca)) / radius);
+		const auto cos_opening_angle(static_cast<float>(mul_scalar(rco, rca)) / (radius * radius));
 		return std::acos(cos_opening_angle);
 	}
 }

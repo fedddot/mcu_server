@@ -66,19 +66,19 @@ TEST(ut_circular_movement, perform_sanity) {
 		std::this_thread::sleep_for(std::chrono::microseconds(time));
 	};
 	Object test_vector;
-	test_vector.add("x", Integer(-1000));
-	test_vector.add("y", Integer(-1000));
+	test_vector.add("x", Integer(-500));
+	test_vector.add("y", Integer(-500));
 	test_vector.add("z", Integer(0));
 
 	Object test_rotation_vector;
-	test_rotation_vector.add("x", Integer(1000));
+	test_rotation_vector.add("x", Integer(-500));
 	test_rotation_vector.add("y", Integer(0));
 	test_rotation_vector.add("z", Integer(0));
 	const unsigned int test_feed(200);
 	Object config;
 	config.add("feed", Integer(static_cast<int>(test_feed)));
 	config.add("target", test_vector);
-	config.add("direction", Integer(static_cast<int>(CircularMovement::Direction::CW)));
+	config.add("direction", Integer(static_cast<int>(CircularMovement::Direction::CCW)));
 	config.add("rotation_center", test_rotation_vector);
 
 	// WHEN
