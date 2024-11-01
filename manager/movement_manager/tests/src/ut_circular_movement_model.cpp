@@ -7,25 +7,20 @@
 
 using namespace manager;
 
-using LengthUnit = int;
-using TimeUnit = unsigned int;
-using SpeedUnit = unsigned int;
-using TestMovement = CircularMovementModel<LengthUnit, TimeUnit, SpeedUnit>;
-
 TEST(ut_circular_movement_model, ctor_dtor_sanity) {
 	// GIVEN
-	const Vector<LengthUnit> target(10, 20, 30);
-	const Vector<LengthUnit> rotation_center(5, 10, 20);
-	const TestMovement::Direction direction(TestMovement::Direction::CCW);
-	const SpeedUnit speed(3); // 3 length units / 1 time unit
+	const Vector<int> target(10, 20, 30);
+	const Vector<int> rotation_center(5, 10, 20);
+	const CircularMovementModel::Direction direction(CircularMovementModel::Direction::CCW);
+	const unsigned int speed(3); // 3 length units / 1 time unit
 
 	// WHEN
-	std::unique_ptr<TestMovement> instance_ptr(nullptr);
+	std::unique_ptr<CircularMovementModel> instance_ptr(nullptr);
 
 	// THEN
 	ASSERT_NO_THROW(
-		instance_ptr = std::unique_ptr<TestMovement>(
-			new TestMovement(
+		instance_ptr = std::unique_ptr<CircularMovementModel>(
+			new CircularMovementModel(
 				target,
 				rotation_center,
 				direction,
@@ -37,26 +32,26 @@ TEST(ut_circular_movement_model, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(instance_ptr = nullptr);
 }
 
-static inline void print_vector(const Vector<LengthUnit>& vector) {
-	using Axis = typename Vector<LengthUnit>::Axis;
+static inline void print_vector(const Vector<int>& vector) {
+	using Axis = typename Vector<int>::Axis;
 	std::cout << "(" << vector.projection(Axis::X) << ", " << vector.projection(Axis::Y) << ", " << vector.projection(Axis::Z) << ")" << std::endl;   
 }
 
 TEST(ut_circular_movement_model, evaluate_sanity) {
 	// GIVEN
-	const Vector<LengthUnit> target(10, 10, 0);
-	const Vector<LengthUnit> rotation_center(10, 0, 0);
-	const TestMovement::Direction direction(TestMovement::Direction::CCW);
-	const SpeedUnit speed(3); // 3 length units / 1 time unit
-	const TimeUnit times[] {0, 1, 2, 3, 4, 5};
+	const Vector<int> target(10, 10, 0);
+	const Vector<int> rotation_center(10, 0, 0);
+	const CircularMovementModel::Direction direction(CircularMovementModel::Direction::CCW);
+	const unsigned int speed(3); // 3 length units / 1 time unit
 
 	// WHEN
-	TestMovement instance(target, rotation_center, direction, speed);
-	Vector<LengthUnit> result(0, 0, 0);
+	CircularMovementModel instance(target, rotation_center, direction, speed);
+	Vector<int> result(0, 0, 0);
+	const auto tmax(instance.tmax());
 	
 	// THEN
-	for (const auto& time: times) {
-		ASSERT_NO_THROW(result = instance.evaluate(time));
+	for (auto t = 0; t < instance.tmax(); ++t) {
+		ASSERT_NO_THROW(result = instance.evaluate(t));
 		print_vector(result);
 	}
 }
