@@ -41,7 +41,7 @@ TEST(ut_circular_movement_model, evaluate_sanity) {
 	// GIVEN
 	const Vector<int> target(10, 10, 0);
 	const Vector<int> rotation_center(10, 0, 0);
-	const CircularMovementModel::Direction direction(CircularMovementModel::Direction::CCW);
+	const auto direction(CircularMovementModel::Direction::CCW);
 	const unsigned int speed(3); // 3 length units / 1 time unit
 
 	// WHEN
@@ -50,7 +50,7 @@ TEST(ut_circular_movement_model, evaluate_sanity) {
 	const auto tmax(instance.tmax());
 	
 	// THEN
-	for (auto t = 0; t < instance.tmax(); ++t) {
+	for (auto t = 0; t <= instance.tmax(); ++t) {
 		ASSERT_NO_THROW(result = instance.evaluate(t));
 		print_vector(result);
 	}
