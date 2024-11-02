@@ -51,7 +51,7 @@ namespace manager {
 		}
 		m_radius = radius;
 		const auto speed_sign((direction == Direction::CCW) ? -1 : 1);
-		m_rotation_speed = static_cast<double>(speed_sign * speed) / m_radius;
+		m_rotation_speed = static_cast<double>(speed_sign) * static_cast<double>(speed) / m_radius;
 		m_phi_max = opening_angle();
 	}
 
@@ -70,7 +70,7 @@ namespace manager {
 	}
 
 	inline unsigned int CircularMovementModel::tmax() const {
-		return static_cast<unsigned int>(m_phi_max / m_rotation_speed);
+		return static_cast<unsigned int>(std::abs(m_phi_max / m_rotation_speed));
 	}
 
 	inline long CircularMovementModel::dot_product(const Vector<int>& one, const Vector<int>& other) {
@@ -99,7 +99,7 @@ namespace manager {
 		const auto cos_alpha = static_cast<double>(product) / (m_radius * m_radius);
 		const auto inner_angle = std::acos(cos_alpha);
 		if (0 > m_rotation_speed) {
-			return 2 * pi - inner_angle;
+			return -inner_angle;
 		}
 		return inner_angle;
 	}
