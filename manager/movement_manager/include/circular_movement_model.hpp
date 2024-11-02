@@ -8,7 +8,7 @@
 #include "vector.hpp"
 
 namespace manager {
-	class CircularMovementModel: MovementModel<int, unsigned int> {
+	class CircularMovementModel: MovementModel<int, double> {
 	public:
 		enum class Direction: int {
 			CW,
@@ -18,12 +18,12 @@ namespace manager {
 			const Vector<int>& target,
 			const Vector<int>& rotation_center,
 			const Direction& direction,
-			const unsigned int& speed
+			const double& speed
 		);
 		CircularMovementModel(const CircularMovementModel&) = delete;
 		CircularMovementModel& operator=(const CircularMovementModel&) = delete;
-		Vector<int> evaluate(const unsigned int& time) const override;
-		unsigned int tmax() const override;
+		Vector<int> evaluate(const double& time) const override;
+		double tmax() const override;
 	private:
 		Vector<int> m_target;
 		Vector<int> m_rotation_center;
@@ -42,7 +42,7 @@ namespace manager {
 		const Vector<int>& target,
 		const Vector<int>& rotation_center,
 		const Direction& direction,
-		const unsigned int& speed
+		const double& speed
 	): m_target(target), m_rotation_center(rotation_center) {
 		using Axis = typename Vector<int>::Axis;
 		const auto radius(norm(m_rotation_center));
@@ -55,7 +55,7 @@ namespace manager {
 		m_phi_max = opening_angle();
 	}
 
-	inline Vector<int> CircularMovementModel::evaluate(const unsigned int& time) const {
+	inline Vector<int> CircularMovementModel::evaluate(const double& time) const {
 		using Axis = typename Vector<int>::Axis;
 		
 		const auto phi = m_rotation_speed * time;
@@ -69,8 +69,8 @@ namespace manager {
 		return rtoc_projection + rtca_projection + roc;
 	}
 
-	inline unsigned int CircularMovementModel::tmax() const {
-		return static_cast<unsigned int>(std::abs(m_phi_max / m_rotation_speed));
+	inline double CircularMovementModel::tmax() const {
+		return static_cast<double>(std::abs(m_phi_max / m_rotation_speed));
 	}
 
 	inline long CircularMovementModel::dot_product(const Vector<int>& one, const Vector<int>& other) {
