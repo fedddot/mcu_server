@@ -2,6 +2,10 @@ add_library(movement INTERFACE)
 target_include_directories(movement INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(movement INTERFACE data_lib)
 
+add_library(linear_movement_model INTERFACE)
+target_include_directories(linear_movement_model INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(linear_movement_model INTERFACE movement_model vector)
+
 add_library(linear_movement INTERFACE)
 target_include_directories(linear_movement INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
