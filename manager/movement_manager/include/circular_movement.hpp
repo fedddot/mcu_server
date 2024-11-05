@@ -8,6 +8,7 @@
 
 #include "circular_movement_model.hpp"
 #include "data.hpp"
+#include "double.hpp"
 #include "integer.hpp"
 #include "inventory.hpp"
 #include "movement.hpp"
@@ -20,43 +21,36 @@
 namespace manager {
 	class CircularMovement: public Movement {
 	public:
-		using TimeUnit = unsigned int;
-		using Feed = float;
 		using Direction = typename CircularMovementModel::Direction;
-		using DelayFunction = std::function<void(const TimeUnit&)>;
-		using Axis = typename Vector<int>::Axis;
+		using DelayFunction = std::function<void(const double&)>;
+		using Axis = typename Vector<double>::Axis;
 		using AxesAssignment = std::map<Axis, server::ResourceId>;
 		
-		CircularMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int time_multiplicator);
+		CircularMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int steps_per_length);
 		void perform(const server::Data& cfg) override;
 		Type type() const override;
 	private:
 		Inventory<server::ResourceId, StepperMotor> *m_stepper_motor_inventory;
 		DelayFunction m_delay;
 		AxesAssignment m_axes_assignment;
-		unsigned int m_time_multiplicator;
+		unsigned int m_steps_per_length;
 		StepperMotor::Direction m_forward_direction;
 		StepperMotor::Direction m_backward_direction;
-		TimeUnit m_hold_time;
 
-		Feed retrieve_feed(const server::Object& config) const;
-		static Vector<int> retrieve_vector(const server::Object& config, const std::string& vector_name);
+		double retrieve_feed(const server::Object& config) const;
+		static Vector<double> retrieve_vector(const server::Object& config, const std::string& vector_name);
 		static Direction retrieve_direction(const server::Object& config);
-		static TimeUnit retrieve_time_resolution(const server::Object& config);
 		
 		static Axis str_to_axis(const std::string& axis_str);
 
-		void process_deviation(Vector<int> *prosition, const Vector<int>& deviation);
+		void process_deviation(Vector<double> *prosition, const Vector<double>& deviation);
 		void enable_motors();
 		void disable_motors();
 	};
 
-	inline CircularMovement::CircularMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int time_multiplicator): m_stepper_motor_inventory(stepper_motor_inventory), m_delay(delay), m_axes_assignment(axes_assignment), m_forward_direction(StepperMotor::Direction::CCW), m_backward_direction(StepperMotor::Direction::CW), m_time_multiplicator(time_multiplicator) {
+	inline CircularMovement::CircularMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int steps_per_length): m_stepper_motor_inventory(stepper_motor_inventory), m_delay(delay), m_axes_assignment(axes_assignment), m_steps_per_length(steps_per_length), m_forward_direction(StepperMotor::Direction::CCW), m_backward_direction(StepperMotor::Direction::CW) {
 		if (!m_stepper_motor_inventory || !m_delay) {
 			throw std::invalid_argument("invalid arguments received");
-		}
-		if (1UL > m_time_multiplicator) {
-			throw std::invalid_argument("invalid time multiplicator received");
 		}
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
 			if (m_axes_assignment.end() == m_axes_assignment.find(axis)) {
@@ -72,23 +66,23 @@ namespace manager {
 		const auto target_vector(retrieve_vector(cfg_obj, "target"));
 		const auto feed(retrieve_feed(cfg_obj));
 		const auto direction(retrieve_direction(cfg_obj));
-		const int dl(1);
-		const auto dt(static_cast<double>(dl) / feed);
 		
 		const CircularMovementModel model(
 			target_vector,
 			rotation_vector,
 			direction,
-			feed
+			feed,
+			m_steps_per_length
 		);
 		const auto tmax(model.tmax());
+		const auto dt(model.dt());
 		enable_motors();
-		Vector<int> position(0, 0, 0);
+		Vector<double> position(0, 0, 0);
 		for (double t = 0; t < tmax; t += dt) {
 			const auto model_position(model.evaluate(t));
 			const auto deviation(model_position - position);
 			process_deviation(&position, deviation);
-			m_delay(dt * m_time_multiplicator);
+			m_delay(dt);
 		}
 		disable_motors();
 	}
@@ -97,9 +91,9 @@ namespace manager {
 		return Type::CIRCULAR;
 	}
 
-	inline typename CircularMovement::Feed CircularMovement::retrieve_feed(const server::Object& config) const {
+	inline double CircularMovement::retrieve_feed(const server::Object& config) const {
 		using namespace server;
-		const auto feed = static_cast<Feed>(Data::cast<Integer>(config.access("feed")).get());
+		const auto feed = Data::cast<Double>(config.access("feed")).get();
 		if (0 == feed) {
 			throw ServerException(ResponseCode::BAD_REQUEST, "feed is zero");
 		}
@@ -111,12 +105,12 @@ namespace manager {
 		return static_cast<Direction>(Data::cast<Integer>(config.access("direction")).get());
 	}
 	
-	inline Vector<int> CircularMovement::retrieve_vector(const server::Object& config, const std::string& name) {
+	inline Vector<double> CircularMovement::retrieve_vector(const server::Object& config, const std::string& name) {
 		using namespace server;
-		Vector<int> result(0, 0, 0);
+		Vector<double> result(0, 0, 0);
 		Data::cast<Object>(config.access(name)).for_each(
 			[&result](const std::string& axis_tag, const Data& value) {
-				result.set_projection(str_to_axis(axis_tag), Data::cast<Integer>(value).get());
+				result.set_projection(str_to_axis(axis_tag), Data::cast<Double>(value).get());
 			}
 		);
 		return result;
@@ -135,8 +129,8 @@ namespace manager {
 		return iter->second;
 	}
 
-	inline void CircularMovement::process_deviation(Vector<int> *position, const Vector<int>& deviation) {
-		using Axis = typename Vector<int>::Axis;
+	inline void CircularMovement::process_deviation(Vector<double> *position, const Vector<double>& deviation) {
+		using Axis = typename Vector<double>::Axis;
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
 			if (deviation.projection(axis) > 0) {
 				(m_stepper_motor_inventory->access(m_axes_assignment.at(axis))).step(m_forward_direction);
