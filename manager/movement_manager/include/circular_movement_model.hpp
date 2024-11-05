@@ -8,55 +8,62 @@
 #include "vector.hpp"
 
 namespace manager {
-	class CircularMovementModel: MovementModel<int, double> {
+	class CircularMovementModel: MovementModel<double, double> {
 	public:
 		enum class Direction: int {
 			CW,
 			CCW
 		};
 		CircularMovementModel(
-			const Vector<int>& target,
-			const Vector<int>& rotation_center,
+			const Vector<double>& target,
+			const Vector<double>& rotation_center,
 			const Direction& direction,
-			const double& speed
+			const double speed,
+			const unsigned int steps_per_length
 		);
 		CircularMovementModel(const CircularMovementModel&) = delete;
 		CircularMovementModel& operator=(const CircularMovementModel&) = delete;
-		Vector<int> evaluate(const double& time) const override;
+		Vector<double> evaluate(const double& time) const override;
 		double tmax() const override;
+		double dt() const override;
 	private:
-		Vector<int> m_target;
-		Vector<int> m_rotation_center;
+		Vector<double> m_target;
+		Vector<double> m_rotation_center;
 		double m_rotation_speed;
 		double m_phi_max;
 		double m_radius;
+		unsigned int m_steps_per_length;
 
-		static long dot_product(const Vector<int>& one, const Vector<int>& other);
-		static double norm(const Vector<int>& vector);
-		static Vector<int> scale(const Vector<int>& vector, const double factor);
+		static double dot_product(const Vector<double>& one, const Vector<double>& other);
+		static double norm(const Vector<double>& vector);
+		static Vector<double> scale(const Vector<double>& vector, const double factor);
 		double opening_angle() const; 
 	};
 
-
 	inline CircularMovementModel::CircularMovementModel(
-		const Vector<int>& target,
-		const Vector<int>& rotation_center,
+		const Vector<double>& target,
+		const Vector<double>& rotation_center,
 		const Direction& direction,
-		const double& speed
-	): m_target(target), m_rotation_center(rotation_center) {
-		using Axis = typename Vector<int>::Axis;
+		const double speed,
+		const unsigned int steps_per_length
+	): m_target(target), m_rotation_center(rotation_center), m_steps_per_length(steps_per_length) {
+		using Axis = typename Vector<double>::Axis;
 		const auto radius(norm(m_rotation_center));
 		if (0 == radius) {
-			throw std::invalid_argument("rotation radius can't be zero");
+			throw std::invalid_argument("rotation radius mustn't be zero");
+		}
+		const auto speed_sign((direction == Direction::CCW) ? -1 : 1);
+		const auto rotation_speed = static_cast<double>(speed_sign) * speed / radius;
+		if (0 == rotation_speed) {
+			throw std::invalid_argument("rotation speed mustn't be zero");
 		}
 		m_radius = radius;
-		const auto speed_sign((direction == Direction::CCW) ? -1 : 1);
-		m_rotation_speed = static_cast<double>(speed_sign) * static_cast<double>(speed) / m_radius;
+		m_rotation_speed = rotation_speed;
 		m_phi_max = opening_angle();
 	}
 
-	inline Vector<int> CircularMovementModel::evaluate(const double& time) const {
-		using Axis = typename Vector<int>::Axis;
+	inline Vector<double> CircularMovementModel::evaluate(const double& time) const {
+		using Axis = typename Vector<double>::Axis;
 		
 		const auto phi = m_rotation_speed * time;
 		const auto roc = m_rotation_center;
@@ -70,20 +77,29 @@ namespace manager {
 	}
 
 	inline double CircularMovementModel::tmax() const {
-		return static_cast<double>(std::abs(m_phi_max / m_rotation_speed));
+		return std::abs(m_phi_max / m_rotation_speed);
+	}
+	
+	inline double CircularMovementModel::dt() const {
+		const auto dl = static_cast<double>(1) / m_steps_per_length;
+		const auto v = m_radius * m_rotation_speed;
+		if (0 == v) {
+			throw std::runtime_error("velocity mustn't be zero");
+		}
+		return dl/ v;
 	}
 
-	inline long CircularMovementModel::dot_product(const Vector<int>& one, const Vector<int>& other) {
-		using Axis = typename Vector<int>::Axis;
-		long res(0);
+	inline double CircularMovementModel::dot_product(const Vector<double>& one, const Vector<double>& other) {
+		using Axis = typename Vector<double>::Axis;
+		double res(0);
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
 			res += one.projection(axis) * other.projection(axis);
 		}
 		return res;
 	}
 
-	inline double CircularMovementModel::norm(const Vector<int>& vector) {
-		using Axis = typename Vector<int>::Axis;
+	inline double CircularMovementModel::norm(const Vector<double>& vector) {
+		using Axis = typename Vector<double>::Axis;
 		long norml2(0);
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
 			norml2 += vector.projection(axis) * vector.projection(axis);
@@ -96,7 +112,7 @@ namespace manager {
 		const auto rco = m_rotation_center.negate();
 		const auto rca = m_target - m_rotation_center;
 		const auto product = dot_product(rco, rca);
-		const auto cos_alpha = static_cast<double>(product) / (m_radius * m_radius);
+		const auto cos_alpha = product / (m_radius * m_radius);
 		const auto inner_angle = std::acos(cos_alpha);
 		if (0 > m_rotation_speed) {
 			return -inner_angle;
@@ -104,9 +120,9 @@ namespace manager {
 		return inner_angle;
 	}
 
-	inline Vector<int> CircularMovementModel::scale(const Vector<int>& vector, double factor) {
-		using Axis = typename Vector<int>::Axis;
-		Vector<int> res(0, 0, 0);
+	inline Vector<double> CircularMovementModel::scale(const Vector<double>& vector, double factor) {
+		using Axis = typename Vector<double>::Axis;
+		Vector<double> res(0, 0, 0);
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
 			res.set_projection(axis, vector.projection(axis) * factor);
 		}
