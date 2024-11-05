@@ -106,7 +106,7 @@ namespace cnc_server {
 	inline manager::Movement *CncServer<Tsubscriber_id>::create_movement(const server::Data& cfg, const DelayFunction& delay_function) {
 		using namespace server;
 		using namespace manager;
-		using Axis = typename Vector<int>::Axis;
+		using Axis = typename Vector<double>::Axis;
 
 		const auto& cfg_obj(Data::cast<Object>(cfg));
 		const auto movement_type(static_cast<Movement::Type>(Data::cast<Integer>(cfg_obj.access("type")).get()));
@@ -129,7 +129,7 @@ namespace cnc_server {
 			);
 			return assignment;
 		};
-		auto parse_time_multiplier = [](const Data& data)-> unsigned int {
+		auto parse_steps_per_length = [](const Data& data)-> unsigned int {
 			return static_cast<unsigned int>(Data::cast<Integer>(data).get());
 		};
 		
@@ -139,14 +139,14 @@ namespace cnc_server {
 				&m_stepper_motor_inventory,
 				delay_function,
 				parse_motors_assignments(cfg_obj.access("steppers")),
-				parse_time_multiplier(cfg_obj.access("time_multiplier"))
+				parse_steps_per_length(cfg_obj.access("steps_per_length"))
 			);
 		case Movement::Type::CIRCULAR:
 			return new CircularMovement(
 				&m_stepper_motor_inventory,
 				delay_function,
 				parse_motors_assignments(cfg_obj.access("steppers")),
-				parse_time_multiplier(cfg_obj.access("time_multiplier"))
+				parse_steps_per_length(cfg_obj.access("steps_per_length"))
 			);
 		default:
 			throw ServerException(ResponseCode::BAD_REQUEST, "movement type is not supported");

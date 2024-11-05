@@ -9,7 +9,6 @@
 #include "data.hpp"
 #include "gpio.hpp"
 #include "integer.hpp"
-#include "linear_movement.hpp"
 #include "object.hpp"
 #include "response.hpp"
 #include "server_types.hpp"
@@ -52,7 +51,7 @@ TEST(ut_cnc_server, ctor_dtor_sanity) {
             [](const Data&)-> StepperMotor * {
                 throw std::runtime_error("NOT IMPLEMENTED");
             },
-            [](const LinearMovement::TimeUnit&) {
+            [](const double) {
                 throw std::runtime_error("NOT IMPLEMENTED");
             }
         )
@@ -85,8 +84,8 @@ TEST(ut_cnc_server, run_is_running_stop_sanity) {
         return new TestStepperMotor(step_action);
     };
     const unsigned int time_multiplier(1000UL); // ms
-    auto delay_function = [](const LinearMovement::TimeUnit& delay) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+    auto delay_function = [](const double& delay) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<unsigned int>(1000 * delay)));
     };
     TestConnection connection(
         [](const Response& response)-> void {
