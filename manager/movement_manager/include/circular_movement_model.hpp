@@ -86,7 +86,7 @@ namespace manager {
 		if (0 == v) {
 			throw std::runtime_error("velocity mustn't be zero");
 		}
-		return dl/ v;
+		return std::abs(dl / v);
 	}
 
 	inline double CircularMovementModel::dot_product(const Vector<double>& one, const Vector<double>& other) {
