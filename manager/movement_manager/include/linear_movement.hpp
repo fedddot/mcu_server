@@ -1,15 +1,14 @@
 #ifndef	LINEAR_MOVEMENT_HPP
 #define	LINEAR_MOVEMENT_HPP
 
-#include <cmath>
-#include <exception>
 #include <functional>
 #include <map>
 #include <stdexcept>
-#include <vector>
+#include <string>
 
+#include "linear_movement_model.hpp"
 #include "data.hpp"
-#include "integer.hpp"
+#include "double.hpp"
 #include "inventory.hpp"
 #include "movement.hpp"
 #include "object.hpp"
@@ -21,42 +20,36 @@
 namespace manager {
 	class LinearMovement: public Movement {
 	public:
-		using TimeUnit = unsigned int;
-		using DelayFunction = std::function<void(const TimeUnit&)>;
-		using Axis = typename Vector<int>::Axis;
+		using DelayFunction = std::function<void(const double&)>;
+		using Axis = typename Vector<double>::Axis;
 		using AxesAssignment = std::map<Axis, server::ResourceId>;
 		
-		LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int time_multiplicator);
+		LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int steps_per_length);
 		void perform(const server::Data& cfg) override;
 		Type type() const override;
 	private:
 		Inventory<server::ResourceId, StepperMotor> *m_stepper_motor_inventory;
 		DelayFunction m_delay;
 		AxesAssignment m_axes_assignment;
-		unsigned int m_time_multiplicator;
+		unsigned int m_steps_per_length;
 		StepperMotor::Direction m_forward_direction;
 		StepperMotor::Direction m_backward_direction;
 
-		using MovementVector = std::map<Axis, int>;
+		double retrieve_feed(const server::Object& config) const;
+		static Vector<double> retrieve_vector(const server::Object& config, const std::string& vector_name);
+		
+		static Axis str_to_axis(const std::string& axis_str);
 
-		static unsigned int retrieve_feed(const server::Object& config);
-		static MovementVector retrieve_vector(const server::Object& config);
-		static unsigned int principal_projection_length(const MovementVector& vector);
-		static unsigned long vector_length(const MovementVector& vector);
-
-		void run_movement(const MovementVector& vector, const unsigned int feed);
+		void process_deviation(Vector<double> *prosition, const Vector<double>& deviation);
 		void enable_motors();
 		void disable_motors();
 	};
 
-	inline LinearMovement::LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int time_multiplicator): m_stepper_motor_inventory(stepper_motor_inventory), m_delay(delay), m_axes_assignment(axes_assignment), m_forward_direction(StepperMotor::Direction::CCW), m_backward_direction(StepperMotor::Direction::CW), m_time_multiplicator(time_multiplicator) {
+	inline LinearMovement::LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int steps_per_length): m_stepper_motor_inventory(stepper_motor_inventory), m_delay(delay), m_axes_assignment(axes_assignment), m_steps_per_length(steps_per_length), m_forward_direction(StepperMotor::Direction::CCW), m_backward_direction(StepperMotor::Direction::CW) {
 		if (!m_stepper_motor_inventory || !m_delay) {
 			throw std::invalid_argument("invalid arguments received");
 		}
-		if (1UL > m_time_multiplicator) {
-			throw std::invalid_argument("invalid time multiplicator received");
-		}
-		for (const auto& axis: std::vector<Axis>{Axis::X, Axis::Y, Axis::Z}) {
+		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
 			if (m_axes_assignment.end() == m_axes_assignment.find(axis)) {
 				throw std::invalid_argument("invalid axes assignment - missing axes");
 			}
@@ -66,98 +59,74 @@ namespace manager {
 	inline void LinearMovement::perform(const server::Data& cfg) {
 		using namespace server;
 		const auto& cfg_obj(Data::cast<server::Object>(cfg));
-		const auto vector(retrieve_vector(cfg_obj));
+		const auto target_vector(retrieve_vector(cfg_obj, "target"));
 		const auto feed(retrieve_feed(cfg_obj));
-	
-		try {
-			enable_motors();
-			run_movement(vector, feed);
-			disable_motors();
-		} catch (const std::exception& e) {
-			disable_motors();
-			throw ServerException(ResponseCode::UNSPECIFIED, std::string(e.what()));
+		
+		const LinearMovementModel model(
+			target_vector,
+			feed,
+			m_steps_per_length
+		);
+		const auto tmax(model.tmax());
+		const auto dt(model.dt());
+		enable_motors();
+		Vector<double> position(0, 0, 0);
+		for (double t = 0; t < tmax; t += dt) {
+			const auto model_position(model.evaluate(t));
+			const auto deviation(model_position - position);
+			process_deviation(&position, deviation);
+			m_delay(dt);
 		}
+		disable_motors();
 	}
 	
 	inline typename LinearMovement::Type LinearMovement::type() const {
 		return Type::LINEAR;
 	}
 
-	inline unsigned int LinearMovement::retrieve_feed(const server::Object& config) {
+	inline double LinearMovement::retrieve_feed(const server::Object& config) const {
 		using namespace server;
-		return static_cast<unsigned int>(Data::cast<Integer>(config.access("feed")).get());
+		const auto feed = Data::cast<Double>(config.access("feed")).get();
+		if (0 == feed) {
+			throw ServerException(ResponseCode::BAD_REQUEST, "feed is zero");
+		}
+		return feed;
 	}
 
-	inline typename LinearMovement::MovementVector LinearMovement::retrieve_vector(const server::Object& config) {
+	inline Vector<double> LinearMovement::retrieve_vector(const server::Object& config, const std::string& name) {
 		using namespace server;
-		MovementVector result;
-		auto str_to_axis = [](const std::string& axis_tag) {
-			if ("x" == axis_tag) {
-				return Axis::X;
-			} else if ("y" == axis_tag) {
-				return Axis::Y;
-			} else if ("z" == axis_tag) {
-				return Axis::Z;
-			}
-			throw std::invalid_argument("failed to retrieve axis");
-		};
-		Data::cast<Object>(config.access("vector")).for_each(
-			[&result, str_to_axis](const std::string& axis_tag, const Data& steps_num) {
-				result.insert({str_to_axis(axis_tag), Data::cast<Integer>(steps_num).get()});
+		Vector<double> result(0, 0, 0);
+		Data::cast<Object>(config.access(name)).for_each(
+			[&result](const std::string& axis_tag, const Data& value) {
+				result.set_projection(str_to_axis(axis_tag), Data::cast<Double>(value).get());
 			}
 		);
 		return result;
 	}
 	
-	inline unsigned int LinearMovement::principal_projection_length(const MovementVector& vector) {
-		unsigned int result(0);
-		for (const auto& [axis, coordinate]: vector) {
-			const auto projection(static_cast<unsigned int>(abs(coordinate)));
-			if (projection > result) {
-				result = projection;
-			}
+	inline typename LinearMovement::Axis LinearMovement::str_to_axis(const std::string& axis_str) {
+		static const std::map<std::string, Axis> mapping {
+			{"x", Axis::X},
+			{"y", Axis::Y},
+			{"z", Axis::Z}
+		};
+		const auto iter = mapping.find(axis_str);
+		if (mapping.end() == iter) {
+			throw std::invalid_argument("invalid axis tag received: " + axis_str);
 		}
-		return result;
-	}
-	
-	inline unsigned long LinearMovement::vector_length(const MovementVector& vector) {
-		unsigned long result(0);
-		for (const auto& [axis, coordinate]: vector) {
-			result += coordinate * coordinate;
-		}
-		return static_cast<unsigned long>(std::sqrt(result));
+		return iter->second;
 	}
 
-	inline void LinearMovement::run_movement(const MovementVector& vector, const unsigned int feed) {
-		if (0 == feed) {
-			throw std::invalid_argument("invalid feed received - can't be a zero");
-		}
-		const auto principal_length(principal_projection_length(vector));
-		if (0 == principal_length) {
-			return;
-		}
-		const auto length(vector_length(vector));
-		const auto step_duration = (m_time_multiplicator * length) / (feed * principal_length);
-		MovementVector position {
-			{Axis::X, 0},
-			{Axis::Y, 0},
-			{Axis::Z, 0}
-		};
-		for (auto step_number = 0; step_number < principal_length; ++step_number) {
-			for (const auto& [axis, coordinate]: vector) {
-				const auto model_coordinate = static_cast<long>(step_number) * vector.at(axis) / static_cast<long>(principal_length);
-				const auto current_coordinate = position[axis];
-				if (current_coordinate > model_coordinate) {
-					(m_stepper_motor_inventory->access(m_axes_assignment.at(axis))).step(m_backward_direction);
-					--position[axis];
-					continue;
-				} else if (current_coordinate < model_coordinate) {
-					(m_stepper_motor_inventory->access(m_axes_assignment.at(axis))).step(m_forward_direction);
-					++position[axis];
-					continue;
-				}
+	inline void LinearMovement::process_deviation(Vector<double> *position, const Vector<double>& deviation) {
+		using Axis = typename Vector<double>::Axis;
+		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
+			if (deviation.projection(axis) > 0) {
+				(m_stepper_motor_inventory->access(m_axes_assignment.at(axis))).step(m_forward_direction);
+				position->set_projection(axis, position->projection(axis) + 1);
+			} else if (deviation.projection(axis) < 0) {
+				(m_stepper_motor_inventory->access(m_axes_assignment.at(axis))).step(m_backward_direction);
+				position->set_projection(axis, position->projection(axis) - 1);
 			}
-			m_delay(step_duration);	
 		}
 	}
 
