@@ -3,6 +3,7 @@
 
 #include "array.hpp"
 #include "data.hpp"
+#include "double.hpp"
 #include "integer.hpp"
 #include "object.hpp"
 #include "string.hpp"
@@ -62,4 +63,8 @@ Json::Value JsonDataSerializer::parseJsonString(const Data& obj) {
 
 Json::Value JsonDataSerializer::parseJsonInteger(const Data& obj) {
 	return Json::Value(Data::cast<Integer>(obj).get());
+}
+
+Json::Value JsonDataSerializer::parseJsonDouble(const Data& obj) {
+	return Json::Value(Data::cast<Double>(obj).get());
 }

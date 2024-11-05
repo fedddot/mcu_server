@@ -24,6 +24,7 @@ namespace server_utl {
 		static server::Data *parseArray(const Json::Value& root);
 		static server::Data *parseString(const Json::Value& root);
 		static server::Data *parseInteger(const Json::Value& root);
+		static server::Data *parseDouble(const Json::Value& root);
 	};
 }
 

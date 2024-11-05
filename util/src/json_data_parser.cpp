@@ -3,6 +3,7 @@
 #include <string>
 
 #include "data.hpp"
+#include "double.hpp"
 #include "integer.hpp"
 #include "object.hpp"
 #include "array.hpp"
@@ -62,4 +63,8 @@ Data *JsonDataParser::parseString(const Json::Value& root) {
 
 Data *JsonDataParser::parseInteger(const Json::Value& root) {
 	return new Integer(root.asInt());
+}
+
+Data *JsonDataParser::parseDouble(const Json::Value& root) {
+	return new Double(root.asDouble());
 }
