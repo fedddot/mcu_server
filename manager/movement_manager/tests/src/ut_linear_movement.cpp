@@ -65,14 +65,14 @@ TEST(ut_linear_movement, perform_sanity) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<unsigned int>(time) * 1000));
 	};
 	Object test_vector;
-	test_vector.add("x", Double(45));
-	test_vector.add("y", Double(45));
-	test_vector.add("z", Double(0));
+	test_vector.add("x", Double(0.1));
+	test_vector.add("y", Double(0.1));
+	test_vector.add("z", Double(3.1));
 
-	const unsigned int test_feed(3);
+	const Double test_feed(10.1);
 	const unsigned int steps_per_length(100);
 	Object config;
-	config.add("feed", Double(static_cast<int>(test_feed)));
+	config.add("feed", test_feed);
 	config.add("target", test_vector);
 
 	// WHEN
