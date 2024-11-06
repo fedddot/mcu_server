@@ -34,6 +34,8 @@ Data *JsonDataParser::parseValue(const Json::Value& root) {
 		return parseInteger(root);
 	case Json::ValueType::stringValue:
 		return parseString(root);
+	case Json::ValueType::realValue:
+		return parseDouble(root);
 	default:
 		throw std::invalid_argument("unsupported Json data type");
 	}

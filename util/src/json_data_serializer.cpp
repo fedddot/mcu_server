@@ -32,6 +32,8 @@ Json::Value JsonDataSerializer::parseJsonValue(const Data& obj) {
 		return parseJsonString(obj);
 	case Data::Type::INT:
 		return parseJsonInteger(obj);
+	case Data::Type::DOUBLE:
+		return parseJsonDouble(obj);
 	default:
 		throw std::invalid_argument("unsupported data type received");
 	}
