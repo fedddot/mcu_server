@@ -93,26 +93,48 @@ namespace manager {
 		return Type::CIRCULAR;
 	}
 
+	inline typename CircularMovement::Direction CircularMovement::retrieve_direction(const server::Object& config) {
+		using namespace server;
+		return static_cast<Direction>(Data::cast<Integer>(config.access("direction")).get());
+	}
+	
 	inline double CircularMovement::retrieve_feed(const server::Object& config) const {
 		using namespace server;
-		const auto feed = Data::cast<Double>(config.access("feed")).get();
+		double feed(0);
+		const auto& feed_data(config.access("feed"));
+		switch (feed_data.type()) {
+		case Data::Type::DOUBLE:
+			feed = Data::cast<Double>(feed_data).get();
+			break;
+		case Data::Type::INT:
+			feed = static_cast<double>(Data::cast<Integer>(feed_data).get());
+			break;
+		default:
+			throw ServerException(ResponseCode::BAD_REQUEST, "failed to reitieve feed - invalid data type");
+		}
 		if (0 == feed) {
 			throw ServerException(ResponseCode::BAD_REQUEST, "feed is zero");
 		}
 		return feed;
 	}
 
-	inline typename CircularMovement::Direction CircularMovement::retrieve_direction(const server::Object& config) {
-		using namespace server;
-		return static_cast<Direction>(Data::cast<Integer>(config.access("direction")).get());
-	}
-	
 	inline Vector<double> CircularMovement::retrieve_vector(const server::Object& config, const std::string& name) {
 		using namespace server;
 		Vector<double> result(0, 0, 0);
 		Data::cast<Object>(config.access(name)).for_each(
 			[&result](const std::string& axis_tag, const Data& value) {
-				result.set_projection(str_to_axis(axis_tag), Data::cast<Double>(value).get());
+				double projection(0);
+				switch (value.type()) {
+				case Data::Type::DOUBLE:
+					projection = Data::cast<Double>(value).get();
+					break;
+				case Data::Type::INT:
+					projection = static_cast<double>(Data::cast<Integer>(value).get());
+					break;
+				default:
+					throw ServerException(ResponseCode::BAD_REQUEST, "failed to reitieve projection - invalid data type");
+				}
+				result.set_projection(str_to_axis(axis_tag), projection);
 			}
 		);
 		return result;

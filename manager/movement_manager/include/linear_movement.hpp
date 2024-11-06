@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "integer.hpp"
 #include "linear_movement_model.hpp"
 #include "data.hpp"
 #include "double.hpp"
@@ -88,7 +89,18 @@ namespace manager {
 
 	inline double LinearMovement::retrieve_feed(const server::Object& config) const {
 		using namespace server;
-		const auto feed = Data::cast<Double>(config.access("feed")).get();
+		double feed(0);
+		const auto& feed_data(config.access("feed"));
+		switch (feed_data.type()) {
+		case Data::Type::DOUBLE:
+			feed = Data::cast<Double>(feed_data).get();
+			break;
+		case Data::Type::INT:
+			feed = static_cast<double>(Data::cast<Integer>(feed_data).get());
+			break;
+		default:
+			throw ServerException(ResponseCode::BAD_REQUEST, "failed to reitieve feed - invalid data type");
+		}
 		if (0 == feed) {
 			throw ServerException(ResponseCode::BAD_REQUEST, "feed is zero");
 		}
@@ -100,7 +112,18 @@ namespace manager {
 		Vector<double> result(0, 0, 0);
 		Data::cast<Object>(config.access(name)).for_each(
 			[&result](const std::string& axis_tag, const Data& value) {
-				result.set_projection(str_to_axis(axis_tag), Data::cast<Double>(value).get());
+				double projection(0);
+				switch (value.type()) {
+				case Data::Type::DOUBLE:
+					projection = Data::cast<Double>(value).get();
+					break;
+				case Data::Type::INT:
+					projection = static_cast<double>(Data::cast<Integer>(value).get());
+					break;
+				default:
+					throw ServerException(ResponseCode::BAD_REQUEST, "failed to reitieve projection - invalid data type");
+				}
+				result.set_projection(str_to_axis(axis_tag), projection);
 			}
 		);
 		return result;
