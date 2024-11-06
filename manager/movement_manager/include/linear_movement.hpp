@@ -32,6 +32,7 @@ namespace manager {
 		DelayFunction m_delay;
 		AxesAssignment m_axes_assignment;
 		unsigned int m_steps_per_length;
+		double m_step_length;
 		StepperMotor::Direction m_forward_direction;
 		StepperMotor::Direction m_backward_direction;
 
@@ -46,7 +47,7 @@ namespace manager {
 	};
 
 	inline LinearMovement::LinearMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int steps_per_length): m_stepper_motor_inventory(stepper_motor_inventory), m_delay(delay), m_axes_assignment(axes_assignment), m_steps_per_length(steps_per_length), m_forward_direction(StepperMotor::Direction::CCW), m_backward_direction(StepperMotor::Direction::CW) {
-		if (!m_stepper_motor_inventory || !m_delay) {
+		if (!m_stepper_motor_inventory || !m_delay || !m_steps_per_length) {
 			throw std::invalid_argument("invalid arguments received");
 		}
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
@@ -54,6 +55,7 @@ namespace manager {
 				throw std::invalid_argument("invalid axes assignment - missing axes");
 			}
 		}
+		m_step_length = static_cast<double>(1) / m_steps_per_length;
 	}
 
 	inline void LinearMovement::perform(const server::Data& cfg) {
@@ -120,12 +122,12 @@ namespace manager {
 	inline void LinearMovement::process_deviation(Vector<double> *position, const Vector<double>& deviation) {
 		using Axis = typename Vector<double>::Axis;
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
-			if (deviation.projection(axis) > 0) {
+			if (deviation.projection(axis) > m_step_length) {
 				(m_stepper_motor_inventory->access(m_axes_assignment.at(axis))).step(m_forward_direction);
-				position->set_projection(axis, position->projection(axis) + 1);
-			} else if (deviation.projection(axis) < 0) {
+				position->set_projection(axis, position->projection(axis) + m_step_length);
+			} else if (deviation.projection(axis) < -m_step_length) {
 				(m_stepper_motor_inventory->access(m_axes_assignment.at(axis))).step(m_backward_direction);
-				position->set_projection(axis, position->projection(axis) - 1);
+				position->set_projection(axis, position->projection(axis) - m_step_length);
 			}
 		}
 	}
