@@ -7,16 +7,20 @@
 
 #include "cnc_server.hpp"
 #include "data.hpp"
+#include "double.hpp"
 #include "gpio.hpp"
 #include "integer.hpp"
 #include "object.hpp"
+#include "request.hpp"
 #include "response.hpp"
 #include "server_types.hpp"
 #include "stepper_motor.hpp"
+#include "string.hpp"
 #include "test_gpi.hpp"
 #include "test_gpo.hpp"
 #include "test_ipc_connection.hpp"
 #include "test_stepper_motor.hpp"
+#include "vector.hpp"
 
 using namespace server;
 using namespace cnc_server;
@@ -61,7 +65,16 @@ TEST(ut_cnc_server, ctor_dtor_sanity) {
     ASSERT_NO_THROW(instance_ptr = nullptr);
 }
 
-TEST(ut_cnc_server, run_is_running_stop_sanity) {
+static void create_stepper(TestConnection *connection, const ResourceId& stepper_id) {
+    Object create_stepper_cfg;
+    Body create_stepper_body;
+    create_stepper_body.add("id", String(stepper_id));
+    create_stepper_body.add("config", create_stepper_cfg);
+    Request create_gpio_request(Request::Method::CREATE, Path {"steppers"}, create_stepper_body);
+    connection->publish_request(create_gpio_request);
+}
+
+TEST(ut_cnc_server, run_movement_sanity) {
     // GIVEN
     const std::string test_id("test_cnc_server");
     auto gpio_ctor = [](const Data& data)-> Gpio * {
@@ -83,7 +96,7 @@ TEST(ut_cnc_server, run_is_running_stop_sanity) {
     auto stepper_ctor = [step_action](const Data& data)-> StepperMotor * {
         return new TestStepperMotor(step_action);
     };
-    const unsigned int time_multiplier(1000UL); // ms
+    const unsigned int steps_per_length(100UL);
     auto delay_function = [](const double& delay) {
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<unsigned int>(1000 * delay)));
     };
@@ -93,33 +106,59 @@ TEST(ut_cnc_server, run_is_running_stop_sanity) {
             ASSERT_EQ(ResponseCode::OK, response.code());
         }
     );
+    Object motors_assignment;
+    motors_assignment.add("x", String("motor_x"));
+    motors_assignment.add("y", String("motor_y"));
+    motors_assignment.add("z", String("motor_z"));
 
-    Object create_gpio_cfg;
-    create_gpio_cfg.add("direction", Integer(static_cast<int>(Gpio::Direction::OUT)));
-    Body create_gpio_body;
-    create_gpio_body.add("id", String("1"));
-    create_gpio_body.add("config", create_gpio_cfg);
-    Request create_gpio_request(Request::Method::CREATE, Path {"gpios"}, create_gpio_body);
+    Object linear_movement_cfg;
+    linear_movement_cfg.add("steps_per_length", Integer(100));
+    linear_movement_cfg.add("steppers", motors_assignment);
 
-    Body update_body;
-    update_body.add("state", Integer(static_cast<int>(Gpio::State::HIGH)));
-    Request update_gpio_request(Request::Method::UPDATE, Path {"gpios", "1"}, update_body);
+    Object linear_movement_create_cfg;
+    linear_movement_create_cfg.add("id", String("linear_movement"));
+    linear_movement_create_cfg.add("config", linear_movement_cfg);
 
-    Request read_gpio_request(Request::Method::READ, Path {"gpios", "1"}, Body());
 
-    Request delete_gpio_request(Request::Method::DELETE, Path {"gpios", "1"}, Body());
+    Object movement_target;
+    movement_target.add("x", Double(0.1));
+    movement_target.add("y", Double(0.1));
+    movement_target.add("z", Double(3.1));
+
+    const Double feed(10.1);
+
+    Object linear_movement_data;
+    linear_movement_data.add("target", movement_target);
+    linear_movement_data.add("feed", feed);
 
     // WHEN
+    motors_assignment.for_each(
+        [&connection](const std::string&, const Data& motor_id) {
+            create_stepper(&connection, static_cast<ResourceId>(Data::cast<String>(motor_id).get()));
+        }
+    );
+
     TestServer instance(&connection, test_id, gpio_ctor, stepper_ctor, delay_function);
 
     // THEN
     ASSERT_FALSE(instance.is_running());
     ASSERT_NO_THROW(instance.run());
     ASSERT_TRUE(instance.is_running());
-    ASSERT_NO_THROW(connection.publish_request(create_gpio_request));
-    ASSERT_NO_THROW(connection.publish_request(update_gpio_request));
-    ASSERT_NO_THROW(connection.publish_request(read_gpio_request));
-	ASSERT_NO_THROW(connection.publish_request(delete_gpio_request));
+    ASSERT_NO_THROW(
+        connection.publish_request(
+            Request(Request::Method::CREATE, {"movements"}, linear_movement_create_cfg)
+        )
+    );
+    ASSERT_NO_THROW(
+        connection.publish_request(
+            Request(Request::Method::UPDATE, {"movements/" + Data::cast<String>(linear_movement_create_cfg.access("id")).get()}, linear_movement_create_cfg)
+        )
+    );
+    ASSERT_NO_THROW(
+        connection.publish_request(
+            Request(Request::Method::DELETE, {"movements/" + Data::cast<String>(linear_movement_create_cfg.access("id")).get()}, Body())
+        )
+    );
     ASSERT_NO_THROW(instance.stop());
     ASSERT_FALSE(instance.is_running());
 }
