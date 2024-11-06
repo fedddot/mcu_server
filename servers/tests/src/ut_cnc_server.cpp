@@ -10,6 +10,7 @@
 #include "double.hpp"
 #include "gpio.hpp"
 #include "integer.hpp"
+#include "movement.hpp"
 #include "object.hpp"
 #include "request.hpp"
 #include "response.hpp"
@@ -114,6 +115,7 @@ TEST(ut_cnc_server, run_movement_sanity) {
     Object linear_movement_cfg;
     linear_movement_cfg.add("steps_per_length", Integer(100));
     linear_movement_cfg.add("steppers", motors_assignment);
+    linear_movement_cfg.add("type", Integer(static_cast<int>(Movement::Type::LINEAR)));
 
     Object linear_movement_create_cfg;
     linear_movement_create_cfg.add("id", String("linear_movement"));
@@ -132,18 +134,17 @@ TEST(ut_cnc_server, run_movement_sanity) {
     linear_movement_data.add("feed", feed);
 
     // WHEN
-    motors_assignment.for_each(
-        [&connection](const std::string&, const Data& motor_id) {
-            create_stepper(&connection, static_cast<ResourceId>(Data::cast<String>(motor_id).get()));
-        }
-    );
-
     TestServer instance(&connection, test_id, gpio_ctor, stepper_ctor, delay_function);
 
     // THEN
     ASSERT_FALSE(instance.is_running());
     ASSERT_NO_THROW(instance.run());
     ASSERT_TRUE(instance.is_running());
+    motors_assignment.for_each(
+        [&connection](const std::string&, const Data& motor_id) {
+            create_stepper(&connection, static_cast<ResourceId>(Data::cast<String>(motor_id).get()));
+        }
+    );
     ASSERT_NO_THROW(
         connection.publish_request(
             Request(Request::Method::CREATE, {"movements"}, linear_movement_create_cfg)
@@ -151,12 +152,12 @@ TEST(ut_cnc_server, run_movement_sanity) {
     );
     ASSERT_NO_THROW(
         connection.publish_request(
-            Request(Request::Method::UPDATE, {"movements/" + Data::cast<String>(linear_movement_create_cfg.access("id")).get()}, linear_movement_create_cfg)
+            Request(Request::Method::UPDATE, {"movements", Data::cast<String>(linear_movement_create_cfg.access("id")).get()}, linear_movement_data)
         )
     );
     ASSERT_NO_THROW(
         connection.publish_request(
-            Request(Request::Method::DELETE, {"movements/" + Data::cast<String>(linear_movement_create_cfg.access("id")).get()}, Body())
+            Request(Request::Method::DELETE, {"movements", Data::cast<String>(linear_movement_create_cfg.access("id")).get()}, Body())
         )
     );
     ASSERT_NO_THROW(instance.stop());

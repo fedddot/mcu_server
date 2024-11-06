@@ -89,7 +89,7 @@ namespace cnc_server {
 		ClonableManagerWrapper movement_manager(
 			new MovementManager(
 				&m_movement_inventory,
-				[this, &delay_function](const Data& cfg) {
+				[this, delay_function](const Data& cfg) {
 					return create_movement(cfg, delay_function); 
 				}
 			)
