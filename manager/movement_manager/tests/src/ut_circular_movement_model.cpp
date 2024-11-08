@@ -7,32 +7,32 @@
 
 using namespace manager;
 
-// TEST(ut_circular_movement_model, ctor_dtor_sanity) {
-// 	// GIVEN
-// 	const Vector<double> target(1, 1, 0);
-// 	const Vector<double> rotation_center(1, 0, 0);
-// 	const CircularMovementModel::Direction direction(CircularMovementModel::Direction::CCW);
-// 	const double speed(3);
-// 	const unsigned int steps_per_length(100);
+TEST(ut_circular_movement_model, ctor_dtor_sanity) {
+	// GIVEN
+	const Vector<double> target(1, 1, 0);
+	const Vector<double> rotation_center(1, 0, 0);
+	const CircularMovementModel::Direction direction(CircularMovementModel::Direction::CCW);
+	const double speed(3);
+	const unsigned int steps_per_length(100);
 
-// 	// WHEN
-// 	std::unique_ptr<CircularMovementModel> instance_ptr(nullptr);
+	// WHEN
+	std::unique_ptr<CircularMovementModel> instance_ptr(nullptr);
 
-// 	// THEN
-// 	ASSERT_NO_THROW(
-// 		instance_ptr = std::unique_ptr<CircularMovementModel>(
-// 			new CircularMovementModel(
-// 				target,
-// 				rotation_center,
-// 				direction,
-// 				speed,
-// 				steps_per_length
-// 			)
-// 		)
-// 	);
-// 	ASSERT_NE(nullptr, instance_ptr);
-// 	ASSERT_NO_THROW(instance_ptr = nullptr);
-// }
+	// THEN
+	ASSERT_NO_THROW(
+		instance_ptr = std::unique_ptr<CircularMovementModel>(
+			new CircularMovementModel(
+				target,
+				rotation_center,
+				direction,
+				speed,
+				steps_per_length
+			)
+		)
+	);
+	ASSERT_NE(nullptr, instance_ptr);
+	ASSERT_NO_THROW(instance_ptr = nullptr);
+}
 
 static inline void print_vector(const Vector<double>& vector) {
 	using Axis = typename Vector<double>::Axis;
