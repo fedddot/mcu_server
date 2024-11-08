@@ -1,7 +1,6 @@
 #ifndef	VECTOR_HPP
 #define	VECTOR_HPP
 
-#include <cmath>
 #include <map>
 
 namespace manager {
@@ -16,9 +15,6 @@ namespace manager {
 		
 		T projection(const Axis& axis) const;
 		void set_projection(const Axis& axis, const T& value);
-		Vector<T> scale(const float& factor) const;
-		Vector<T> negate() const;
-		float norm() const;
 	private:
 		std::map<Axis, T> m_projections;
 	};
@@ -36,29 +32,6 @@ namespace manager {
 	template <typename T>
 	inline void Vector<T>::set_projection(const Axis& axis, const T& value) {
 		m_projections[axis] = value;
-	}
-
-	template <typename T>
-	inline Vector<T> Vector<T>::scale(const float& factor) const {
-		return Vector<T>(
-			static_cast<T>(factor * projection(Axis::X)),
-			static_cast<T>(factor * projection(Axis::Y)),
-			static_cast<T>(factor * projection(Axis::Z))
-		);
-	}
-
-	template <typename T>
-	inline Vector<T> Vector<T>::negate() const {
-		return Vector<T>(-projection(Axis::X), -projection(Axis::Y), -projection(Axis::Z));
-	}
-	
-	template <typename T>
-	inline float Vector<T>::norm() const {
-		T normL2(0);
-		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
-			normL2 += projection(axis) * projection(axis);
-		}
-		return std::sqrt(normL2);
 	}
 
 	template <typename T>

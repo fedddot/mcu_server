@@ -8,8 +8,8 @@ namespace manager {
 	class MovementModel {
 	public:
 		virtual ~MovementModel() noexcept = default;
-		virtual Vector<T> evaluate(const Ttime& time) const = 0;
-		virtual Ttime tmax() const = 0;
+		virtual Vector<T> evaluate() = 0;
+		virtual bool finished() const = 0;
 		virtual Ttime dt() const = 0;
 	};
 }
