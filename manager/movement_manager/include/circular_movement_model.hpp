@@ -28,19 +28,19 @@ namespace manager {
 		bool finished() const override;
 		double dt() const override;
 	private:
-		const Vector<double> m_target;
 		const Vector<double> m_rotation_center;
-		const unsigned int m_steps_per_length;
-		const double m_radius;
+		const Vector<double> m_rco;
+		const Vector<double> m_rct;
 		
-		double m_rotation_speed;
-		double m_step_duration;
+		double m_dt;
+		double m_dphi;
 		double m_phi;
 
 		static double dot_product(const Vector<double>& one, const Vector<double>& other);
 		static double norm(const Vector<double>& vector);
 		static Vector<double> scale(const Vector<double>& vector, const double factor);
 		static double angle_between(const Vector<double>& one, const Vector<double>& other);
+		static Vector<double> product(const Vector<double>& one, const Vector<double>& other);
 		Vector<double> evaluate_current_position() const;
 	};
 
@@ -50,55 +50,48 @@ namespace manager {
 		const Direction& direction,
 		const double speed,
 		const unsigned int steps_per_length
-	): m_target(target), m_rotation_center(rotation_center), m_steps_per_length(steps_per_length), m_radius(norm(rotation_center)) {
+	): m_rotation_center(rotation_center), m_rco(Vector<double>(0, 0, 0) - rotation_center), m_rct(target - rotation_center) {
 		using Axis = typename Vector<double>::Axis;
-		if (!m_steps_per_length || !m_radius || !speed) {
+		if (!steps_per_length || !speed) {
 			throw std::invalid_argument("invalid args received");
 		}
-		const auto speed_sign((direction == Direction::CCW) ? 1 : -1);
-		m_rotation_speed = static_cast<double>(speed_sign) * std::abs(speed) / m_radius;
-		if (0 == m_rotation_speed) {
-			throw std::invalid_argument("rotation speed mustn't be zero");
+		const auto dl = static_cast<double>(1) / steps_per_length;
+		m_dt = std::abs(dl / speed);
+		auto speed_sign((direction == Direction::CCW) ? 1 : -1);
+		const auto basis_product = product(m_rco, m_rct);
+		if (0 > basis_product.projection(Axis::Z)) {
+			speed_sign = -speed_sign;
 		}
-		const auto dl = static_cast<double>(1) / m_steps_per_length;
-		m_step_duration = dl / speed;
-		if (0 == m_step_duration) {
-			throw std::invalid_argument("step duration mustn't be zero");
+
+		const auto rotation_radius = norm(rotation_center);
+		if (0 == rotation_radius) {
+			throw std::invalid_argument("invalid rotation radius");
 		}
+		m_dphi = static_cast<double>(speed_sign) * dl / rotation_radius;
 		m_phi = 0;
 	}
 
 	inline Vector<double> CircularMovementModel::evaluate() {
-		const auto position = evaluate_current_position();
-		m_phi += m_rotation_speed * m_step_duration;
+		const auto position = evaluate_current_position() + m_rotation_center;
+		m_phi += m_dphi;
 		return position;
-	}	
+	}
 	
 	inline Vector<double> CircularMovementModel::evaluate_current_position() const {
-		const auto CO = Vector<double>(0, 0, 0) - m_rotation_center;
-		const auto CT = m_target - m_rotation_center;
-		const auto OCT = angle_between(CO, CT);
-		const auto CO_projection = scale(CO, std::cos(m_phi));
-		const auto CT_projection = scale(CT, std::cos(OCT - m_phi));
-		return CO_projection + CT_projection + m_rotation_center;
+		const auto CO_projection = scale(m_rco, std::cos(m_phi));
+		const auto psi = angle_between(m_rco, m_rct) - m_phi;
+		const auto CT_projection = scale(m_rct, std::cos(psi));
+		return CO_projection + CT_projection;
 	}
 	
 	inline double CircularMovementModel::dt() const {
-		return m_step_duration;
+		return m_dt;
 	}
 	
 	inline bool CircularMovementModel::finished() const {
-		const auto CO = Vector<double>(0, 0, 0) - m_rotation_center;
-		const auto CT = m_target - m_rotation_center;
-		const auto OCT = angle_between(CO, CT);
-
-		const auto cycles = static_cast<int>(m_phi / (2 * M_PI));
-		auto phi_scaled = m_phi - cycles * 2 * M_PI;
-		if (0 > phi_scaled) {
-			phi_scaled = 2 * M_PI + phi_scaled;
-		}
-		const auto epsilon = std::abs(m_step_duration * m_rotation_speed);
-		return std::abs(phi_scaled - OCT) < epsilon;
+		const auto eps = m_dphi;
+		const auto deviation = angle_between(evaluate_current_position(), m_rct);
+		return std::abs(deviation) < std::abs(eps);
 	}
 
 	inline double CircularMovementModel::dot_product(const Vector<double>& one, const Vector<double>& other) {
@@ -129,7 +122,16 @@ namespace manager {
 		const auto cos_alpha = product / one_norm / other_norm;
 		return std::acos(cos_alpha);
 	}
-
+	
+	inline Vector<double> CircularMovementModel::product(const Vector<double>& one, const Vector<double>& other) {
+		using Axis = typename Vector<double>::Axis;
+		return Vector<double>(
+			one.projection(Axis::Y) * other.projection(Axis::Z) - one.projection(Axis::Z) * other.projection(Axis::Y),
+			- one.projection(Axis::X) * other.projection(Axis::Z) + one.projection(Axis::Z) * other.projection(Axis::X),
+			one.projection(Axis::X) * other.projection(Axis::Y) - one.projection(Axis::Y) * other.projection(Axis::X)
+		);
+	}
+	
 	inline Vector<double> CircularMovementModel::scale(const Vector<double>& vector, double factor) {
 		using Axis = typename Vector<double>::Axis;
 		Vector<double> res(0, 0, 0);

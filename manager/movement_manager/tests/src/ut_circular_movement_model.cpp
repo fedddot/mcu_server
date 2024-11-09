@@ -9,9 +9,9 @@ using namespace manager;
 
 TEST(ut_circular_movement_model, ctor_dtor_sanity) {
 	// GIVEN
-	const Vector<double> target(1, 1, 0);
-	const Vector<double> rotation_center(1, 0, 0);
-	const CircularMovementModel::Direction direction(CircularMovementModel::Direction::CCW);
+	const Vector<double> target(10, 10, 0);
+	const Vector<double> rotation_center(10, 0, 0);
+	const CircularMovementModel::Direction direction(CircularMovementModel::Direction::CW);
 	const double speed(3);
 	const unsigned int steps_per_length(100);
 
@@ -43,7 +43,7 @@ TEST(ut_circular_movement_model, evaluate_sanity) {
 	// GIVEN
 	const Vector<double> target(1, 1, 0);
 	const Vector<double> rotation_center(0, 1, 0);
-	const auto direction(CircularMovementModel::Direction::CCW);
+	const CircularMovementModel::Direction direction(CircularMovementModel::Direction::CW);
 	const double speed(3);
 	const unsigned int steps_per_length(100);
 
