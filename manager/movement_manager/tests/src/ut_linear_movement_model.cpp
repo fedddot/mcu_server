@@ -37,19 +37,17 @@ static inline void print_vector(const Vector<double>& vector) {
 
 TEST(ut_linear_movement_model, evaluate_sanity) {
 	// GIVEN
-	const Vector<double> target(1, 45, 3);
+	const Vector<double> target(-1, -45, 3);
 	const double speed(3);
 	const unsigned int steps_per_length(100);
 
 	// WHEN
 	LinearMovementModel instance(target, speed, steps_per_length);
 	Vector<double> result(0, 0, 0);
-	const auto tmax(instance.tmax());
-	const auto dt(instance.dt());
 	
 	// THEN
-	for (double t = 0; t <= instance.tmax(); t += dt) {
-		ASSERT_NO_THROW(result = instance.evaluate(t));
+	while (!instance.finished()) {
+		ASSERT_NO_THROW(result = instance.evaluate());
 		print_vector(result);
 	}
 }

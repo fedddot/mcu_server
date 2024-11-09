@@ -89,7 +89,7 @@ namespace manager {
 		if ((0 == steps_per_length) || (0 == speed)) {
 			throw std::invalid_argument("invalid arguments received");
 		}
-		const auto dl = 1 / steps_per_length;
+		const auto dl = static_cast<double>(1) / steps_per_length;
 		return dl / speed;
 	}
 
