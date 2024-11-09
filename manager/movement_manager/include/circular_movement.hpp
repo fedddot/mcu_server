@@ -69,19 +69,18 @@ namespace manager {
 		const auto feed(retrieve_feed(cfg_obj));
 		const auto direction(retrieve_direction(cfg_obj));
 		
-		const CircularMovementModel model(
+		CircularMovementModel model(
 			target_vector,
 			rotation_vector,
 			direction,
 			feed,
 			m_steps_per_length
 		);
-		const auto tmax(model.tmax());
 		const auto dt(model.dt());
 		enable_motors();
 		Vector<double> position(0, 0, 0);
-		for (double t = 0; t < tmax; t += dt) {
-			const auto model_position(model.evaluate(t));
+		while (!model.finished()) {
+			const auto model_position(model.evaluate());
 			const auto deviation(model_position - position);
 			process_deviation(&position, deviation);
 			m_delay(dt);
