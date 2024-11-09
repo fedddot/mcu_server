@@ -65,17 +65,16 @@ namespace manager {
 		const auto target_vector(retrieve_vector(cfg_obj, "target"));
 		const auto feed(retrieve_feed(cfg_obj));
 		
-		const LinearMovementModel model(
+		LinearMovementModel model(
 			target_vector,
 			feed,
 			m_steps_per_length
 		);
-		const auto tmax(model.tmax());
 		const auto dt(model.dt());
 		enable_motors();
 		Vector<double> position(0, 0, 0);
-		for (double t = 0; t < tmax; t += dt) {
-			const auto model_position(model.evaluate(t));
+		while (!model.finished()) {
+			const auto model_position(model.evaluate());
 			const auto deviation(model_position - position);
 			process_deviation(&position, deviation);
 			m_delay(dt);
