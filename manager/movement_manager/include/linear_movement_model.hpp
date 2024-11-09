@@ -17,14 +17,20 @@ namespace manager {
 		);
 		LinearMovementModel(const LinearMovementModel&) = delete;
 		LinearMovementModel& operator=(const LinearMovementModel&) = delete;
-		Vector<double> evaluate(const double& time) const override;
-		double tmax() const override;
+		Vector<double> evaluate() override;
 		double dt() const override;
+		bool finished() const override;
 	private:
-		Vector<double> m_target;
-		double m_speed;
-		unsigned int m_steps_per_length;
-		double m_length;
+		const Vector<double> m_target;
+		const Vector<double> m_velocity;
+		const double m_time_max;
+		const double m_step_duration;
+		double m_time;
+		
+		Vector<double> evaluate_current_position() const;
+		static Vector<double> calculate_velocity(const Vector<double>& target, const double speed);
+		static double calculate_time_max(const Vector<double>& target, const double speed);
+		static double calculate_step_duration(const double speed, const unsigned int steps_per_length);
 		static double norm(const Vector<double>& vector);
 	};
 
@@ -32,37 +38,64 @@ namespace manager {
 		const Vector<double>& target,
 		const double speed,
 		const unsigned int steps_per_length
-	): m_target(target), m_speed(speed), m_steps_per_length(steps_per_length), m_length(norm(target)) {
-		if ((0 == m_speed) || (0 == m_steps_per_length)) {
-			throw std::invalid_argument("invalid args received");
-		}
+	): m_target(target), m_velocity(calculate_velocity(target, speed)), m_time_max(calculate_time_max(target, speed)), m_step_duration(calculate_step_duration(speed, steps_per_length)), m_time(0) {
+	
 	}
 
-	inline Vector<double> LinearMovementModel::evaluate(const double& time) const {
-		using Axis = typename Vector<double>::Axis;
-		Vector<double> result(0, 0, 0);
-		const auto total_time(tmax());
-		if (0 == total_time) {
-			throw std::runtime_error("total movement time mustn't be zero");
-		}
-		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
-			result.set_projection(axis, m_target.projection(axis) * time / total_time);
-		}
-		return result;
+	inline Vector<double> LinearMovementModel::evaluate() {
+		const auto position = evaluate_current_position();
+		m_time += m_step_duration;
+		return position;
 	}
-
-	inline double LinearMovementModel::tmax() const {
-		return std::abs(m_length / m_speed);
+	
+	inline bool LinearMovementModel::finished() const {
+		return m_time > m_time_max;
 	}
 
 	inline double LinearMovementModel::dt() const {
-		const auto dl = static_cast<double>(1) / m_steps_per_length;
-		return std::abs(dl / m_speed);
+		return m_step_duration;
+	}
+
+	inline Vector<double> LinearMovementModel::evaluate_current_position() const {
+		using Axis = typename Vector<double>::Axis;
+		Vector<double> position(0, 0, 0);
+		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
+			position.set_projection(axis, m_time * m_velocity.projection(axis));
+		}
+		return position;
+	}
+
+	inline Vector<double> LinearMovementModel::calculate_velocity(const Vector<double>& target, const double speed) {
+		using Axis = typename Vector<double>::Axis;
+		const auto trajectory_length = norm(target);
+		if (0 == trajectory_length) {
+			throw std::invalid_argument("trajectory length is zero");
+		}
+		Vector<double> velocity(0, 0, 0);
+		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
+			velocity.set_projection(axis, speed * target.projection(axis) / trajectory_length);
+		}
+		return velocity;
+	}
+
+	inline double LinearMovementModel::calculate_time_max(const Vector<double>& target, const double speed) {
+		if (0 == speed) {
+			throw std::invalid_argument("invalid speed received");
+		}
+		return std::abs(norm(target) / speed);
+	}
+	
+	inline double LinearMovementModel::calculate_step_duration(const double speed, const unsigned int steps_per_length) {
+		if ((0 == steps_per_length) || (0 == speed)) {
+			throw std::invalid_argument("invalid arguments received");
+		}
+		const auto dl = 1 / steps_per_length;
+		return dl / speed;
 	}
 
 	inline double LinearMovementModel::norm(const Vector<double>& vector) {
 		using Axis = typename Vector<double>::Axis;
-		long norml2(0);
+		double norml2(0);
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
 			norml2 += vector.projection(axis) * vector.projection(axis);
 		}
