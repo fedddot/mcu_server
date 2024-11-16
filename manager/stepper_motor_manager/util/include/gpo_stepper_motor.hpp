@@ -1,24 +1,21 @@
-#ifndef	STEPPER_MOTOR_HPP
-#define	STEPPER_MOTOR_HPP
+#ifndef	GPO_STEPPER_MOTOR_HPP
+#define	GPO_STEPPER_MOTOR_HPP
 
 #include <map>
 #include <stdexcept>
 #include <vector>
 
 #include "gpo.hpp"
+#include "stepper_motor.hpp"
 
-namespace manager {
-	class StepperMotor {
+namespace manager_utl {
+	class GpoStepperMotor: public manager::StepperMotor {
 	public:
-		enum class Direction: int {
-			CW,
-			CCW
-		};
 		enum class ControlOutput: int {
 			ENA,	// enable A half-bridge
 			ENB		// enable B half-bridge
 		};
-		using ControlOutputs = std::map<ControlOutput, Gpo *>;
+		using ControlOutputs = std::map<ControlOutput, manager::Gpo *>;
 
 		enum class DirectionOutput: int {
 			A_BTM,	// A half-bridge bottom shoulder
@@ -26,13 +23,13 @@ namespace manager {
 			B_BTM,	// B half-bridge bottom shoulder
 			B_TOP,	// B half-bridge top shoulder
 		};
-		using DirectionOutputs = std::map<DirectionOutput, Gpo *>;
-		using MotorState = std::map<DirectionOutput, Gpo::State>;
+		using DirectionOutputs = std::map<DirectionOutput, manager::Gpo *>;
+		using MotorState = std::map<DirectionOutput, manager::Gpo::State>;
 		using MotorStates = std::vector<MotorState>;
 		
-		StepperMotor(const ControlOutputs& control_outputs, const DirectionOutputs& direction_outputs, const MotorStates& states);
-		StepperMotor(const StepperMotor& other) = delete;
-		StepperMotor& operator=(const StepperMotor& other) = delete;
+		GpoStepperMotor(const ControlOutputs& control_outputs, const DirectionOutputs& direction_outputs, const MotorStates& states);
+		GpoStepperMotor(const GpoStepperMotor& other) = delete;
+		GpoStepperMotor& operator=(const GpoStepperMotor& other) = delete;
 
 		void enable();
 		void disable();
@@ -48,36 +45,36 @@ namespace manager {
 		void apply_state(const MotorState& state);
 
 		template <typename Tkey>
-		static void validate_outputs(const std::map<Tkey, Gpo *>& outputs, const std::vector<Tkey>& required_keys);
+		static void validate_outputs(const std::map<Tkey, manager::Gpo *>& outputs, const std::vector<Tkey>& required_keys);
 	};
 
 	
-	inline StepperMotor::StepperMotor(const ControlOutputs& control_outputs, const DirectionOutputs& direction_outputs, const MotorStates& states): m_control_outputs(control_outputs), m_direction_outputs(direction_outputs), m_states(states), m_current_state_number(0UL) {
+	inline GpoStepperMotor::GpoStepperMotor(const ControlOutputs& control_outputs, const DirectionOutputs& direction_outputs, const MotorStates& states): m_control_outputs(control_outputs), m_direction_outputs(direction_outputs), m_states(states), m_current_state_number(0UL) {
 		validate_outputs(m_control_outputs, {ControlOutput::ENA, ControlOutput::ENB});
 		validate_outputs(m_direction_outputs, {DirectionOutput::A_TOP, DirectionOutput::A_BTM, DirectionOutput::B_TOP, DirectionOutput::B_BTM});
-		if (2UL < m_states.size()) {
+		if (1UL > m_states.size()) {
 			throw std::invalid_argument("states vector is too short");
 		}
 		disable();
 		apply_state(m_states[0]);
 	}
 	
-	inline void StepperMotor::enable() {
-		using GpoState = typename Gpo::State;
+	inline void GpoStepperMotor::enable() {
+		using GpoState = typename manager::Gpo::State;
 		for (const auto& output: {ControlOutput::ENA, ControlOutput::ENB}) {
 			m_control_outputs.at(output)->set_state(GpoState::HIGH);
 		}
 	}
 
-	inline void StepperMotor::disable() {
-		using GpoState = typename Gpo::State;
+	inline void GpoStepperMotor::disable() {
+		using GpoState = typename manager::Gpo::State;
 		for (const auto& output: {ControlOutput::ENA, ControlOutput::ENB}) {
 			m_control_outputs.at(output)->set_state(GpoState::LOW);
 		}
 	}
 
-	inline bool StepperMotor::enabled() const {
-		using GpoState = typename Gpo::State;
+	inline bool GpoStepperMotor::enabled() const {
+		using GpoState = typename manager::Gpo::State;
 		for (const auto& output: {ControlOutput::ENA, ControlOutput::ENB}) {
 			if (GpoState::LOW == m_control_outputs.at(output)->state()) {
 				return false;
@@ -86,14 +83,13 @@ namespace manager {
 		return true;
 	}
 
-	inline void StepperMotor::step(const Direction& direction) {
+	inline void GpoStepperMotor::step(const Direction& direction) {
 		auto next_state = get_next_state(direction);
 		apply_state(m_states[next_state]);
 		m_current_state_number = next_state;
 	}
 
-	
-	inline std::size_t StepperMotor::get_next_state(const Direction& direction) const {
+	inline std::size_t GpoStepperMotor::get_next_state(const Direction& direction) const {
 		auto get_next_cw = [this](const std::size_t& from) {
 			auto next(from + 1);
 			if (m_states.size() <= next) {
@@ -116,16 +112,15 @@ namespace manager {
 			throw std::invalid_argument("invalid direction received");
 		}
 	}
-
 	
-	inline void StepperMotor::apply_state(const MotorState& state) {
+	inline void GpoStepperMotor::apply_state(const MotorState& state) {
 		for (const auto& [output, gpo_state]: state) {
 			m_direction_outputs.at(output)->set_state(gpo_state);
 		}
 	}
 
 	template <typename Tkey>
-	inline void StepperMotor::validate_outputs(const std::map<Tkey, Gpo *>& outputs, const std::vector<Tkey>& required_keys) {
+	inline void GpoStepperMotor::validate_outputs(const std::map<Tkey, manager::Gpo *>& outputs, const std::vector<Tkey>& required_keys) {
 		for (const auto& key: required_keys) {
 			const auto iter = outputs.find(key);
 			if (outputs.end() == iter) {
@@ -138,4 +133,4 @@ namespace manager {
 	}
 }
 
-#endif // STEPPER_MOTOR_HPP
+#endif // GPO_STEPPER_MOTOR_HPP
