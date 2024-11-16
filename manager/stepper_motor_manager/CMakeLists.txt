@@ -8,6 +8,8 @@ target_link_libraries(
     stepper_motor_manager
     INTERFACE
     data_lib
+    gpio
+    gpo
     stepper_motor
     inventory
     inventory_manager
