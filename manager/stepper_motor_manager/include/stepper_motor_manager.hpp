@@ -1,7 +1,10 @@
 #ifndef	STEPPER_MOTOR_MANAGER_HPP
 #define	STEPPER_MOTOR_MANAGER_HPP
 
+#include <stdexcept>
+
 #include "data.hpp"
+#include "gpio.hpp"
 #include "stepper_motor.hpp"
 #include "integer.hpp"
 #include "inventory.hpp"
@@ -14,16 +17,21 @@
 namespace manager {
 	class StepperMotorManager: public InventoryManager<StepperMotor> {
 	public:
-		using StepperMotorCreator = typename InventoryManager<StepperMotor>::ItemCreator;
-		StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const StepperMotorCreator& stepper_motor_creator);
+		StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, Inventory<server::ResourceId, Gpio> *gpio_inventory);
 		StepperMotorManager(const StepperMotorManager& other) = delete;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 	private:
+		static StepperMotor *create_stepper_motor(Inventory<server::ResourceId, Gpio> *gpio_inventory, const server::Data& cfg);
 		static server::Object read_stepper_motor(const StepperMotor& stepper_motor);
 		static void write_stepper_motor(StepperMotor *stepper_motor, const server::Data& update_cfg);
+		using StepperMotorCreator = typename InventoryManager<StepperMotor>::ItemCreator;
 	};
-	
-	inline StepperMotorManager::StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const StepperMotorCreator& stepper_motor_creator): InventoryManager<StepperMotor>(stepper_motor_inventory, stepper_motor_creator, read_stepper_motor, write_stepper_motor) {
+
+	inline StepperMotor *StepperMotorManager::create_stepper_motor(Inventory<server::ResourceId, Gpio> *gpio_inventory, const server::Data& cfg) {
+		throw std::runtime_error("not implemented");
+	}
+
+	inline StepperMotorManager::StepperMotorManager(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, Inventory<server::ResourceId, Gpio> *gpio_inventory): InventoryManager<StepperMotor>(stepper_motor_inventory, [gpio_inventory](const server::Data& cfg) {return create_stepper_motor(gpio_inventory, cfg);}, read_stepper_motor, write_stepper_motor) {
 
 	}
 
