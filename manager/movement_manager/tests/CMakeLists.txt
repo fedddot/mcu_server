@@ -25,7 +25,6 @@ target_link_libraries(
     server_types
     stepper_motor
     test_movement
-    test_stepper_motor
     vector
     gtest
 )
