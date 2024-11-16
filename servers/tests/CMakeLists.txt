@@ -17,7 +17,6 @@ target_link_libraries(
     test_gpi
     test_gpo
     test_ipc_connection
-    test_stepper_motor
 	
 	gtest
 )

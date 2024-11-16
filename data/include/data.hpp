@@ -6,6 +6,7 @@ namespace server {
 	public:
 		enum class Type : int {
 			INT,
+			DOUBLE,
 			STR,
 			OBJECT,
 			ARRAY

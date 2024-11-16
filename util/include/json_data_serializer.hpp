@@ -24,6 +24,7 @@ namespace server_utl {
 		static Json::Value parseJsonArray(const server::Data& obj);
 		static Json::Value parseJsonString(const server::Data& obj);
 		static Json::Value parseJsonInteger(const server::Data& obj);
+		static Json::Value parseJsonDouble(const server::Data& obj);
 	};
 }
 

@@ -3,6 +3,7 @@
 #include <string>
 
 #include "data.hpp"
+#include "double.hpp"
 #include "integer.hpp"
 #include "object.hpp"
 #include "array.hpp"
@@ -33,6 +34,8 @@ Data *JsonDataParser::parseValue(const Json::Value& root) {
 		return parseInteger(root);
 	case Json::ValueType::stringValue:
 		return parseString(root);
+	case Json::ValueType::realValue:
+		return parseDouble(root);
 	default:
 		throw std::invalid_argument("unsupported Json data type");
 	}
@@ -62,4 +65,8 @@ Data *JsonDataParser::parseString(const Json::Value& root) {
 
 Data *JsonDataParser::parseInteger(const Json::Value& root) {
 	return new Integer(root.asInt());
+}
+
+Data *JsonDataParser::parseDouble(const Json::Value& root) {
+	return new Double(root.asDouble());
 }
