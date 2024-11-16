@@ -9,11 +9,12 @@ target_link_libraries(
     data_lib
     gpio
     gpo
-    stepper_motor
+    gpo_stepper_motor
     inventory
     inventory_manager
     server_exception
     server_types
+    stepper_motor
 )
 
 add_subdirectory(util)

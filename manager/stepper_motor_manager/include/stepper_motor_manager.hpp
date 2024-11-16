@@ -9,13 +9,14 @@
 #include "data.hpp"
 #include "gpio.hpp"
 #include "gpo.hpp"
-#include "stepper_motor.hpp"
+#include "gpo_stepper_motor.hpp"
 #include "integer.hpp"
 #include "inventory.hpp"
 #include "inventory_manager.hpp"
 #include "object.hpp"
 #include "server_exception.hpp"
 #include "server_types.hpp"
+#include "stepper_motor.hpp"
 #include "string.hpp"
 
 namespace manager {
@@ -28,22 +29,24 @@ namespace manager {
 		static StepperMotor *create_stepper_motor(Inventory<server::ResourceId, Gpio> *gpio_inventory, const server::Data& cfg);
 		static server::Object read_stepper_motor(const StepperMotor& stepper_motor);
 		static void write_stepper_motor(StepperMotor *stepper_motor, const server::Data& update_cfg);
-	
-		using ControlOutput = typename StepperMotor::ControlOutput;
-		using ControlOutputs = typename StepperMotor::ControlOutputs;
-		using DirectionOutput = typename StepperMotor::DirectionOutput;
-		using DirectionOutputs = typename StepperMotor::DirectionOutputs;
-		using MotorState = typename StepperMotor::MotorState;
-		using MotorStates = typename StepperMotor::MotorStates;
+
+		using ControlOutput = typename manager_utl::GpoStepperMotor::ControlOutput;
+		using ControlOutputs = typename manager_utl::GpoStepperMotor::ControlOutputs;
+		using DirectionOutput = typename manager_utl::GpoStepperMotor::DirectionOutput;
+		using DirectionOutputs = typename manager_utl::GpoStepperMotor::DirectionOutputs;
+		using MotorState = typename manager_utl::GpoStepperMotor::MotorState;
+		using MotorStates = typename manager_utl::GpoStepperMotor::MotorStates;
 		
 		template <typename Toutputs, typename Toutput>
-		static Toutputs fetch_outputs(Inventory<server::ResourceId, Gpio> *inventory, const server::Object& cfg, const std::map<std::string, Toutput>& fields_mapping);	
-
+		static Toutputs fetch_outputs(Inventory<server::ResourceId, Gpio> *inventory, const server::Object& cfg, const std::map<std::string, Toutput>& fields_mapping);
+		
 		static MotorState parse_state(const server::Object& cfg, const std::map<std::string, DirectionOutput>& fields_mapping);	
 	};
 	
 	inline StepperMotor *StepperMotorManager::create_stepper_motor(Inventory<server::ResourceId, Gpio> *gpio_inventory, const server::Data& cfg) {
 		using namespace server;
+		using namespace manager_utl;
+
 		if (nullptr == gpio_inventory) {
 			throw std::invalid_argument("invalid inventory ptr received");
 		}
@@ -84,7 +87,7 @@ namespace manager {
 				);
 			}
 		);
-		return new StepperMotor(
+		return new GpoStepperMotor(
 			control_outputs,
 			direction_outputs,
 			states
