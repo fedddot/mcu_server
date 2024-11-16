@@ -1,35 +1,30 @@
-#include <iostream>
 #include <memory>
-
-#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
 
+#include "array.hpp"
 #include "data.hpp"
+#include "gpio.hpp"
+#include "gpo.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_manager.hpp"
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
 #include "object.hpp"
 #include "server_types.hpp"
-#include "test_stepper_motor.hpp"
+#include "string.hpp"
+#include "test_gpo.hpp"
 
 using namespace server;
 using namespace manager;
 using namespace manager_uts;
-
-static StepperMotor *create_test_stepper_motor(const TestStepperMotor::StepAction& action, const Data& create_cfg) {
-	(void)create_cfg;
-	return new TestStepperMotor(action);
-}
+using GpoState = typename Gpo::State;
 
 TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 	// GIVEN
-	InMemoryInventory<ResourceId, StepperMotor> inventory;
-	auto create_action = [](const Data& create_cfg)-> StepperMotor * {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
+	InMemoryInventory<ResourceId, Gpio> gpio_inventory;
+	InMemoryInventory<ResourceId, StepperMotor> stepper_motor_inventory;
 
 	// WHEN
 	using StepperMotorManagerUnqPtr = std::unique_ptr<StepperMotorManager>;
@@ -37,7 +32,7 @@ TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 	
 	// THEN
 	// ctor
-	ASSERT_NO_THROW(instance_ptr = StepperMotorManagerUnqPtr(new StepperMotorManager(&inventory, create_action)));
+	ASSERT_NO_THROW(instance_ptr = StepperMotorManagerUnqPtr(new StepperMotorManager(&stepper_motor_inventory, &gpio_inventory)));
 	ASSERT_NE(nullptr, instance_ptr);
 
 	// dtor
@@ -46,14 +41,49 @@ TEST(ut_stepper_motor_manager, ctor_dtor_sanity) {
 
 TEST(ut_stepper_motor_manager, crud_methods_sanity) {
 	// GIVEN
+	TestGpo ena, enb;
+	TestGpo a_top, a_btm, b_top, b_btm;
+	InMemoryInventory<ResourceId, Gpio> gpio_inventory;
+	gpio_inventory.add("ena", &ena);
+	gpio_inventory.add("enb", &enb);
+	gpio_inventory.add("a_top", &a_top);
+	gpio_inventory.add("a_btm", &a_btm);
+	gpio_inventory.add("b_top", &b_top);
+	gpio_inventory.add("b_btm", &b_btm);
+
+	InMemoryInventory<ResourceId, StepperMotor> stepper_motor_inventory;
+
 	const auto id(ResourceId("test_motor"));
-	auto steps_action_called(false);
-	auto step_action = [&steps_action_called](const StepperMotor::Direction& dir) {
-		std::cout << "a step in direction " << std::to_string(static_cast<int>(dir)) << std::endl;
-		steps_action_called = true;
-	};
+
+	Object control_outputs;
+	control_outputs.add("ena", String("ena"));
+	control_outputs.add("enb", String("enb"));
+
+	Object direction_outputs;
+	direction_outputs.add("a_top", String("a_top"));
+	direction_outputs.add("a_btm", String("a_btm"));
+	direction_outputs.add("b_top", String("b_top"));
+	direction_outputs.add("b_btm", String("b_btm"));
+
+	Object state0;
+	state0.add("a_top", Integer(static_cast<int>(GpoState::HIGH)));
+	state0.add("a_btm", Integer(static_cast<int>(GpoState::LOW)));
+	state0.add("b_top", Integer(static_cast<int>(GpoState::LOW)));
+	state0.add("b_btm", Integer(static_cast<int>(GpoState::LOW)));
+	Object state1;
+	state1.add("a_top", Integer(static_cast<int>(GpoState::LOW)));
+	state1.add("a_btm", Integer(static_cast<int>(GpoState::LOW)));
+	state1.add("b_top", Integer(static_cast<int>(GpoState::HIGH)));
+	state1.add("b_btm", Integer(static_cast<int>(GpoState::LOW)));
+	Array states;
+	states.push_back(state0);
+	states.push_back(state1);
+
 	Object create_cfg;
-	
+	create_cfg.add("control_outputs", control_outputs);
+	create_cfg.add("direction_outputs", direction_outputs);
+	create_cfg.add("states", states);
+
 	Object update_enable_cfg;
 	update_enable_cfg.add("type", String("update_enable_status"));
 	update_enable_cfg.add("enable", Integer(1));
@@ -63,20 +93,17 @@ TEST(ut_stepper_motor_manager, crud_methods_sanity) {
 	update_steps_cfg.add("steps_number", Integer(10));
 
 	// WHEN
-	InMemoryInventory<ResourceId, StepperMotor> inventory;
 	StepperMotorManager instance(
-		&inventory,
-		[step_action](const Data& create_cfg) {
-			return create_test_stepper_motor(step_action, create_cfg);
-		}
+		&stepper_motor_inventory,
+		&gpio_inventory
 	);
 	Object read_data;
 
 	// THEN
 	// create
 	ASSERT_NO_THROW(instance.create_resource(id, create_cfg));
-	ASSERT_TRUE(inventory.contains(id));
-	ASSERT_FALSE(inventory.access(id).enabled());
+	ASSERT_TRUE(stepper_motor_inventory.contains(id));
+	ASSERT_FALSE(stepper_motor_inventory.access(id).enabled());
 
 	// read
 	ASSERT_NO_THROW(read_data = instance.read_resource({id}));
@@ -85,13 +112,12 @@ TEST(ut_stepper_motor_manager, crud_methods_sanity) {
 
 	// update
 	ASSERT_NO_THROW(instance.update_resource({id}, update_enable_cfg));
-	ASSERT_TRUE(inventory.access(id).enabled());
+	ASSERT_TRUE(stepper_motor_inventory.access(id).enabled());
 	
 	// update
 	ASSERT_NO_THROW(instance.update_resource({id}, update_steps_cfg));
-	ASSERT_TRUE(steps_action_called);
 
 	// delete
 	ASSERT_NO_THROW(instance.delete_resource({id}));
-	ASSERT_FALSE(inventory.contains(id));
+	ASSERT_FALSE(stepper_motor_inventory.contains(id));
 }
