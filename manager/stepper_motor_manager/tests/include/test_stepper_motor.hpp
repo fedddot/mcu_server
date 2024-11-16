@@ -6,7 +6,7 @@
 
 #include "stepper_motor.hpp"
 
-namespace manager_utl {
+namespace manager_uts {
 	class TestStepperMotor: public manager::StepperMotor {
 	public:
         using StepAction = std::function<void(const Direction&)>;
