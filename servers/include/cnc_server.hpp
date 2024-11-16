@@ -31,14 +31,12 @@ namespace cnc_server {
 	public:
 		using IpcConnection = typename server::Server<Tsubscriber_id>::IpcConnection;
 		using GpioCreator = typename manager::GpioManager::GpioCreator;
-		using StepperMotorCreator = typename manager::StepperMotorManager::StepperMotorCreator;
 		using DelayFunction = typename manager::LinearMovement::DelayFunction;
 
 		CncServer(
 			IpcConnection *connection,
 			const Tsubscriber_id& id,
 			const GpioCreator& gpio_creator,
-			const StepperMotorCreator& stepper_motor_creator,
 			const DelayFunction& delay_function
 		);
 		CncServer(const CncServer& other) = delete;
@@ -52,7 +50,7 @@ namespace cnc_server {
 		
 		manager::InMemoryInventory<server::ResourceId, manager::Movement> m_movement_inventory;
 
-		server::Vendor *init_vendor(const GpioCreator& gpio_creator, const StepperMotorCreator& stepper_motor_creator, const DelayFunction& delay_function);
+		server::Vendor *init_vendor(const GpioCreator& gpio_creator, const DelayFunction& delay_function);
 		manager::Movement *create_movement(const server::Data& cfg, const DelayFunction& delay_function);
 	};
 
@@ -61,17 +59,16 @@ namespace cnc_server {
 		IpcConnection *connection,
 		const Tsubscriber_id& id,
 		const GpioCreator& gpio_creator,
-		const StepperMotorCreator& stepper_motor_creator,
 		const DelayFunction& delay_function
-	): server::Server<Tsubscriber_id>(connection, id, init_vendor(gpio_creator, stepper_motor_creator, delay_function)) {
+	): server::Server<Tsubscriber_id>(connection, id, init_vendor(gpio_creator, delay_function)) {
 	}
 
 	template <typename Tsubscriber_id>
-	inline server::Vendor *CncServer<Tsubscriber_id>::init_vendor(const GpioCreator& gpio_creator, const StepperMotorCreator& stepper_motor_creator, const DelayFunction& delay_function) {
+	inline server::Vendor *CncServer<Tsubscriber_id>::init_vendor(const GpioCreator& gpio_creator, const DelayFunction& delay_function) {
 		using namespace server;
 		using namespace vendor;
 		using namespace manager;
-		if (!gpio_creator || !stepper_motor_creator || !delay_function) {
+		if (!gpio_creator || !delay_function) {
 			throw std::invalid_argument("invalid actions received");
 		}
 		ClonableManagerWrapper gpio_manager(
@@ -83,7 +80,7 @@ namespace cnc_server {
 		ClonableManagerWrapper stepper_motor_manager(
 			new StepperMotorManager(
 				&m_stepper_motor_inventory,
-				stepper_motor_creator
+				&m_gpio_inventory	
 			)
 		);
 		ClonableManagerWrapper movement_manager(

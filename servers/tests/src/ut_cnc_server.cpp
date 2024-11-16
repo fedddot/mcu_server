@@ -5,6 +5,7 @@
 
 #include "gtest/gtest.h"
 
+#include "array.hpp"
 #include "cnc_server.hpp"
 #include "data.hpp"
 #include "double.hpp"
@@ -20,8 +21,6 @@
 #include "test_gpi.hpp"
 #include "test_gpo.hpp"
 #include "test_ipc_connection.hpp"
-#include "test_stepper_motor.hpp"
-#include "vector.hpp"
 
 using namespace server;
 using namespace cnc_server;
@@ -53,9 +52,6 @@ TEST(ut_cnc_server, ctor_dtor_sanity) {
             [](const Data&)-> Gpio * {
                 throw std::runtime_error("NOT IMPLEMENTED");
             },
-            [](const Data&)-> StepperMotor * {
-                throw std::runtime_error("NOT IMPLEMENTED");
-            },
             [](const double) {
                 throw std::runtime_error("NOT IMPLEMENTED");
             }
@@ -66,8 +62,61 @@ TEST(ut_cnc_server, ctor_dtor_sanity) {
     ASSERT_NO_THROW(instance_ptr = nullptr);
 }
 
+static void create_gpio(TestConnection *connection, const ResourceId& gpio_id, const Gpio::Direction& dir) {
+    // GIVEN
+    Object test_gpio_cfg;
+    test_gpio_cfg.add("direction", Integer(static_cast<int>(dir)));
+    Object create_gpio_cfg;
+    create_gpio_cfg.add("id", String(gpio_id));
+    create_gpio_cfg.add("config", test_gpio_cfg);
+
+    // WHEN
+    Response result(ResponseCode::UNSPECIFIED, Object());
+
+    // THEN
+    ASSERT_NO_THROW(
+        connection->publish_request(
+            Request(
+                Request::Method::CREATE,
+                {"gpios"},
+                create_gpio_cfg
+            )
+        )
+    );
+}
+
 static void create_stepper(TestConnection *connection, const ResourceId& stepper_id) {
+    Object control_outputs;
+    for (const auto& gpo_tag: {"ena", "enb"}) {
+        const auto gpo_id = stepper_id + "_" + gpo_tag;
+        create_gpio(connection, gpo_id, Gpo::Direction::OUT);
+        control_outputs.add(gpo_tag, String(gpo_id));
+    }
+    Object direction_outputs;
+    for (const auto& gpo_tag: {"a_top", "a_btm", "b_top", "b_btm"}) {
+        const auto gpo_id = stepper_id + "_" + gpo_tag;
+        create_gpio(connection, gpo_id, Gpo::Direction::OUT);
+        direction_outputs.add(gpo_tag, String(gpo_id));
+    }
+    Object state0;
+	state0.add("a_top", Integer(static_cast<int>(Gpo::State::HIGH)));
+	state0.add("a_btm", Integer(static_cast<int>(Gpo::State::LOW)));
+	state0.add("b_top", Integer(static_cast<int>(Gpo::State::LOW)));
+	state0.add("b_btm", Integer(static_cast<int>(Gpo::State::LOW)));
+	Object state1;
+	state1.add("a_top", Integer(static_cast<int>(Gpo::State::LOW)));
+	state1.add("a_btm", Integer(static_cast<int>(Gpo::State::LOW)));
+	state1.add("b_top", Integer(static_cast<int>(Gpo::State::HIGH)));
+	state1.add("b_btm", Integer(static_cast<int>(Gpo::State::LOW)));
+	Array states;
+	states.push_back(state0);
+	states.push_back(state1);
+
     Object create_stepper_cfg;
+    create_stepper_cfg.add("control_outputs", control_outputs);
+    create_stepper_cfg.add("direction_outputs", direction_outputs);
+    create_stepper_cfg.add("states", states);
+    
     Body create_stepper_body;
     create_stepper_body.add("id", String(stepper_id));
     create_stepper_body.add("config", create_stepper_cfg);
@@ -94,9 +143,6 @@ TEST(ut_cnc_server, run_movement_sanity) {
 		std::cout << "a step in direction " << std::to_string(static_cast<int>(dir)) << std::endl;
 		steps_action_called = true;
 	};
-    auto stepper_ctor = [step_action](const Data& data)-> StepperMotor * {
-        return new TestStepperMotor(step_action);
-    };
     const unsigned int steps_per_length(100UL);
     auto delay_function = [](const double& delay) {
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<unsigned int>(1000 * delay)));
@@ -134,7 +180,7 @@ TEST(ut_cnc_server, run_movement_sanity) {
     linear_movement_data.add("feed", feed);
 
     // WHEN
-    TestServer instance(&connection, test_id, gpio_ctor, stepper_ctor, delay_function);
+    TestServer instance(&connection, test_id, gpio_ctor, delay_function);
 
     // THEN
     ASSERT_FALSE(instance.is_running());
