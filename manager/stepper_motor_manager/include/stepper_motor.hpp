@@ -58,6 +58,8 @@ namespace manager {
 		if (2UL < m_states.size()) {
 			throw std::invalid_argument("states vector is too short");
 		}
+		disable();
+		apply_state(m_states[0]);
 	}
 	
 	inline void StepperMotor::enable() {
