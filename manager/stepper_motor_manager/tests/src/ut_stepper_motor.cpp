@@ -51,6 +51,12 @@ TEST(ut_stepper_motor, ctor_dtor_sanity) {
 	// ctor
 	ASSERT_NO_THROW(instance_ptr = StepperMotorUnqPtr(new StepperMotor(s_control_outputs, s_direction_outputs, s_states)));
 	ASSERT_NE(nullptr, instance_ptr);
+	for (const auto& [output, state]: s_states[0]) {
+		ASSERT_EQ(state, s_direction_outputs.at(output)->state());
+	}
+	for (const auto& output: {ControlOutput::ENA, ControlOutput::ENB}) {
+		ASSERT_EQ(GpoState::LOW, s_control_outputs.at(output)->state());
+	}
 
 	// dtor
 	ASSERT_NO_THROW(instance_ptr = nullptr);
@@ -59,12 +65,6 @@ TEST(ut_stepper_motor, ctor_dtor_sanity) {
 TEST(ut_stepper_motor, enable_disable_is_enabled_step_sanity) {
 	// WHEN
 	StepperMotor instance(s_control_outputs, s_direction_outputs, s_states);
-	for (const auto& [key, gpo_ptr]: s_control_outputs) {
-		gpo_ptr->set_state(GpoState::LOW);
-	}
-	for (const auto& [key, gpo_ptr]: s_direction_outputs) {
-		gpo_ptr->set_state(GpoState::LOW);
-	}
 
 	// THEN
 	// enable, enabled
@@ -80,5 +80,13 @@ TEST(ut_stepper_motor, enable_disable_is_enabled_step_sanity) {
 	ASSERT_EQ(GpoState::LOW, s_ena.state());
 	ASSERT_EQ(GpoState::LOW, s_enb.state());
 
-	
+	// step
+	ASSERT_NO_THROW(instance.step(StepperMotor::Direction::CW));
+	for (const auto& [output, state]: s_states[1]) {
+		ASSERT_EQ(state, s_direction_outputs.at(output)->state());
+	}
+	ASSERT_NO_THROW(instance.step(StepperMotor::Direction::CCW));
+	for (const auto& [output, state]: s_states[0]) {
+		ASSERT_EQ(state, s_direction_outputs.at(output)->state());
+	}
 }
