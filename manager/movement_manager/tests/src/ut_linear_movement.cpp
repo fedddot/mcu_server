@@ -13,6 +13,7 @@
 #include "object.hpp"
 #include "server_types.hpp"
 #include "stepper_motor.hpp"
+#include "test_stepper_motor.hpp"
 
 using namespace server;
 using namespace manager;
