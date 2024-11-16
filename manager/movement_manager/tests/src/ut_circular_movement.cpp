@@ -7,13 +7,14 @@
 
 #include "gtest/gtest.h"
 
+#include "circular_movement.hpp"
 #include "double.hpp"
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
-#include "circular_movement.hpp"
 #include "object.hpp"
 #include "server_types.hpp"
 #include "stepper_motor.hpp"
+#include "test_stepper_motor.hpp"
 
 using namespace server;
 using namespace manager;
@@ -70,8 +71,8 @@ TEST(ut_circular_movement, perform_sanity) {
 	test_vector.add("z", Double(0));
 
 	Object test_rotation_vector;
-	test_rotation_vector.add("x", Double(45));
-	test_rotation_vector.add("y", Double(0));
+	test_rotation_vector.add("x", Double(0));
+	test_rotation_vector.add("y", Double(45));
 	test_rotation_vector.add("z", Double(0));
 	const unsigned int test_feed(3);
 	const unsigned int steps_per_length(100);
@@ -87,10 +88,14 @@ TEST(ut_circular_movement, perform_sanity) {
 		std::cout << motor_id << " steps in " << std::to_string(static_cast<int>(dir)) << " direction" << std::endl;
 	};
 	for (const auto [axis, motor_id]: test_assignment) {
-		auto action = [step_action, motor_id](const StepperMotor::Direction& dir) {
-			step_action(motor_id, dir);
-		};
-		inventory.add(motor_id, new TestStepperMotor(action));
+		inventory.add(
+			motor_id, 
+			new TestStepperMotor(
+				[motor_id](const StepperMotor::Direction& direction) {
+					std::cout << motor_id << " steps in direction " << static_cast<int>(direction) << std::endl;
+				}
+			)
+		);
 	}
 
 	CircularMovement instance(
