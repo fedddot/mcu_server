@@ -4,6 +4,7 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_json_data_parser.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_json_request_parser.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_json_data_serializer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_http_ipc_connection.cpp
 )
 
 target_link_libraries(
@@ -14,6 +15,7 @@ target_link_libraries(
 	json_data_serializer
 	data_lib
 	server_types
+	http_ipc_connection
 	
 	gtest
 )
