@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "cpprest/base_uri.h"
 #include "cpprest/http_msg.h"
 #include "cpprest/http_listener.h"
 
@@ -121,8 +122,8 @@ namespace server_utl {
 			return iter->second;
 		};
 		auto retrieve_route = [](const web::http::http_request& request) {
-			const auto uri = request.relative_uri().to_string();
-			return Path {uri};
+			const auto path_vect = web::uri::split_path(request.request_uri().to_string());
+			return Path(path_vect.begin(), path_vect.end());
 		};
 		auto retrieve_body = [](const web::http::http_request& request) {
 			auto data_task = request.extract_vector();
