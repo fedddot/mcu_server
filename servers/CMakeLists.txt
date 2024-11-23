@@ -20,5 +20,17 @@ target_link_libraries(
     vector
     circular_movement
 )
+add_library(test_http_cnc_server INTERFACE)
+target_include_directories(test_http_cnc_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    test_http_cnc_server
+    INTERFACE
+    cnc_server
+    data_lib
+    gpio
+    http_ipc_connection
+    test_gpi
+    test_gpo
+)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
