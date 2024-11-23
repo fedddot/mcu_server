@@ -18,6 +18,17 @@ target_link_libraries(json_response_serializer INTERFACE data_lib json_data_seri
 
 add_library(http_ipc_connection INTERFACE)
 target_include_directories(http_ipc_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(http_ipc_connection INTERFACE ipc_connection cpprest)
+target_link_libraries(
+    http_ipc_connection
+    INTERFACE
+    cpprest
+    data_lib
+    ipc_connection
+    json_data_parser
+    json_data_serializer
+    request
+    response
+    server_types
+)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
