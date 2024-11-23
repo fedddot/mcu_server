@@ -6,12 +6,9 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <ostream>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 
-#include "cpprest/astreambuf.h"
 #include "cpprest/http_msg.h"
 #include "cpprest/http_listener.h"
 
@@ -128,11 +125,14 @@ namespace server_utl {
 			return Path {uri};
 		};
 		auto retrieve_body = [](const web::http::http_request& request) {
-			Concurrency::streams::streambuf<unsigned char> buffer;
-			request.body().read_to_end(buffer).wait();
-			std::ostringstream ss;
-			ss << buffer;
-			const std::unique_ptr<Data> parsed_data(JsonDataParser()(ss.str()));
+			auto data_task = request.extract_vector();
+			data_task.wait();
+			const auto data = data_task.get();
+			const auto data_str = std::string(data.begin(), data.end());
+			if (data_str.empty()) {
+				return Body();
+			}
+			const std::unique_ptr<Data> parsed_data(JsonDataParser()(data_str));
 			return Body(Data::cast<Body>(*parsed_data));
 		};
 		return Request(
@@ -155,6 +155,8 @@ namespace server_utl {
 				return web::http::status_codes::MethodNotAllowed;
 			case ResponseCode::NOT_FOUND:
 				return web::http::status_codes::NotFound;
+			case ResponseCode::TIMEOUT:
+				return web::http::status_codes::RequestTimeout;
 			case ResponseCode::UNSPECIFIED:
 				return web::http::status_codes::InternalError;
 			default:
