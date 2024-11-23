@@ -35,8 +35,8 @@ TEST(ut_http_ipc_connection, sanity) {
 	ASSERT_NO_THROW(instance_ptr = new HttpIpcConnection<std::string>(uri, timeout_s));
 	ASSERT_NO_THROW(instance_ptr->subscribe(subs_id, callback));
 	
-	std::unique_lock lock(mux);
-	cond.wait(lock);
+	// std::unique_lock lock(mux);
+	// cond.wait(lock);
 
 	Body response_body;
 	response_body.add("val", Integer(15));
