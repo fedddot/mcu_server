@@ -31,7 +31,7 @@ namespace cnc_server {
 	template <typename Tsubscriber_id>
 	inline TestHttpCncServer<Tsubscriber_id>::TestHttpCncServer(const Tsubscriber_id& id, const std::string& uri, const unsigned int timeout_s):
 		CncServer<Tsubscriber_id>(
-			init_connection(id, timeout_s),
+			init_connection(uri, timeout_s),
 			id,
 			[](const server::Data& data)-> manager::Gpio * {
 				using namespace server;

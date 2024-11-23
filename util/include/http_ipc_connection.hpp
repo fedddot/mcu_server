@@ -23,7 +23,7 @@
 
 namespace server_utl {
 	template <typename Tsubscriber_id>
-	class HttpIpcConnection: ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response> {
+	class HttpIpcConnection: public ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response> {
 	public:
 		using Callback = typename ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>::Callback;
 		
