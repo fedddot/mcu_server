@@ -25,7 +25,6 @@ target_include_directories(http_ipc_connection INTERFACE ${CMAKE_CURRENT_LIST_DI
 target_link_libraries(
     http_ipc_connection
     INTERFACE
-    cpprest
     data_lib
     ipc_connection
     json_data_parser
@@ -33,6 +32,7 @@ target_link_libraries(
     request
     response
     server_types
+    -lcpprest
     -lssl
     -lcrypto
 )

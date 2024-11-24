@@ -19,5 +19,6 @@ target_link_libraries(
 	server_types
 	http_ipc_connection
 	
-	gtest
+	-lgtest
+	-lpthread
 )
