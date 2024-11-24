@@ -16,6 +16,10 @@ add_library(json_response_serializer INTERFACE)
 target_include_directories(json_response_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(json_response_serializer INTERFACE data_lib json_data_serializer server_types response)
 
+add_library(buffered_ipc_connection INTERFACE)
+target_include_directories(buffered_ipc_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(buffered_ipc_connection INTERFACE ipc_connection request response)
+
 add_library(http_ipc_connection INTERFACE)
 target_include_directories(http_ipc_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
