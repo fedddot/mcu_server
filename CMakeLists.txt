@@ -33,17 +33,6 @@ target_link_libraries(vendor INTERFACE request response)
 
 add_library(server INTERFACE)
 target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(
-    server
-    INTERFACE
-    data_lib
-    ipc_connection
-    request
-    response
-    server_exception
-    server_types
-    vendor
-)
 
 add_subdirectory(data)
 add_subdirectory(ipc)
