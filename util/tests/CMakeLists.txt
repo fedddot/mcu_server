@@ -23,6 +23,7 @@ target_link_libraries(
 	resources_vendor
 	clonable_manager_wrapper
 	gpio
+	test_ipc_connection
 	
 	-lgtest
 	-lpthread

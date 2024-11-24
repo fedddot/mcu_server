@@ -15,12 +15,12 @@
 
 namespace server_utl {
 	template <typename Tsubscriber_id>
-	class Server: public server::Server {
+	class CustomServer: public server::Server {
 	public:
 		using IpcConnection = ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>;
-		Server(IpcConnection *connection, const Tsubscriber_id& id, server::Vendor *vendor);
-		Server(const Server& other) = delete;
-		Server& operator=(const Server& other) = delete;
+		CustomServer(IpcConnection *connection, const Tsubscriber_id& id, server::Vendor *vendor);
+		CustomServer(const CustomServer& other) = delete;
+		CustomServer& operator=(const CustomServer& other) = delete;
 
 		void run() override;
 		bool is_running() const override;
@@ -34,14 +34,14 @@ namespace server_utl {
 	};
 
 	template <typename Tsubscriber_id>
-	inline Server<Tsubscriber_id>::Server(IpcConnection *connection, const Tsubscriber_id& id, server::Vendor *vendor): m_connection(connection), m_id(id), m_vendor(vendor) {
+	inline CustomServer<Tsubscriber_id>::CustomServer(IpcConnection *connection, const Tsubscriber_id& id, server::Vendor *vendor): m_connection(connection), m_id(id), m_vendor(vendor) {
 		if (!m_connection || !m_vendor) {
 			throw std::invalid_argument("invalid arguments received");
 		}
 	}
 
 	template <typename Tsubscriber_id>
-	inline void Server<Tsubscriber_id>::run() {
+	inline void CustomServer<Tsubscriber_id>::run() {
 		m_connection->subscribe(
 			m_id,
 			[this](const server::Request& request) {
@@ -51,17 +51,17 @@ namespace server_utl {
 	}
 
 	template <typename Tsubscriber_id>
-	inline bool Server<Tsubscriber_id>::is_running() const {
+	inline bool CustomServer<Tsubscriber_id>::is_running() const {
 		return m_connection->is_subscribed(m_id);
 	}
 
 	template <typename Tsubscriber_id>
-	inline void Server<Tsubscriber_id>::stop() {
+	inline void CustomServer<Tsubscriber_id>::stop() {
 		m_connection->unsubscribe(m_id);
 	}
 
 	template <typename Tsubscriber_id>
-	inline void Server<Tsubscriber_id>::handle_request(const server::Request& request) const {
+	inline void CustomServer<Tsubscriber_id>::handle_request(const server::Request& request) const {
 		using namespace server;
 		try {
 			auto response(m_vendor->run_request(request));
