@@ -6,6 +6,7 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_json_request_parser.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_json_data_serializer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_http_ipc_connection.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_custom_server.cpp
 )
 
 target_link_libraries(
@@ -18,6 +19,10 @@ target_link_libraries(
 	data_lib
 	server_types
 	http_ipc_connection
+	custom_server
+	resources_vendor
+	clonable_manager_wrapper
+	gpio
 	
 	-lgtest
 	-lpthread
