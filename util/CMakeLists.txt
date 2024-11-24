@@ -20,6 +20,21 @@ add_library(buffered_ipc_connection INTERFACE)
 target_include_directories(buffered_ipc_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(buffered_ipc_connection INTERFACE ipc_connection request response)
 
+add_library(custom_server INTERFACE)
+target_include_directories(custom_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    custom_server
+    INTERFACE
+    data_lib
+    ipc_connection
+    request
+    response
+    server
+    server_exception
+    server_types
+    vendor
+)
+
 add_library(http_ipc_connection INTERFACE)
 target_include_directories(http_ipc_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
@@ -33,6 +48,7 @@ target_link_libraries(
     response
     server_types
     -lcpprest
+    -lpthread
     -lssl
     -lcrypto
 )
