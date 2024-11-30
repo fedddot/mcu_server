@@ -1,7 +1,7 @@
 add_library(json_data_parser INTERFACE)
 target_sources(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src/json_data_parser.cpp)
 target_include_directories(json_data_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(json_data_parser INTERFACE data_lib -l:libjsoncpp.a)
+target_link_libraries(json_data_parser INTERFACE data_lib jsoncpp_static)
 
 add_library(json_request_parser INTERFACE)
 target_include_directories(json_request_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
@@ -10,7 +10,7 @@ target_link_libraries(json_request_parser INTERFACE data_lib json_data_parser se
 add_library(json_data_serializer INTERFACE)
 target_sources(json_data_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src/json_data_serializer.cpp)
 target_include_directories(json_data_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(json_data_serializer INTERFACE data_lib -l:libjsoncpp.a)
+target_link_libraries(json_data_serializer INTERFACE data_lib jsoncpp_static)
 
 add_library(json_response_serializer INTERFACE)
 target_include_directories(json_response_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
