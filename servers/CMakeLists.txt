@@ -34,6 +34,10 @@ target_link_libraries(
     data_lib
     gpio
     http_ipc_connection
+    ipc_connection
+    request
+    response
+    server
     test_gpi
     test_gpo
 )
