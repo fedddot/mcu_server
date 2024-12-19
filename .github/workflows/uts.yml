@@ -14,7 +14,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: build dev image
+      working-directory: ${{github.workspace}}
+      id: build-dev-image
+      run: |
+        docker build --network=host -t mcu-server=dev:latest -f docker/dev.dockerfile .
+
     - name: Run UTs
       working-directory: ${{github.workspace}}/automation
-      run: sudo apt-get update && sudo apt-get install -y libcpprest-dev && python -u run_ut_tests.py ${{github.workspace}}
+      run: |
+        docker build -t mcu-server=dev:latest -f docker/dev.dockerfile . sudo apt-get update && sudo apt-get install -y libcpprest-dev && python -u run_ut_tests.py ${{github.workspace}}
