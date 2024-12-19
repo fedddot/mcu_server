@@ -1,4 +1,4 @@
-name: Unit tests
+name: on PR to main
 on:
   push:
     branches: [ "main" ]
@@ -23,7 +23,7 @@ jobs:
       run: |
         docker build --network=host -t mcu-server-dev:latest -f docker/dev.dockerfile .
 
-    - name: Run UTs
+    - name: run uts
       working-directory: ${{github.workspace}}/automation
       run: |
         docker run -it -v ${{github.workspace}}:/usr/app/src mcu-server-dev:latest python3 -u automation/run_ut_tests.py /usr/app/src
