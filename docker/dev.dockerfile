@@ -16,6 +16,7 @@ WORKDIR /usr/app/external
 
 RUN git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git googletest
 ENV GOOGLE_TEST_PATH=/usr/app/external/googletest
+ENV GOOGLE_TEST_VERSION=1.15.2
 
 RUN git clone --depth 1 --branch 1.9.6 https://github.com/open-source-parsers/jsoncpp.git jsoncpp
 ENV JSONCPP_PATH=/usr/app/external/googletest
