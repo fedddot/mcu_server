@@ -14,12 +14,11 @@ RUN apt-get install -y python3
 
 WORKDIR /usr/app/external
 
-RUN git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git googletest
-ENV GOOGLE_TEST_PATH=/usr/app/external/googletest
-ENV GOOGLE_TEST_VERSION=1.15.2
+RUN wget https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
+ENV GOOGLE_TEST_ARCHIVE_PATH=/usr/app/external/v1.15.2.tar.gz
 
-RUN git clone --depth 1 --branch 1.9.6 https://github.com/open-source-parsers/jsoncpp.git jsoncpp
-ENV JSONCPP_PATH=/usr/app/external/googletest
+RUN wget https://github.com/open-source-parsers/jsoncpp/archive/refs/tags/1.9.6.tar.gz
+ENV JSONCPP_ARCHIVE_PATH=/usr/app/external/1.9.6.tar.gz
 
 # ENV LD_LIBRARY_PATH=/usr/local/lib
 

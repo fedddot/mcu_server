@@ -25,6 +25,5 @@ target_link_libraries(
 	gpio
 	test_ipc_connection
 	
-	-lgtest
-	-lpthread
+	gtest
 )

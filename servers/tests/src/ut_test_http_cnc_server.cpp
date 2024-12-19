@@ -19,12 +19,5 @@ TEST(ut_test_http_cnc_server, ctor_dtor_sanity) {
     // THEN
     ASSERT_NO_THROW(instance_ptr = new TestHttpCncServer<std::string>(test_id, uri, timeout_s));
     ASSERT_NE(nullptr, instance_ptr);
-
-    instance_ptr->run();
-    while (true) {
-        ;
-    }
-    instance_ptr->stop();
-
     ASSERT_NO_THROW(delete instance_ptr);
 }
