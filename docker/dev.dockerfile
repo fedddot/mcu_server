@@ -1,5 +1,7 @@
 FROM gcc:11.4.0
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update
 RUN apt-get install -y cmake
 RUN apt-get install -y gdb
