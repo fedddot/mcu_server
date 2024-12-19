@@ -26,4 +26,4 @@ jobs:
     - name: Run UTs
       working-directory: ${{github.workspace}}/automation
       run: |
-        docker build -t mcu-server=dev:latest -f docker/dev.dockerfile . sudo apt-get update && sudo apt-get install -y libcpprest-dev && python -u run_ut_tests.py ${{github.workspace}}
+        docker run -it -v ${{github.workspace}}:/usr/app/src mcu-server-dev:latest python3 -u automation/run_ut_tests.py /usr/app/src
