@@ -9,11 +9,11 @@
 #include "request.hpp"
 #include "response.hpp"
 
-namespace ipc {
+namespace server_utl {
 	template <typename Tsubscriber_id, typename Traw_data>
-	class BufferedIpcConnection: public IpcConnection<Tsubscriber_id, server::Request, server::Response> {
+	class BufferedIpcConnection: public ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response> {
 	public:
-		using Callback = typename IpcConnection<Tsubscriber_id, server::Request, server::Response>::Callback;
+		using Callback = typename ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>::Callback;
 		
 		using RequestMatcher = std::function<bool(const Traw_data&)>;
 		using RequestExtractor = std::function<server::Request(Traw_data *)>;

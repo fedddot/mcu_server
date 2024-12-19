@@ -16,6 +16,7 @@ namespace server {
 		METHOD_NOT_ALLOWED,
 		NOT_FOUND,
 		BAD_REQUEST,
+		TIMEOUT,
 		UNSPECIFIED
 	};
 }

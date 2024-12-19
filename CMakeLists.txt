@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 
-project(mcu_server C CXX ASM)
+project(mcu_server C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -33,24 +33,11 @@ target_link_libraries(vendor INTERFACE request response)
 
 add_library(server INTERFACE)
 target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(
-    server
-    INTERFACE
-    data_lib
-    ipc_connection
-    request
-    response
-    server_exception
-    server_types
-    vendor
-)
 
 add_subdirectory(data)
-add_subdirectory(external)
 add_subdirectory(ipc)
 add_subdirectory(manager)
 add_subdirectory(vendor)
 add_subdirectory(util)
 add_subdirectory(servers)
-
-add_subdirectory(tests EXCLUDE_FROM_ALL)
+add_subdirectory(external)

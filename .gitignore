@@ -1,8 +1,10 @@
 *.*
 .vscode
 build
+!.devcontainer
 !.gitignore
 !.github
+!*.dockerfile
 !*.json
 !*.c
 !*.cpp

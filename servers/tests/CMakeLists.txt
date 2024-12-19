@@ -2,6 +2,7 @@ add_executable(
 	cnc_server_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ut_cnc_server.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/ut_test_http_cnc_server.cpp
 )
 
 target_link_libraries(
@@ -11,6 +12,7 @@ target_link_libraries(
     data_lib
     gpio
     linear_movement
+    test_http_cnc_server
     response
     server_types
     stepper_motor

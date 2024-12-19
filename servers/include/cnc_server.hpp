@@ -7,29 +7,33 @@
 
 #include "circular_movement.hpp"
 #include "clonable_manager_wrapper.hpp"
+#include "custom_server.hpp"
 #include "data.hpp"
 #include "gpio.hpp"
 #include "gpio_manager.hpp"
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
+#include "ipc_connection.hpp"
 #include "linear_movement.hpp"
 #include "movement.hpp"
 #include "movement_manager.hpp"
 #include "object.hpp"
+#include "request.hpp"
+#include "response.hpp"
 #include "server.hpp"
 #include "server_exception.hpp"
 #include "server_types.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_manager.hpp"
 #include "string.hpp"
-#include "vendor.hpp"
 #include "vector.hpp"
+#include "vendor.hpp"
 
 namespace cnc_server {
 	template <typename Tsubscriber_id>
-	class CncServer: public server::Server<Tsubscriber_id> {
+	class CncServer: public server::Server {
 	public:
-		using IpcConnection = typename server::Server<Tsubscriber_id>::IpcConnection;
+		using IpcConnection = typename ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>;
 		using GpioCreator = typename manager::GpioManager::GpioCreator;
 		using DelayFunction = typename manager::LinearMovement::DelayFunction;
 
@@ -41,17 +45,20 @@ namespace cnc_server {
 		);
 		CncServer(const CncServer& other) = delete;
 		CncServer& operator=(const CncServer& other) = delete;
+
+		void run() override;
+		bool is_running() const override;
+		void stop() override;
 	private:
 		std::shared_ptr<server::Vendor> m_vendor;
-
 		manager::InMemoryInventory<server::ResourceId, manager::Gpio> m_gpio_inventory;
-		
 		manager::InMemoryInventory<server::ResourceId, manager::StepperMotor> m_stepper_motor_inventory;
-		
 		manager::InMemoryInventory<server::ResourceId, manager::Movement> m_movement_inventory;
 
 		server::Vendor *init_vendor(const GpioCreator& gpio_creator, const DelayFunction& delay_function);
 		manager::Movement *create_movement(const server::Data& cfg, const DelayFunction& delay_function);
+
+		std::shared_ptr<server::Server> m_server;
 	};
 
 	template <typename Tsubscriber_id>
@@ -60,7 +67,23 @@ namespace cnc_server {
 		const Tsubscriber_id& id,
 		const GpioCreator& gpio_creator,
 		const DelayFunction& delay_function
-	): server::Server<Tsubscriber_id>(connection, id, init_vendor(gpio_creator, delay_function)) {
+	): m_server(new server_utl::CustomServer<Tsubscriber_id>(connection, id, init_vendor(gpio_creator, delay_function))) {
+	
+	}
+
+	template <typename Tsubscriber_id>
+	inline void CncServer<Tsubscriber_id>::run() {
+		m_server->run();
+	}
+
+	template <typename Tsubscriber_id>
+	inline bool CncServer<Tsubscriber_id>::is_running() const {
+		return m_server->is_running();
+	}
+	
+	template <typename Tsubscriber_id>
+	inline void CncServer<Tsubscriber_id>::stop() {
+		m_server->stop();
 	}
 
 	template <typename Tsubscriber_id>
