@@ -26,7 +26,8 @@ target_link_libraries(
     custom_server
     INTERFACE
     data_lib
-    ipc_connection
+    data_reader
+    data_writer
     request
     response
     server
