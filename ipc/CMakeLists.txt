@@ -6,9 +6,13 @@ target_include_directories(data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/inclu
 
 add_library(buffered_package_reader INTERFACE)
 target_include_directories(buffered_package_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(buffered_package_reader INTERFACE data_reader)
+target_link_libraries(buffered_package_reader INTERFACE data_reader ipc_types)
 
 add_library(data_writer INTERFACE)
 target_include_directories(data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
+add_library(package_writer INTERFACE)
+target_include_directories(package_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(package_writer INTERFACE data_writer ipc_types)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
