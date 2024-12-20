@@ -17,7 +17,7 @@ WORKDIR /usr/app/external
 
 RUN wget https://apt.llvm.org/llvm.sh
 RUN chmod +x llvm.sh
-RUN ./llvm.sh 18
+RUN ./llvm.sh 18.1.3
 ENV PATH=${PATH}:/usr/lib/llvm-18/bin
 
 RUN wget https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
