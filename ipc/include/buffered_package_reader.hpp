@@ -19,7 +19,6 @@ namespace ipc {
 		Package read() const override;
 		void feed(const char ch);
 	private:
-		using RawData = std::vector<char>;
 		const Preamble m_preamble;
 		const std::size_t m_preamble_size;
 
@@ -81,6 +80,20 @@ namespace ipc {
 	inline void BufferedPackageReader::reset_buffer() {
 		m_buffer.clear();
 		m_buffer.reserve(m_preamble.size() + sizeof(PackageSize));
+	}
+
+	inline PackageSize BufferedPackageReader::parse_size(const RawData& raw_data) {
+		enum: int {BITS_IN_BYTE = 8};
+		if (sizeof(PackageSize) != raw_data.size()) {
+			throw std::invalid_argument("invalid raw data received");
+		}
+		PackageSize result(0);
+		for (auto byte_number = 0; byte_number < sizeof(PackageSize); ++byte_number) {
+			const auto chunk = raw_data[sizeof(PackageSize) - 1 - byte_number];
+			result <<= BITS_IN_BYTE;
+			result |= chunk;
+		}
+		return result;
 	}
 }
 

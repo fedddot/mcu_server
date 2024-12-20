@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace ipc {
+	using RawData = std::vector<char>;
 	using Package = std::vector<char>;
 	using PackageSize = std::size_t;
 }
