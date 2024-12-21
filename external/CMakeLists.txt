@@ -28,9 +28,7 @@ FetchContent_MakeAvailable(jsoncpp)
 
 FetchContent_Declare(
     cpprest
-    set(BUILD_SHARED_LIBS OFF)
-    set(BUILD_OBJECT_LIBS OFF)
-    set(BUILD_STATIC_LIBS ON)
     URL $ENV{CPPREST_ARCHIVE_PATH}
 )
 FetchContent_MakeAvailable(cpprest)
+target_compile_options(cpprest PRIVATE -w)
