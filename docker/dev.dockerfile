@@ -7,8 +7,8 @@ RUN apt-get install -y cmake
 RUN apt-get install -y gdb
 RUN apt-get install -y git
 RUN apt-get install -y wget
-# RUN apt-get install -y openssl
-RUN apt-get install -y libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev libwebsocketpp-dev
+RUN apt-get install -y libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev
+RUN apt-get install -y libwebsocketpp-dev
 RUN apt-get install -y python3
 RUN apt-get install -y lsb-release software-properties-common gnupg
 
