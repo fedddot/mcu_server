@@ -15,7 +15,7 @@ namespace ipc {
 
 		CustomDataReader(
 			const ReadCustomAction& read_custom_action,
-			const ReadCustomAction& readable_custom_action
+			const ReadableCustomAction& readable_custom_action
 		);
 		CustomDataReader(const CustomDataReader&) = default;
 		CustomDataReader& operator=(const CustomDataReader&) = default;
@@ -24,13 +24,13 @@ namespace ipc {
 		Tdata read() const override;
 	private:
 		ReadCustomAction m_read_custom_action;
-		ReadCustomAction m_readable_custom_action;
+		ReadableCustomAction m_readable_custom_action;
 	};
 	
 	template <typename Tdata>
 	inline CustomDataReader<Tdata>::CustomDataReader(
 			const ReadCustomAction& read_custom_action,
-			const ReadCustomAction& readable_custom_action
+			const ReadableCustomAction& readable_custom_action
 		): m_read_custom_action(read_custom_action), m_readable_custom_action(readable_custom_action) {
 		if (!m_read_custom_action || !m_readable_custom_action) {
 			throw std::invalid_argument("invalid actions received");
