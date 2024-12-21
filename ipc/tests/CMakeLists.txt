@@ -11,6 +11,7 @@ target_link_libraries(
     package_reader
 	package_writer
 	custom_data_writer
+	http_ipc_connection
     ipc_types
 	
 	gtest
