@@ -1,6 +1,7 @@
 add_executable(
 	ipc_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_http_ipc_connection.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ut_package_reader.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_package_writer.cpp
 )
