@@ -22,8 +22,8 @@
 #include "server_types.hpp"
 
 namespace server_utl {
-	template <typename Tsubscriber_id>
-	class HttpIpcConnection: public ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response> {
+	
+	class HttpIpcConnection {
 	public:
 		using Callback = typename ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>::Callback;
 		
@@ -61,7 +61,7 @@ namespace server_utl {
 		void request_handler(const web::http::http_request& request);
 	};
 
-	template <typename Tsubscriber_id>
+	
 	inline HttpIpcConnection<Tsubscriber_id>::HttpIpcConnection(const std::string& uri, const unsigned int response_timeout_s): m_response_timeout_s(response_timeout_s), m_listener(uri), m_promise(nullptr) {
 		m_listener.support(
 			[this](web::http::http_request request) {
@@ -71,12 +71,12 @@ namespace server_utl {
 		m_listener.open().wait();
 	}
 	
-	template <typename Tsubscriber_id>
+	
 	inline HttpIpcConnection<Tsubscriber_id>::~HttpIpcConnection() noexcept {
 		m_listener.close().wait();
 	}
 	
-	template <typename Tsubscriber_id>
+	
 	inline void HttpIpcConnection<Tsubscriber_id>::subscribe(const Tsubscriber_id& id, const Callback& cb) {
 		if (is_subscribed(id)) {
 			throw std::invalid_argument("callback with received id is already subscribed");
@@ -84,7 +84,7 @@ namespace server_utl {
 		m_subscribers.insert({id, cb});
 	}
 	
-	template <typename Tsubscriber_id>
+	
 	inline void HttpIpcConnection<Tsubscriber_id>::unsubscribe(const Tsubscriber_id& id) {
 		if (!is_subscribed(id)) {
 			throw std::invalid_argument("callback with received id is not subscribed");
@@ -92,12 +92,12 @@ namespace server_utl {
 		m_subscribers.erase(m_subscribers.find(id)); 
 	}
 
-	template <typename Tsubscriber_id>
+	
 	inline bool HttpIpcConnection<Tsubscriber_id>::is_subscribed(const Tsubscriber_id& id) const {
 		return m_subscribers.end() != m_subscribers.find(id);
 	}
 	
-	template <typename Tsubscriber_id>
+	
 	inline void HttpIpcConnection<Tsubscriber_id>::send(const server::Response& outgoing_data) const {
 		if (!m_promise) {
 			throw std::runtime_error("no one is waiting for response");
@@ -105,7 +105,7 @@ namespace server_utl {
 		m_promise->set(outgoing_data);
 	}
 
-	template <typename Tsubscriber_id>
+	
 	inline server::Request HttpIpcConnection<Tsubscriber_id>::parse_request(const web::http::http_request& request) {
 		using namespace server;
 		auto retrieve_method = [](const web::http::http_request& request) {
@@ -143,7 +143,7 @@ namespace server_utl {
 		);
 	}
 	
-	template <typename Tsubscriber_id>
+	
 	inline web::http::http_response HttpIpcConnection<Tsubscriber_id>::parse_response(const server::Response& response) {
 		using namespace server;
 		auto retrieve_status_code = [](const Response& response) {
@@ -169,7 +169,7 @@ namespace server_utl {
 		return http_resp;
 	}
 
-	template <typename Tsubscriber_id>
+	
 	inline void HttpIpcConnection<Tsubscriber_id>::request_handler(const web::http::http_request& request) {
 		if (m_promise) {
 			request.reply(web::http::status_codes::TooManyRequests).wait();
@@ -186,12 +186,12 @@ namespace server_utl {
 		request.reply(parse_response(response)).wait();
 	}
 
-	template <typename Tsubscriber_id>
+	
 	inline HttpIpcConnection<Tsubscriber_id>::Promise::Promise(const unsigned int timeout_s): m_timeout_s(timeout_s), m_response(server::ResponseCode::TIMEOUT, server::Body()), m_is_set(false) {
 
 	}
 
-	template <typename Tsubscriber_id>
+	
 	inline void HttpIpcConnection<Tsubscriber_id>::Promise::set(const server::Response& response) {
 		std::unique_lock lock(m_mux);
 		if (m_is_set) {
@@ -202,7 +202,7 @@ namespace server_utl {
 		m_cond.notify_all();
 	}
 
-	template <typename Tsubscriber_id>
+	
 	inline server::Response HttpIpcConnection<Tsubscriber_id>::Promise::get() const {
 		std::unique_lock lock(m_mux);
 		if (m_is_set) {
