@@ -1,5 +1,5 @@
-#ifndef	BUFFERED_PACKAGE_READER_HPP
-#define	BUFFERED_PACKAGE_READER_HPP
+#ifndef	PACKAGE_READER_HPP
+#define	PACKAGE_READER_HPP
 
 #include <stdexcept>
 #include <vector>
@@ -8,12 +8,12 @@
 #include "ipc_types.hpp"
 
 namespace ipc {
-	class BufferedPackageReader: public DataReader<Package> {
+	class PackageReader: public DataReader<Package> {
 	public:
 		using Preamble = std::vector<char>;
-		BufferedPackageReader(const Preamble& preamble);
-		BufferedPackageReader(const BufferedPackageReader&) = delete;
-		BufferedPackageReader& operator=(const BufferedPackageReader&) = delete;
+		PackageReader(const Preamble& preamble);
+		PackageReader(const PackageReader&) = delete;
+		PackageReader& operator=(const PackageReader&) = delete;
 
 		bool readable() const override;
 		Package read() const override;
@@ -29,11 +29,11 @@ namespace ipc {
 		static PackageSize parse_size(const RawData& raw_data);
 	};
 
-	inline BufferedPackageReader::BufferedPackageReader(const Preamble& preamble): m_preamble(preamble), m_preamble_size(preamble.size()) {
+	inline PackageReader::PackageReader(const Preamble& preamble): m_preamble(preamble), m_preamble_size(preamble.size()) {
 		reset_buffer();
 	}
 
-	inline bool BufferedPackageReader::readable() const {
+	inline bool PackageReader::readable() const {
 		if (m_buffer.size() < m_preamble_size + sizeof(PackageSize)) {
 			return false;
 		}
@@ -50,7 +50,7 @@ namespace ipc {
 		return m_buffer.size() >= m_preamble_size + sizeof(PackageSize) + package_size;
 	}
 
-	inline Package BufferedPackageReader::read() const {
+	inline Package PackageReader::read() const {
 		if (!readable()) {
 			throw std::runtime_error("package is not readable");
 		}
@@ -69,7 +69,7 @@ namespace ipc {
 		return package;
 	}
 
-	inline void BufferedPackageReader::feed(const char ch) {
+	inline void PackageReader::feed(const char ch) {
 		enum: int {RESIZE_ADDITION = 10};
 		if (m_buffer.size() == m_buffer.capacity()) {
 			m_buffer.reserve(m_buffer.size() + RESIZE_ADDITION);
@@ -77,12 +77,12 @@ namespace ipc {
 		m_buffer.push_back(ch);
 	}
 
-	inline void BufferedPackageReader::reset_buffer() {
+	inline void PackageReader::reset_buffer() {
 		m_buffer.clear();
 		m_buffer.reserve(m_preamble.size() + sizeof(PackageSize));
 	}
 
-	inline PackageSize BufferedPackageReader::parse_size(const RawData& raw_data) {
+	inline PackageSize PackageReader::parse_size(const RawData& raw_data) {
 		enum: int {BITS_IN_BYTE = 8};
 		if (sizeof(PackageSize) != raw_data.size()) {
 			throw std::invalid_argument("invalid raw data received");
@@ -97,4 +97,4 @@ namespace ipc {
 	}
 }
 
-#endif // BUFFERED_PACKAGE_READER_HPP
+#endif // PACKAGE_READER_HPP

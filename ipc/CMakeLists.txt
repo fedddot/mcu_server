@@ -4,9 +4,9 @@ target_include_directories(ipc_types INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include
 add_library(data_reader INTERFACE)
 target_include_directories(data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(buffered_package_reader INTERFACE)
-target_include_directories(buffered_package_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(buffered_package_reader INTERFACE data_reader ipc_types)
+add_library(package_reader INTERFACE)
+target_include_directories(package_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(package_reader INTERFACE data_reader ipc_types)
 
 add_library(custom_data_reader INTERFACE)
 target_include_directories(custom_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)

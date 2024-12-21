@@ -1,20 +1,20 @@
 #include "gtest/gtest.h"
 #include <string>
 
-#include "buffered_package_reader.hpp"
+#include "package_reader.hpp"
 #include "ipc_types.hpp"
 
 using namespace ipc;
 
-TEST(ut_buffered_package_reader, ctor_dtor_sanity) {
+TEST(ut_package_reader, ctor_dtor_sanity) {
     // GIVEN
-    const BufferedPackageReader::Preamble preamble {'a', 'b', 'c'};
+    const PackageReader::Preamble preamble {'a', 'b', 'c'};
 
     // WHEN
-    BufferedPackageReader *instance_ptr(nullptr);
+    PackageReader *instance_ptr(nullptr);
 
     // THEN
-    ASSERT_NO_THROW(instance_ptr = new BufferedPackageReader(preamble));
+    ASSERT_NO_THROW(instance_ptr = new PackageReader(preamble));
     ASSERT_NO_THROW(delete instance_ptr);
     instance_ptr = nullptr;
 }
@@ -30,15 +30,15 @@ static RawData serialize_size(const PackageSize& size) {
     return buff;
 }
 
-TEST(ut_buffered_package_reader, readable_read_feed_sanity) {
+TEST(ut_package_reader, readable_read_feed_sanity) {
     // GIVEN
     const std::string preamble_str("test_preamble");
-    const BufferedPackageReader::Preamble preamble(preamble_str.begin(), preamble_str.end());
+    const PackageReader::Preamble preamble(preamble_str.begin(), preamble_str.end());
     const std::string expected_package_str("lady gaga");
     const Package expected_package(expected_package_str.begin(), expected_package_str.end());
 
     // WHEN
-    BufferedPackageReader instance(preamble);
+    PackageReader instance(preamble);
     Package result;
 
     // THEN
