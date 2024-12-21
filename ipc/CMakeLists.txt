@@ -23,4 +23,20 @@ add_library(custom_data_writer INTERFACE)
 target_include_directories(custom_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(custom_data_writer INTERFACE data_writer)
 
+add_library(http_ipc_connection INTERFACE)
+target_include_directories(http_ipc_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    http_ipc_connection
+    INTERFACE
+    data_lib
+    data_reader
+    data_writer
+    json_data_parser
+    json_data_serializer
+    request
+    response
+    server_types
+    cpprest
+)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)

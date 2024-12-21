@@ -21,7 +21,7 @@
 #include "response.hpp"
 #include "server_types.hpp"
 
-namespace server_utl {
+namespace ipc {
 	
 	class HttpIpcConnection {
 	public:
