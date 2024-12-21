@@ -9,11 +9,12 @@
 #include "clonable_manager_wrapper.hpp"
 #include "custom_server.hpp"
 #include "data.hpp"
+#include "data_reader.hpp"
+#include "data_writer.hpp"
 #include "gpio.hpp"
 #include "gpio_manager.hpp"
 #include "in_memory_inventory.hpp"
 #include "integer.hpp"
-#include "ipc_connection.hpp"
 #include "linear_movement.hpp"
 #include "movement.hpp"
 #include "movement_manager.hpp"
@@ -30,16 +31,16 @@
 #include "vendor.hpp"
 
 namespace cnc_server {
-	template <typename Tsubscriber_id>
 	class CncServer: public server::Server {
 	public:
-		using IpcConnection = typename ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>;
+		using RequestReader = ipc::DataReader<server::Request>;
+		using ResponseWriter = ipc::DataWriter<server::Response>;
 		using GpioCreator = typename manager::GpioManager::GpioCreator;
 		using DelayFunction = typename manager::LinearMovement::DelayFunction;
 
 		CncServer(
-			IpcConnection *connection,
-			const Tsubscriber_id& id,
+			RequestReader *request_reader,
+			ResponseWriter *response_writer,
 			const GpioCreator& gpio_creator,
 			const DelayFunction& delay_function
 		);
@@ -60,34 +61,29 @@ namespace cnc_server {
 
 		std::shared_ptr<server::Server> m_server;
 	};
-
-	template <typename Tsubscriber_id>
-	inline CncServer<Tsubscriber_id>::CncServer(
-		IpcConnection *connection,
-		const Tsubscriber_id& id,
+	
+	inline CncServer::CncServer(
+		RequestReader *request_reader,
+		ResponseWriter *response_writer,
 		const GpioCreator& gpio_creator,
 		const DelayFunction& delay_function
-	): m_server(new server_utl::CustomServer<Tsubscriber_id>(connection, id, init_vendor(gpio_creator, delay_function))) {
+	): m_server(new server_utl::CustomServer(request_reader, response_writer, init_vendor(gpio_creator, delay_function))) {
 	
 	}
 
-	template <typename Tsubscriber_id>
-	inline void CncServer<Tsubscriber_id>::run() {
+	inline void CncServer::run() {
 		m_server->run();
 	}
 
-	template <typename Tsubscriber_id>
-	inline bool CncServer<Tsubscriber_id>::is_running() const {
+	inline bool CncServer::is_running() const {
 		return m_server->is_running();
 	}
-	
-	template <typename Tsubscriber_id>
-	inline void CncServer<Tsubscriber_id>::stop() {
+
+	inline void CncServer::stop() {
 		m_server->stop();
 	}
 
-	template <typename Tsubscriber_id>
-	inline server::Vendor *CncServer<Tsubscriber_id>::init_vendor(const GpioCreator& gpio_creator, const DelayFunction& delay_function) {
+	inline server::Vendor *CncServer::init_vendor(const GpioCreator& gpio_creator, const DelayFunction& delay_function) {
 		using namespace server;
 		using namespace vendor;
 		using namespace manager;
@@ -122,8 +118,8 @@ namespace cnc_server {
 		return m_vendor.get();
 	}
 
-	template <typename Tsubscriber_id>
-	inline manager::Movement *CncServer<Tsubscriber_id>::create_movement(const server::Data& cfg, const DelayFunction& delay_function) {
+	
+	inline manager::Movement *CncServer::create_movement(const server::Data& cfg, const DelayFunction& delay_function) {
 		using namespace server;
 		using namespace manager;
 		using Axis = typename Vector<double>::Axis;

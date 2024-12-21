@@ -7,10 +7,11 @@ target_link_libraries(
     clonable_manager_wrapper
     custom_server
     data_lib
+    data_reader
+    data_writer
     gpio
     gpio_manager
     in_memory_inventory
-    ipc_connection
     linear_movement
     movement
     movement_manager

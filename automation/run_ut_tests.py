@@ -20,6 +20,7 @@ uts = [
     "cnc_server_tests",
     "data_tests",
     "gpio_manager_tests",
+    "ipc_tests",
     "manager_tests",
     "movement_manager_tests",
     "resources_vendor_tests",
