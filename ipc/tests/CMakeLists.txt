@@ -21,6 +21,8 @@ target_link_libraries(
     response
     server_types
     data_lib
+
+	cpprest
 	
 	gtest
 )
