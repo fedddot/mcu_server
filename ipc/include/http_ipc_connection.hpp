@@ -49,6 +49,9 @@ namespace ipc {
 		};
 
 		Promise *m_promise;
+		server::Request *m_request;
+		mutable std::mutex m_request_mux;
+		mutable std::condition_variable m_request_cond;
 		
 		server::Request parse_request(const web::http::http_request& request);
 		web::http::http_response parse_response(const server::Response& response);

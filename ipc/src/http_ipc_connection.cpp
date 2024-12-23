@@ -1,3 +1,5 @@
+#include <chrono>
+#include <mutex>
 #include <stdexcept>
 
 #include "json_data_parser.hpp"
@@ -15,7 +17,7 @@ HttpIpcConnection::HttpIpcConnection(const std::string& uri, const unsigned int 
 	m_polling_timeout_s(polling_timeout_s),
 	m_response_timeout_s(response_timeout_s),
 	m_listener(uri),
-	m_promise(nullptr) {
+	m_promise(nullptr), m_request(nullptr) {
 	m_listener.support(
 		[this](web::http::http_request request) {
 			request_handler(request);
@@ -36,11 +38,20 @@ void HttpIpcConnection::write(const Response& outgoing_data) const {
 }
 
 bool HttpIpcConnection::readable() const {
-	throw std::runtime_error("NOT IMPLEMENTED");
+	std::unique_lock lock(m_request_mux);
+	if (m_request) {
+		return true;
+	}
+	m_request_cond.wait_for(lock, std::chrono::seconds(m_polling_timeout_s));
+	return m_request != nullptr;
 }
 
 Request HttpIpcConnection::read() const {
-	throw std::runtime_error("NOT IMPLEMENTED");
+	std::unique_lock lock(m_request_mux);
+	if (!m_request) {
+		throw std::runtime_error("there is no request to read");
+	}
+	return *m_request;
 }
 
 Request HttpIpcConnection::parse_request(const web::http::http_request& request) {
@@ -113,7 +124,6 @@ void HttpIpcConnection::request_handler(const web::http::http_request& request) 
 	const auto parsed_request = parse_request(request);
 	Promise promise(m_response_timeout_s);
 	m_promise = &promise;
-	throw std::runtime_error("UNDERIMPLEMENTED");
 	const auto response = promise.get();
 	m_promise = nullptr;
 	request.reply(parse_response(response)).wait();
