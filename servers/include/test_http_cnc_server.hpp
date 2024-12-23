@@ -11,19 +11,15 @@
 #include "data.hpp"
 #include "gpio.hpp"
 #include "http_ipc_connection.hpp"
-#include "ipc_connection.hpp"
 #include "object.hpp"
-#include "request.hpp"
-#include "response.hpp"
 #include "server.hpp"
 #include "test_gpi.hpp"
 #include "test_gpo.hpp"
 
 namespace cnc_server {
-	template <typename Tsubscriber_id>
 	class TestHttpCncServer: public server::Server {
 	public:
-		TestHttpCncServer(const Tsubscriber_id& id, const std::string& uri, const unsigned int timeout_s);
+		TestHttpCncServer(const std::string& uri, const unsigned int polling_timeout_s, const unsigned int response_timeout_s);
 		TestHttpCncServer(const TestHttpCncServer& other) = delete;
 		TestHttpCncServer& operator=(const TestHttpCncServer& other) = delete;
 
@@ -31,18 +27,17 @@ namespace cnc_server {
 		bool is_running() const override;
 		void stop() override;
 	private:
-		using IpcConnection = ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>;
-		std::unique_ptr<IpcConnection> m_connection;
+		std::unique_ptr<ipc::HttpIpcConnection> m_connection;
 		std::unique_ptr<server::Server> m_cnc_server;
 	};
 
-	template <typename Tsubscriber_id>
-	inline TestHttpCncServer<Tsubscriber_id>::TestHttpCncServer(const Tsubscriber_id& id, const std::string& uri, const unsigned int timeout_s):
-		m_connection(new server_utl::HttpIpcConnection<Tsubscriber_id>(uri, timeout_s)),
+	
+	inline TestHttpCncServer::TestHttpCncServer(const std::string& uri, const unsigned int polling_timeout_s, const unsigned int response_timeout_s):
+		m_connection(new ipc::HttpIpcConnection(uri, polling_timeout_s, response_timeout_s)),
 		m_cnc_server(
-			new CncServer<Tsubscriber_id>(
+			new CncServer(
 				m_connection.get(),
-				id,
+				m_connection.get(),
 				[](const server::Data& data)-> manager::Gpio * {
 					using namespace server;
 					using namespace manager;
@@ -64,18 +59,18 @@ namespace cnc_server {
 		) {
 	}
 
-	template <typename Tsubscriber_id>
-	inline void TestHttpCncServer<Tsubscriber_id>::run() {
+	
+	inline void TestHttpCncServer::run() {
 		m_cnc_server->run();
 	}
 
-	template <typename Tsubscriber_id>
-	inline bool TestHttpCncServer<Tsubscriber_id>::is_running() const {
+	
+	inline bool TestHttpCncServer::is_running() const {
 		return m_cnc_server->is_running();
 	}
 
-	template <typename Tsubscriber_id>
-	inline void TestHttpCncServer<Tsubscriber_id>::stop() {
+	
+	inline void TestHttpCncServer::stop() {
 		m_cnc_server->stop();
 	}
 }
