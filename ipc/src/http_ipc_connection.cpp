@@ -117,15 +117,21 @@ web::http::http_response HttpIpcConnection::parse_response(const Response& respo
 }
 
 void HttpIpcConnection::request_handler(const web::http::http_request& request) {
+	std::unique_lock lock(m_request_mux);
 	if (m_promise) {
 		request.reply(web::http::status_codes::TooManyRequests).wait();
 		return;
 	}
-	const auto parsed_request = parse_request(request);
+	auto parsed_request = parse_request(request);
+	m_request = &parsed_request;
 	Promise promise(m_response_timeout_s);
 	m_promise = &promise;
+	m_request_cond.notify_one();
+	lock.unlock();
+	
 	const auto response = promise.get();
 	m_promise = nullptr;
+	m_request = nullptr;
 	request.reply(parse_response(response)).wait();
 }
 

@@ -14,6 +14,13 @@ target_link_libraries(
 	custom_data_writer
 	http_ipc_connection
     ipc_types
+
+    http_ipc_connection
+    json_data_serializer
+    request
+    response
+    server_types
+    data_lib
 	
 	gtest
 )
