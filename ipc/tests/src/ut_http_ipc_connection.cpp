@@ -56,6 +56,6 @@ TEST(ut_http_ipc_connection, write_readable_read_sanity) {
     auto request_task = client.request(test_http_request);
     
     ASSERT_TRUE(instance.readable());
-    ASSERT_NO_THROW(instance.write(Response(ResponseCode::OK, Body())));
+    ASSERT_NO_THROW(instance.write(Response(ResponseCode::BAD_REQUEST, Body())));
     ASSERT_EQ(request_task.wait(), pplx::task_status::completed);
 }

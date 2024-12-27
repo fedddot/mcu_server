@@ -31,27 +31,16 @@ namespace ipc {
 		unsigned int m_response_timeout_s;
 		web::http::experimental::listener::http_listener m_listener;
 		
-		class Promise {
-		public:
-			Promise(const unsigned int timeout_s);
-			Promise(const Promise&) = delete;
-			Promise& operator=(const Promise&) = delete;
-			~Promise() noexcept = default;
+		mutable server::Response m_response;
+		mutable server::Request m_request;
 
-			void set(const server::Response& response);
-			server::Response get() const;
-		private:
-			unsigned int m_timeout_s;
-			server::Response m_response;
-			bool m_is_set;
-			mutable std::mutex m_mux;
-			mutable std::condition_variable m_cond;
-		};
-
-		Promise *m_promise;
-		server::Request *m_request;
+		mutable bool m_request_received;
 		mutable std::mutex m_request_mux;
 		mutable std::condition_variable m_request_cond;
+		
+		mutable bool m_response_received;
+		mutable std::mutex m_response_mux;
+		mutable std::condition_variable m_response_cond;
 		
 		server::Request parse_request(const web::http::http_request& request);
 		web::http::http_response parse_response(const server::Response& response);

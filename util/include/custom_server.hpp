@@ -62,11 +62,13 @@ namespace server_utl {
 			} catch (const ServerException& e) {
 				const auto failure_response = Response(e.code(), e.body());
 				m_response_writer->write(failure_response);
+				continue;
 			} catch (const std::exception& e) {
 				auto failure_response_body = Body();
 				failure_response_body.add("what", String(e.what()));
 				const auto failure_response = Response(ResponseCode::UNSPECIFIED, failure_response_body);
 				m_response_writer->write(failure_response);
+				continue;
 			}
 		}
 	}

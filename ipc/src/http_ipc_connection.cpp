@@ -1,4 +1,5 @@
 #include <chrono>
+#include <condition_variable>
 #include <mutex>
 #include <stdexcept>
 
@@ -6,6 +7,7 @@
 #include "json_data_serializer.hpp"
 #include "request.hpp"
 #include "response.hpp"
+#include "server_types.hpp"
 
 #include "http_ipc_connection.hpp"
 
@@ -17,7 +19,8 @@ HttpIpcConnection::HttpIpcConnection(const std::string& uri, const unsigned int 
 	m_polling_timeout_s(polling_timeout_s),
 	m_response_timeout_s(response_timeout_s),
 	m_listener(uri),
-	m_promise(nullptr), m_request(nullptr) {
+	m_response(ResponseCode::UNSPECIFIED, Body()), m_request(Request::Method::READ, {}, Body()),
+	m_response_received(false), m_request_received(false) {
 	m_listener.support(
 		[this](web::http::http_request request) {
 			request_handler(request);
@@ -31,27 +34,28 @@ HttpIpcConnection::~HttpIpcConnection() noexcept {
 }
 
 void HttpIpcConnection::write(const Response& outgoing_data) const {
-	if (!m_promise) {
-		throw std::runtime_error("no one is waiting for response");
-	}
-	m_promise->set(outgoing_data);
+	std::unique_lock response_lock(m_response_mux);
+	m_response = outgoing_data;
+	m_response_received = true;
+	m_response_cond.notify_one();
 }
 
 bool HttpIpcConnection::readable() const {
 	std::unique_lock lock(m_request_mux);
-	if (m_request) {
+	if (m_request_received) {
 		return true;
 	}
-	m_request_cond.wait_for(lock, std::chrono::seconds(m_polling_timeout_s));
-	return m_request != nullptr;
+	m_request_cond.wait_for(std::ref(lock), std::chrono::seconds(m_polling_timeout_s));
+	return m_request_received;
 }
 
 Request HttpIpcConnection::read() const {
 	std::unique_lock lock(m_request_mux);
-	if (!m_request) {
+	if (!m_request_received) {
 		throw std::runtime_error("there is no request to read");
 	}
-	return *m_request;
+	m_request_received = false;
+	return m_request;
 }
 
 Request HttpIpcConnection::parse_request(const web::http::http_request& request) {
@@ -117,43 +121,25 @@ web::http::http_response HttpIpcConnection::parse_response(const Response& respo
 }
 
 void HttpIpcConnection::request_handler(const web::http::http_request& request) {
-	std::unique_lock lock(m_request_mux);
-	if (m_promise) {
-		request.reply(web::http::status_codes::TooManyRequests).wait();
+	{
+		std::unique_lock lock(m_request_mux);
+		if (m_request_received) {
+			request.reply(web::http::status_codes::TooManyRequests).wait();
+			m_request_cond.notify_all();
+			return;
+		}
+		m_request = parse_request(request);
+		m_request_received = true;
+		m_request_cond.notify_one();
+	}
+	std::unique_lock lock(m_response_mux);
+	if (!m_response_received) {
+		m_response_cond.wait_for(lock, std::chrono::seconds(m_response_timeout_s));
+	}
+	if (!m_response_received) {
+		request.reply(parse_response(Response(ResponseCode::TIMEOUT, Body()))).wait();
 		return;
 	}
-	auto parsed_request = parse_request(request);
-	m_request = &parsed_request;
-	Promise promise(m_response_timeout_s);
-	m_promise = &promise;
-	m_request_cond.notify_one();
-	lock.unlock();
-	
-	const auto response = promise.get();
-	m_promise = nullptr;
-	m_request = nullptr;
-	request.reply(parse_response(response)).wait();
-}
-
-HttpIpcConnection::Promise::Promise(const unsigned int timeout_s): m_timeout_s(timeout_s), m_response(ResponseCode::TIMEOUT, Body()), m_is_set(false) {
-
-}
-
-void HttpIpcConnection::Promise::set(const Response& response) {
-	std::unique_lock lock(m_mux);
-	if (m_is_set) {
-		return;
-	}
-	m_response = response;
-	m_is_set = true;
-	m_cond.notify_all();
-}
-
-Response HttpIpcConnection::Promise::get() const {
-	std::unique_lock lock(m_mux);
-	if (m_is_set) {
-		return m_response;
-	}
-	m_cond.wait_for(lock, std::chrono::seconds(m_timeout_s));
-	return m_response;
+	request.reply(parse_response(m_response)).wait();
+	m_response_received = false;
 }
