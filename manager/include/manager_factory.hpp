@@ -1,15 +1,14 @@
 #ifndef	MANAGER_FACTORY_HPP
 #define	MANAGER_FACTORY_HPP
 
-#include "data.hpp"
 #include "manager.hpp"
 
-namespace server {
-	template <typename Trequest, typename Tresponse>
+namespace manager {
+	template <typename Trequest, typename Tresponse, typename Tconfig>
 	class ManagerFactory {
 	public:
 		virtual ~ManagerFactory() noexcept = default;
-		virtual Manager<Trequest, Tresponse> *create(const Data& config) const = 0;
+		virtual Manager<Trequest, Tresponse> *create(const Tconfig& config) const = 0;
 	};
 }
 

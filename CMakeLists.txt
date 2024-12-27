@@ -23,13 +23,6 @@ add_library(response INTERFACE)
 target_include_directories(response INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(response INTERFACE server_types)
 
-add_library(manager INTERFACE)
-target_include_directories(manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-
-add_library(vendor INTERFACE)
-target_include_directories(vendor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(vendor INTERFACE request response)
-
 add_library(server INTERFACE)
 target_include_directories(server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
