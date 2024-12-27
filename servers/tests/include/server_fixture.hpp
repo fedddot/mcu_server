@@ -39,7 +39,7 @@ namespace server_utl {
             Body request_body;
             request_body.add("id", String(id));
             Object cfg;
-            cfg.add("dir", Integer(static_cast<int>(dir)));
+            cfg.add("direction", Integer(static_cast<int>(dir)));
             cfg.add("pin_number", Integer(pin_num));
             request_body.add("config", cfg);
             return Request(Request::Method::CREATE, {"gpios"}, request_body);
