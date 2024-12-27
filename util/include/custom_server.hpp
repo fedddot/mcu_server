@@ -4,7 +4,8 @@
 #include <exception>
 #include <stdexcept>
 
-#include "ipc_connection.hpp"
+#include "data_reader.hpp"
+#include "data_writer.hpp"
 #include "request.hpp"
 #include "response.hpp"
 #include "server.hpp"
@@ -14,11 +15,15 @@
 #include "vendor.hpp"
 
 namespace server_utl {
-	template <typename Tsubscriber_id>
 	class CustomServer: public server::Server {
 	public:
-		using IpcConnection = ipc::IpcConnection<Tsubscriber_id, server::Request, server::Response>;
-		CustomServer(IpcConnection *connection, const Tsubscriber_id& id, server::Vendor *vendor);
+		using RequestReader = ipc::DataReader<server::Request>;
+		using ResponseWriter = ipc::DataWriter<server::Response>;
+		CustomServer(
+			RequestReader *request_reader,
+			ResponseWriter *response_writer,
+			server::Vendor *vendor
+		);
 		CustomServer(const CustomServer& other) = delete;
 		CustomServer& operator=(const CustomServer& other) = delete;
 
@@ -26,53 +31,54 @@ namespace server_utl {
 		bool is_running() const override;
 		void stop() override;
 	private:
-		IpcConnection *m_connection;
-		Tsubscriber_id m_id;
+		RequestReader *m_request_reader;
+		ResponseWriter *m_response_writer;
 		server::Vendor *m_vendor;
-
-		void handle_request(const server::Request& request) const;
+		bool m_is_running;
 	};
-
-	template <typename Tsubscriber_id>
-	inline CustomServer<Tsubscriber_id>::CustomServer(IpcConnection *connection, const Tsubscriber_id& id, server::Vendor *vendor): m_connection(connection), m_id(id), m_vendor(vendor) {
-		if (!m_connection || !m_vendor) {
+	
+	inline CustomServer::CustomServer(
+		RequestReader *request_reader,
+		ResponseWriter *response_writer,
+		server::Vendor *vendor
+	): m_request_reader(request_reader), m_response_writer(response_writer), m_vendor(vendor), m_is_running(false) {
+		if (!m_request_reader || !m_response_writer || !m_vendor) {
 			throw std::invalid_argument("invalid arguments received");
 		}
 	}
 
-	template <typename Tsubscriber_id>
-	inline void CustomServer<Tsubscriber_id>::run() {
-		m_connection->subscribe(
-			m_id,
-			[this](const server::Request& request) {
-				handle_request(request);
-			}
-		);
-	}
-
-	template <typename Tsubscriber_id>
-	inline bool CustomServer<Tsubscriber_id>::is_running() const {
-		return m_connection->is_subscribed(m_id);
-	}
-
-	template <typename Tsubscriber_id>
-	inline void CustomServer<Tsubscriber_id>::stop() {
-		m_connection->unsubscribe(m_id);
-	}
-
-	template <typename Tsubscriber_id>
-	inline void CustomServer<Tsubscriber_id>::handle_request(const server::Request& request) const {
+	
+	inline void CustomServer::run() {
 		using namespace server;
-		try {
-			auto response(m_vendor->run_request(request));
-			m_connection->send(response);
-		} catch (const ServerException& e) {
-			m_connection->send(Response(e.code(), e.body()));
-		} catch (const std::exception& e) {
-			Body body;
-			body.add("what", String(std::string(e.what())));
-			m_connection->send(Response(ResponseCode::UNSPECIFIED, body));
+		m_is_running = true;
+		while (m_is_running) {
+			try {
+				if (!m_request_reader->readable()) {
+					continue;
+				}
+				const auto request = m_request_reader->read();
+				const auto response = m_vendor->run_request(request);
+				m_response_writer->write(response);
+			} catch (const ServerException& e) {
+				const auto failure_response = Response(e.code(), e.body());
+				m_response_writer->write(failure_response);
+				continue;
+			} catch (const std::exception& e) {
+				auto failure_response_body = Body();
+				failure_response_body.add("what", String(e.what()));
+				const auto failure_response = Response(ResponseCode::UNSPECIFIED, failure_response_body);
+				m_response_writer->write(failure_response);
+				continue;
+			}
 		}
+	}
+
+	inline bool CustomServer::is_running() const {
+		return m_is_running;
+	}
+
+	inline void CustomServer::stop() {
+		m_is_running = false;
 	}
 }
 

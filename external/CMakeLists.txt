@@ -25,3 +25,10 @@ FetchContent_Declare(
     URL $ENV{JSONCPP_ARCHIVE_PATH}
 )
 FetchContent_MakeAvailable(jsoncpp)
+
+FetchContent_Declare(
+    cpprest
+    URL $ENV{CPPREST_ARCHIVE_PATH}
+)
+FetchContent_MakeAvailable(cpprest)
+target_compile_options(cpprest PRIVATE -w)
