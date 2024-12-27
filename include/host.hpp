@@ -74,7 +74,7 @@ namespace app {
 			m_response_writer->write(response);
 		} catch (const std::exception& e) {
 			m_response_writer->write(m_failure_response_generator(e));
-		}	
+		}
 	}
 
 	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tprovider_cfg>
