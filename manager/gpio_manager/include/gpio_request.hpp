@@ -1,13 +1,10 @@
 #ifndef	GPIO_REQUEST_HPP
 #define	GPIO_REQUEST_HPP
 
-#include <map>
-#include <memory>
-#include <stdexcept>
-
-#include "data.hpp"
+#include "gpio.hpp"
 
 namespace manager {
+	template <typename Tgpio_id>
 	class GpioRequest {
 	public:
 		enum class Operation: int {
@@ -16,47 +13,66 @@ namespace manager {
 			WRITE,
 			DELETE
 		};
-		enum class Field: int {
-			ID,
-			DIRECTION,
-			IO_NUMBER
-		};
 		GpioRequest(const Operation& operation);
 		GpioRequest(const GpioRequest&) = default;
 		GpioRequest& operator=(const GpioRequest&) = default;
 		virtual ~GpioRequest() noexcept = default;
 
 		Operation operation() const;
-		bool has_data(const Field& field) const;
-		void set_data(const Field& field, const server::Data& data);
-		const server::Data& get_data(const Field& field) const;
+
+		Tgpio_id id() const;
+		void set_id(const Tgpio_id& id);
+
+		Gpio::Direction direction() const;
+		void set_direction(const Gpio::Direction& direction);
+
+		Gpio::State state() const;
+		void set_state(const Gpio::State& state);
 	private:
 		Operation m_operation;
-		std::map<Field, std::unique_ptr<server::Data>> m_data;
+		Tgpio_id m_id;
+		Gpio::Direction m_direction;
+		Gpio::State m_state;
 	};
 
-	inline GpioRequest::GpioRequest(const Operation& operation): m_operation(operation) {
+	template <typename Tgpio_id>
+	inline GpioRequest<Tgpio_id>::GpioRequest(const Operation& operation): m_operation(operation) {
 
 	}
 
-	inline typename GpioRequest::Operation GpioRequest::operation() const {
+	template <typename Tgpio_id>
+	inline typename GpioRequest<Tgpio_id>::Operation GpioRequest<Tgpio_id>::operation() const {
 		return m_operation;
 	}
 
-	inline bool GpioRequest::has_data(const Field& field) const {
-		return m_data.find(field) != m_data.end();
+	template <typename Tgpio_id>
+	inline Tgpio_id GpioRequest<Tgpio_id>::id() const {
+		return m_id;
 	}
 
-	inline void GpioRequest::set_data(const Field& field, const server::Data& data) {
-		m_data[field] = std::unique_ptr<server::Data>(data.clone());
+	template <typename Tgpio_id>
+	inline void GpioRequest<Tgpio_id>::set_id(const Tgpio_id& id) {
+		m_id = id;
 	}
 
-	inline const server::Data& GpioRequest::get_data(const Field& field) const {
-		const auto iter = m_data.find(field);
-		if (m_data.end() == iter) {
-			throw std::invalid_argument("mising request data");
-		}
-		return *(m_data.at(field));
+	template <typename Tgpio_id>
+	inline typename Gpio::Direction GpioRequest<Tgpio_id>::direction() const {
+		return m_direction;
+	}
+
+	template <typename Tgpio_id>
+	inline void GpioRequest<Tgpio_id>::set_direction(const Gpio::Direction& direction) {
+		m_direction = direction;
+	}
+
+	template <typename Tgpio_id>
+	inline typename Gpio::State GpioRequest<Tgpio_id>::state() const {
+		return m_state;
+	}
+
+	template <typename Tgpio_id>
+	inline void GpioRequest<Tgpio_id>::set_state(const Gpio::State& state) {
+		m_state = state;
 	}
 }
 
