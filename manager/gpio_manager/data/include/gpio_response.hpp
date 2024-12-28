@@ -1,6 +1,8 @@
 #ifndef	GPIO_RESPONSE_HPP
 #define	GPIO_RESPONSE_HPP
 
+#include <memory>
+
 namespace manager {
 	class GpioResponse {
 	public:
@@ -16,6 +18,7 @@ namespace manager {
 		virtual Type type() const = 0;
 		virtual Result result() const = 0;
 	};
+	using GpioResponseWrapper = std::shared_ptr<GpioResponse>;
 }
 
 #endif // GPIO_RESPONSE_HPP
