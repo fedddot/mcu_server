@@ -1,60 +1,45 @@
 #ifndef	GPIO_MANAGER_HPP
 #define	GPIO_MANAGER_HPP
 
-#include "data.hpp"
-#include "gpi.hpp"
-#include "gpio.hpp"
-#include "gpo.hpp"
-#include "integer.hpp"
-#include "inventory.hpp"
-#include "inventory_manager.hpp"
-#include "object.hpp"
-#include "server_exception.hpp"
-#include "server_types.hpp"
+#include "gpio_data.hpp"
+#include "gpio_provider.hpp"
+#include "gpio_request.hpp"
+#include "gpio_response.hpp"
+#include "manager.hpp"
+#include "provider.hpp"
+#include <map>
+#include <stdexcept>
 
 namespace manager {
-	class GpioManager: public InventoryManager<Gpio> {
+	class GpioManager: public mcu_app::Manager<GpioRequest, GpioResponse> {
 	public:
-		using GpioCreator = typename InventoryManager<Gpio>::ItemCreator;
-		GpioManager(Inventory<server::ResourceId, Gpio> *gpio_inventory, const GpioCreator& gpio_creator);
+		GpioManager(mcu_app::Provider *provider);
 		GpioManager(const GpioManager& other) = delete;
 		GpioManager& operator=(const GpioManager&) = delete;
+
+		GpioResponse run(const GpioRequest& request) override;
 	private:
-		static server::Object read_gpio(const Gpio& gpio);
-		static void write_gpio(Gpio *gpio, const server::Data& update_cfg);
+		GpioProvider *m_provider;
+		std::map<GpioData::GpioId, Gpio *> m_gpios;
+		
+		void create_gpio(const GpioData& data);
+		void delete_gpio(const GpioData& data);
+		Gpio::State read_gpio(const GpioData& data) const;
+		void write_gpio(const GpioData& data);
 	};
 	
-	inline GpioManager::GpioManager(Inventory<server::ResourceId, Gpio> *gpio_inventory, const GpioCreator& gpio_creator): InventoryManager<Gpio>(gpio_inventory, gpio_creator, read_gpio, write_gpio) {
-
+	inline GpioManager::GpioManager(mcu_app::Provider *provider) {
+		m_provider = dynamic_cast<GpioProvider *>(provider);
+		if (!m_provider) {
+			throw std::invalid_argument("invalid provider received");
+		}
 	}
 
-	inline server::Object GpioManager::read_gpio(const Gpio& gpio) {
-		using namespace server;
-		const auto gpio_direction(gpio.direction());
-		auto gpio_state(Gpio::State::LOW);
-		switch (gpio_direction) {
-		case Gpio::Direction::IN:
-			gpio_state = Gpio::cast<Gpi>(gpio).state();
-			break;
-		case Gpio::Direction::OUT:
-			gpio_state = Gpio::cast<Gpo>(gpio).state();
-			break;
-		default:
-			throw ServerException(ResponseCode::UNSPECIFIED, "unsupported gpio direction");
+	inline GpioResponse run(const GpioRequest& request) {
+		switch (request.operation()) {
+			case GpioRequest::GpioOperation::CREATE:
+				
 		}
-		Object gpio_data;
-		gpio_data.add("direction", Integer(static_cast<int>(gpio_direction)));
-		gpio_data.add("state", Integer(static_cast<int>(gpio_state)));
-		return gpio_data;
-	}
-	
-	inline void GpioManager::write_gpio(Gpio *gpio, const server::Data& update_cfg) {
-		using namespace server;
-		if (Gpio::Direction::OUT != gpio->direction()) {
-			throw ServerException(ResponseCode::BAD_REQUEST, "requested gpio is not an output");
-		}
-		const auto state(static_cast<Gpio::State>(Data::cast<Integer>(Data::cast<Object>(update_cfg).access("state")).get()));
-		Gpio::cast<Gpo>(*gpio).set_state(state);
 	}
 }
 
