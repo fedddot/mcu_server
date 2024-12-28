@@ -15,7 +15,7 @@ namespace manager {
 		Gpio::State m_state;
 	};
 
-	inline GpioStateResponse::GpioStateResponse(const Result& result, const Gpio::State& state): GpioResponse(result), m_state(state) {
+	inline GpioStateResponse::GpioStateResponse(const Result& result, const Gpio::State& state): GpioResponse(Type::STATE_RESPONSE, result), m_state(state) {
 
 	}
 
