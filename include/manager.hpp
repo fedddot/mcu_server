@@ -1,7 +1,7 @@
 #ifndef	MANAGER_HPP
 #define	MANAGER_HPP
 
-namespace manager {
+namespace mcu_app {
 	template <typename Trequest, typename Tresponse>
 	class Manager {
 	public:
