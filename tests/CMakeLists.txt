@@ -7,6 +7,10 @@ add_executable(
 target_link_libraries(
 	host_tests
 	PRIVATE
-	host	
+    host
+    custom_data_reader
+    custom_data_writer
+    manager
+    provider
 	gtest
 )
