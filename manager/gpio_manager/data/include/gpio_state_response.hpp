@@ -10,13 +10,24 @@ namespace manager {
 		GpioStateResponse(const Result& result, const Gpio::State& state);
 		GpioStateResponse(const GpioStateResponse&) = default;
 		GpioStateResponse& operator=(const GpioStateResponse&) = default;
+		Type type() const override;
+		Result result() const override;
 		Gpio::State state() const;
 	private:
+		Result m_result;
 		Gpio::State m_state;
 	};
 
-	inline GpioStateResponse::GpioStateResponse(const Result& result, const Gpio::State& state): GpioResponse(Type::STATE_RESPONSE, result), m_state(state) {
+	inline GpioStateResponse::GpioStateResponse(const Result& result, const Gpio::State& state): m_result(result), m_state(state) {
 
+	}
+
+	inline typename GpioStateResponse::Type GpioStateResponse::type() const {
+		return Type::STATE_RESPONSE;
+	}
+
+	inline typename GpioStateResponse::Result GpioStateResponse::result() const {
+		return m_result;
 	}
 
 	inline typename Gpio::State GpioStateResponse::state() const {

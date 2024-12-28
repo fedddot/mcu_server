@@ -6,14 +6,6 @@
 namespace manager {
 	class GpioRegularResponse: public GpioResponse {
 	public:
-		enum class Type: int {
-			REGULAR,
-			STATE_RESPONSE
-		};
-		enum class Result: int {
-			SUCCESS,
-			FAILURE
-		};
 		GpioRegularResponse(const Result& result);
 		GpioRegularResponse(const GpioRegularResponse&) = default;
 		GpioRegularResponse& operator=(const GpioRegularResponse&) = default;
