@@ -4,24 +4,24 @@
 namespace manager {
 	class GpioResponse {
 	public:
-		enum class GpioResult: int {
+		enum class Result: int {
 			SUCCESS,
 			FAILURE
 		};
-		GpioResponse(const GpioResult& result);
+		GpioResponse(const Result& result);
 		GpioResponse(const GpioResponse&) = default;
 		GpioResponse& operator=(const GpioResponse&) = default;
 		virtual ~GpioResponse() noexcept = default;
-		GpioResult result() const;
+		Result result() const;
 	private:
-		GpioResult m_result;
+		Result m_result;
 	};
 
-	inline GpioResponse::GpioResponse(const GpioResult& result): m_result(result) {
+	inline GpioResponse::GpioResponse(const Result& result): m_result(result) {
 
 	}
 
-	inline typename GpioResponse::GpioResult GpioResponse::result() const {
+	inline typename GpioResponse::Result GpioResponse::result() const {
 		return m_result;
 	}
 }
