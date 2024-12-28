@@ -22,7 +22,6 @@ target_link_libraries(
     gpio_regular_response
     gpio_request
     gpio_response
-    gpio_response_wrapper
     gpio_state_response
     test_gpi
     test_gpo

@@ -5,6 +5,7 @@
 
 #include "gpio.hpp"
 #include "gpio_create_request.hpp"
+#include "gpio_delete_request.hpp"
 #include "gpio_manager.hpp"
 #include "gpio_provider.hpp"
 #include "gpio_read_request.hpp"
@@ -43,7 +44,7 @@ TEST(ut_gpio_manager, ctor_dtor_sanity) {
 	TestGpioProvider provider;
 	GpioCreateRequest<GpioId> create_request("test_gpio", Gpio::Direction::OUT);
 	GpioReadRequest<GpioId> get_request("test_gpio");
-	GpioRequest<GpioId> delete_request(GpioRequest<GpioId>::Operation::DELETE, "test_gpio");
+	GpioDeleteRequest<GpioId> delete_request("test_gpio");
 	
 	// WHEN
 	GpioManager<GpioId> *instance_ptr(nullptr);
@@ -53,17 +54,17 @@ TEST(ut_gpio_manager, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(instance_ptr = new GpioManager<GpioId>(&provider));
 	
 	ASSERT_NO_THROW(result = instance_ptr->run(create_request));
-	ASSERT_EQ(GpioResponse::Type::REGULAR, result.type());
-	ASSERT_EQ(GpioResponse::Result::SUCCESS, result.get<GpioRegularResponse>().result());
+	ASSERT_EQ(GpioResponse::Type::REGULAR, result->type());
+	ASSERT_EQ(GpioResponse::Result::SUCCESS, result->result());
 	
 	ASSERT_NO_THROW(result = instance_ptr->run(get_request));
-	ASSERT_EQ(GpioResponse::Type::STATE_RESPONSE, result.type());
-	ASSERT_EQ(GpioResponse::Result::SUCCESS, result.get<GpioStateResponse>().result());
-	ASSERT_EQ(Gpio::State::LOW, result.get<GpioStateResponse>().state());
+	ASSERT_EQ(GpioResponse::Type::STATE_RESPONSE, result->type());
+	ASSERT_EQ(GpioResponse::Result::SUCCESS, result->result());
+	ASSERT_EQ(Gpio::State::LOW, dynamic_cast<const GpioStateResponse&>(*result).state());
 	
 	ASSERT_NO_THROW(result = instance_ptr->run(delete_request));
-	ASSERT_EQ(GpioResponse::Type::REGULAR, result.type());
-	ASSERT_EQ(GpioResponse::Result::SUCCESS, result.get<GpioRegularResponse>().result());
+	ASSERT_EQ(GpioResponse::Type::REGULAR, result->type());
+	ASSERT_EQ(GpioResponse::Result::SUCCESS, result->result());
 	
 	ASSERT_NO_THROW(delete instance_ptr);
 }
