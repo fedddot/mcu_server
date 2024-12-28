@@ -9,8 +9,6 @@
 #include "gpio_manager.hpp"
 #include "gpio_provider.hpp"
 #include "gpio_read_request.hpp"
-#include "gpio_regular_response.hpp"
-#include "gpio_request.hpp"
 #include "gpio_response.hpp"
 #include "gpio_state_response.hpp"
 #include "test_gpi.hpp"
