@@ -9,7 +9,7 @@
 #include "object.hpp"
 #include "string.hpp"
 
-using namespace server;
+using namespace data;
 
 TEST(ut_string, sanity) {
 	// GIVEN

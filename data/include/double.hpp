@@ -3,7 +3,7 @@
 
 #include "data.hpp"
 
-namespace server {
+namespace data {
 	class Double: public Data {
 	public:
 		Double(double val);

@@ -4,7 +4,7 @@
 #include <string>
 #include "data.hpp"
 
-namespace server {
+namespace data {
 	class String: public Data {
 	public:
 		String(const std::string& str);

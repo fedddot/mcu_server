@@ -8,7 +8,7 @@
 
 #include "data.hpp"
 
-namespace server {
+namespace data {
 	class Array: public Data {
 	public:
 		Array() = default;
@@ -97,6 +97,6 @@ namespace server {
 		);
 		return container;
 	}
-} // namespace server
+} // namespace data
 
 #endif // ARRAY_HPP

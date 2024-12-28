@@ -8,7 +8,7 @@
 
 #include "data.hpp"
 
-namespace server {
+namespace data {
 	class Object: public Data {
 	public:
 		Object() = default;
@@ -31,6 +31,6 @@ namespace server {
 		void throw_if_not_found(const std::string& name) const;
 		static DataContainer copy_container(const Object& obj);
 	};
-} // namespace server
+} // namespace data
 
 #endif // OBJECT_HPP
