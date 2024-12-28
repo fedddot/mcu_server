@@ -12,6 +12,7 @@
 #include "gpio_regular_response.hpp"
 #include "gpio_request.hpp"
 #include "gpio_response.hpp"
+#include "gpio_response_weapper.hpp"
 #include "gpio_state_response.hpp"
 #include "gpio_write_request.hpp"
 #include "gpo.hpp"
@@ -20,13 +21,13 @@
 
 namespace manager {
 	template <typename Tgpio_id>
-	class GpioManager: public mcu_app::Manager<GpioRequest<Tgpio_id>, GpioResponse *> {
+	class GpioManager: public mcu_app::Manager<GpioRequest<Tgpio_id>, GpioResponseWrapper> {
 	public:
 		GpioManager(mcu_app::Provider *provider);
 		GpioManager(const GpioManager& other) = delete;
 		GpioManager& operator=(const GpioManager&) = delete;
 
-		GpioResponse *run(const GpioRequest<Tgpio_id>& request) override;
+		GpioResponseWrapper run(const GpioRequest<Tgpio_id>& request) override;
 	private:
 		GpioProvider<Tgpio_id> *m_provider;
 		std::map<Tgpio_id, std::unique_ptr<Gpio>> m_gpios;

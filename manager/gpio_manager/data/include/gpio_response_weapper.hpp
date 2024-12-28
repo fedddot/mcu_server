@@ -14,6 +14,8 @@ namespace manager {
 		GpioResponseWrapper& operator=(const GpioResponseWrapper&) = default;
 		virtual ~GpioResponseWrapper() noexcept = default;
 		
+		GpioResponse::Type type() const;
+
 		template <typename T>
 		const T& get() const;
 	private:
@@ -24,6 +26,10 @@ namespace manager {
 		if (!m_response) {
 			throw std::invalid_argument("invalid response pointer received");
 		}
+	}
+
+	inline typename GpioResponse::Type GpioResponseWrapper::type() const {
+		return m_response->type();
 	}
 
 	template <typename T>
