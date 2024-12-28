@@ -4,11 +4,13 @@
 #include <memory>
 #include <stdexcept>
 
+#include "gpio_regular_response.hpp"
 #include "gpio_response.hpp"
 
 namespace manager {
 	class GpioResponseWrapper {
 	public:
+		GpioResponseWrapper();
 		GpioResponseWrapper(GpioResponse *response);
 		GpioResponseWrapper(const GpioResponseWrapper&) = default;
 		GpioResponseWrapper& operator=(const GpioResponseWrapper&) = default;
@@ -21,6 +23,9 @@ namespace manager {
 	private:
 		std::shared_ptr<GpioResponse> m_response;
 	};
+
+	inline GpioResponseWrapper::GpioResponseWrapper(): m_response(new GpioRegularResponse(GpioResponse::Result::FAILURE)) {
+	}
 
 	inline GpioResponseWrapper::GpioResponseWrapper(GpioResponse *response): m_response(response) {
 		if (!m_response) {
