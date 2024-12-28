@@ -10,7 +10,7 @@
 #include "manager.hpp"
 #include "provider.hpp"
 
-namespace app {
+namespace mcu_app {
 	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tprovider_cfg, typename Tipc_config>
 	class Host {
 	public:

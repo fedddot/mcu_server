@@ -1,16 +1,14 @@
 #ifndef	IPC_CONNECTION_HPP
 #define	IPC_CONNECTION_HPP
 
-#include "data_reader.hpp"
-#include "data_writer.hpp"
-
-namespace ipc {
+namespace mcu_app {
 	template <typename Tincoming, typename Toutgoing>
 	class IpcConnection {
 	public:
 		virtual ~IpcConnection() noexcept = default;
-		virtual const DataReader<Tincoming> *reader() const = 0;
-		virtual const DataWriter<Toutgoing> *writer() const = 0;
+		virtual bool readable() const = 0;
+		virtual Tincoming read() = 0;
+		virtual void write(const Toutgoing& data) const = 0;
 	};
 }
 

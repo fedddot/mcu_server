@@ -4,10 +4,6 @@ target_include_directories(data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/inclu
 add_library(data_writer INTERFACE)
 target_include_directories(data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(ipc_connection INTERFACE)
-target_include_directories(ipc_connection INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(ipc_connection INTERFACE data_reader data_writer)
-
 add_library(ipc_types INTERFACE)
 target_include_directories(ipc_types INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
