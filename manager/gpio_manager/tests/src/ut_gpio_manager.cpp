@@ -7,10 +7,10 @@
 #include "gpio_create_request.hpp"
 #include "gpio_manager.hpp"
 #include "gpio_provider.hpp"
+#include "gpio_read_request.hpp"
 #include "gpio_regular_response.hpp"
 #include "gpio_request.hpp"
 #include "gpio_response.hpp"
-#include "gpio_response_wrapper.hpp"
 #include "gpio_state_response.hpp"
 #include "test_gpi.hpp"
 #include "test_gpo.hpp"
@@ -42,7 +42,7 @@ TEST(ut_gpio_manager, ctor_dtor_sanity) {
 	// GIVEN
 	TestGpioProvider provider;
 	GpioCreateRequest<GpioId> create_request("test_gpio", Gpio::Direction::OUT);
-	GpioRequest<GpioId> get_request(GpioRequest<GpioId>::Operation::READ, "test_gpio");
+	GpioReadRequest<GpioId> get_request("test_gpio");
 	GpioRequest<GpioId> delete_request(GpioRequest<GpioId>::Operation::DELETE, "test_gpio");
 	
 	// WHEN

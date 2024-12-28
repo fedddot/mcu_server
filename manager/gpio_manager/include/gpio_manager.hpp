@@ -12,7 +12,6 @@
 #include "gpio_regular_response.hpp"
 #include "gpio_request.hpp"
 #include "gpio_response.hpp"
-#include "gpio_response_wrapper.hpp"
 #include "gpio_state_response.hpp"
 #include "gpio_write_request.hpp"
 #include "gpo.hpp"

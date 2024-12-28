@@ -20,11 +20,17 @@ target_link_libraries(
     INTERFACE
     gpi
     gpio
-    gpo
+    gpio_create_request
     gpio_provider
-    gpio_response
+    gpio_regular_response
     gpio_request
+    gpio_response
+    gpio_response_wrapper
+    gpio_state_response
+    gpio_write_request
+    gpo
     manager
+    provider
 )
 
 add_subdirectory(data)
