@@ -9,6 +9,7 @@
 #include "gpio.hpp"
 #include "gpio_create_request.hpp"
 #include "gpio_provider.hpp"
+#include "gpio_regular_response.hpp"
 #include "gpio_request.hpp"
 #include "gpio_response.hpp"
 #include "gpio_state_response.hpp"
@@ -49,7 +50,7 @@ namespace manager {
 		switch (request.operation()) {
 		case GpioRequest<Tgpio_id>::Operation::CREATE:
 			create_gpio(request);
-			return new GpioResponse(GpioResponse::Type::REGULAR, GpioResponse::Result::SUCCESS);
+			return new GpioRegularResponse(GpioResponse::Result::SUCCESS);
 		case GpioRequest<Tgpio_id>::Operation::READ:
 			return new GpioStateResponse(GpioResponse::Result::SUCCESS, read_gpio(request));
 		case GpioRequest<Tgpio_id>::Operation::WRITE:
