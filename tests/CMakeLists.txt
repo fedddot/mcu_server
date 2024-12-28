@@ -8,9 +8,8 @@ target_link_libraries(
 	host_tests
 	PRIVATE
     host
-    custom_data_reader
-    custom_data_writer
-    manager
+	ipc_connection
     provider
+	manager
 	gtest
 )
