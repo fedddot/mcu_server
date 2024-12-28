@@ -116,7 +116,7 @@ namespace ipc {
 			std::unique_lock lock(m_request_mux);
 			if (m_request) {
 				request.reply(web::http::status_codes::TooManyRequests).wait();
-				m_request_cond.notify_all();
+				m_request_cond.notify_one();
 				return;
 			}
 			m_request = std::make_unique<Trequest>(m_http_request_to_request(request));
