@@ -16,7 +16,14 @@ target_link_libraries(
 	gpio_manager_tests
 	PRIVATE
     gpio
+    gpio_create_request
     gpio_manager
+    gpio_provider
+    gpio_regular_response
+    gpio_request
+    gpio_response
+    gpio_response_wrapper
+    gpio_state_response
     test_gpi
     test_gpo
 	gtest

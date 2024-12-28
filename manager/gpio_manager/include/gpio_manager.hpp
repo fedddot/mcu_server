@@ -12,7 +12,7 @@
 #include "gpio_regular_response.hpp"
 #include "gpio_request.hpp"
 #include "gpio_response.hpp"
-#include "gpio_response_weapper.hpp"
+#include "gpio_response_wrapper.hpp"
 #include "gpio_state_response.hpp"
 #include "gpio_write_request.hpp"
 #include "gpo.hpp"
@@ -47,19 +47,19 @@ namespace manager {
 	}
 
 	template <typename Tgpio_id>
-	inline GpioResponse *GpioManager<Tgpio_id>::run(const GpioRequest<Tgpio_id>& request) {
+	inline GpioResponseWrapper GpioManager<Tgpio_id>::run(const GpioRequest<Tgpio_id>& request) {
 		switch (request.operation()) {
 		case GpioRequest<Tgpio_id>::Operation::CREATE:
 			create_gpio(request);
-			return new GpioRegularResponse(GpioResponse::Result::SUCCESS);
+			return GpioResponseWrapper(new GpioRegularResponse(GpioResponse::Result::SUCCESS));
 		case GpioRequest<Tgpio_id>::Operation::READ:
-			return new GpioStateResponse(GpioResponse::Result::SUCCESS, read_gpio(request));
+			return GpioResponseWrapper(new GpioStateResponse(GpioResponse::Result::SUCCESS, read_gpio(request)));
 		case GpioRequest<Tgpio_id>::Operation::WRITE:
 			write_gpio(request);
-			return new GpioResponse(GpioResponse::Type::REGULAR, GpioResponse::Result::SUCCESS);
+			return GpioResponseWrapper(new GpioRegularResponse(GpioResponse::Result::SUCCESS));
 		case GpioRequest<Tgpio_id>::Operation::DELETE:
 			delete_gpio(request);
-			return new GpioResponse(GpioResponse::Type::REGULAR, GpioResponse::Result::SUCCESS);
+			return GpioResponseWrapper(new GpioRegularResponse(GpioResponse::Result::SUCCESS));
 		default:
 			throw std::runtime_error("unsupported operation");
 		}
