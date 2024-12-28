@@ -8,9 +8,7 @@ namespace manager {
 	template <typename Tgpio_id>
 	class GpioCreateRequest: public GpioRequest<Tgpio_id> {
 	public:
-		using Operation = typename GpioRequest<Tgpio_id>::Operation;
-
-		GpioCreateRequest(const Operation& operation, const Tgpio_id& id, const Gpio::Direction& direction);
+		GpioCreateRequest(const Tgpio_id& id, const Gpio::Direction& direction);
 		GpioCreateRequest(const GpioCreateRequest&) = default;
 		GpioCreateRequest& operator=(const GpioCreateRequest&) = default;
 
@@ -20,7 +18,7 @@ namespace manager {
 	};
 
 	template <typename Tgpio_id>
-	inline GpioCreateRequest<Tgpio_id>::GpioCreateRequest(const Operation& operation, const Tgpio_id& id, const Gpio::Direction& direction): GpioRequest<Tgpio_id>(operation, id), m_direction(direction) {
+	inline GpioCreateRequest<Tgpio_id>::GpioCreateRequest(const Tgpio_id& id, const Gpio::Direction& direction): GpioRequest<Tgpio_id>(GpioRequest<Tgpio_id>::Operation::CREATE, id), m_direction(direction) {
 
 	}
 
