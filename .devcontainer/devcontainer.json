@@ -2,7 +2,7 @@
 	"name": "mcu-server-dev-container",
 	"image": "mcu-server-dev:latest",
 	"privileged": true,
-	"runArgs": [ "--network=host", "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+	"runArgs": [ "--network=host" ],
 	"customizations": {
 		"vscode": {
 			"extensions": [

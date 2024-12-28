@@ -22,7 +22,7 @@ target_link_libraries(host INTERFACE manager provider ipc_connection)
 
 add_subdirectory(data)
 add_subdirectory(manager)
-# add_subdirectory(ipc)
+add_subdirectory(ipc)
 # add_subdirectory(provider)
 add_subdirectory(external)
 

@@ -8,14 +8,13 @@
 #include "cpprest/http_msg.h"
 #include "cpprest/http_listener.h"
 
-#include "data_reader.hpp"
-#include "data_writer.hpp"
+#include "ipc_"
 #include "request.hpp"
 #include "response.hpp"
 
 namespace ipc {
-	
-	class HttpIpcConnection: public DataReader<server::Request>, public DataWriter<server::Response> {
+	template <typename Trequest, typename Tresponse>
+	class HttpIpcConnection: public mcu_app::IpcConnection<Trequest, Tresponse> {
 	public:
 		HttpIpcConnection(const std::string& uri, const unsigned int polling_timeout_s, const unsigned int response_timeout_s);
 		HttpIpcConnection(const HttpIpcConnection&) = delete;
