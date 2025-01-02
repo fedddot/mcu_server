@@ -18,7 +18,7 @@ namespace manager {
 		MovementManager& operator=(const MovementManager&) = delete;
 	private:
 		static server::Object read_movement(const Movement& movement);
-		static void write_movement(Movement *movement, const server::Data& update_cfg);
+		static void write_movement(Movement *movement, const manager::Data& update_cfg);
 	};
 	
 	inline MovementManager::MovementManager(Inventory<server::ResourceId, Movement> *movement_inventory, const MovementCreator& movement_creator): InventoryManager<Movement>(movement_inventory, movement_creator, read_movement, write_movement) {
@@ -32,7 +32,7 @@ namespace manager {
 		return movement_data;
 	}
 	
-	inline void MovementManager::write_movement(Movement *movement, const server::Data& update_cfg) {
+	inline void MovementManager::write_movement(Movement *movement, const manager::Data& update_cfg) {
 		using namespace server;
 		movement->perform(update_cfg);
 	}

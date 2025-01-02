@@ -27,7 +27,7 @@ namespace manager {
 		using AxesAssignment = std::map<Axis, server::ResourceId>;
 		
 		CircularMovement(Inventory<server::ResourceId, StepperMotor> *stepper_motor_inventory, const DelayFunction& delay, const AxesAssignment& axes_assignment, const unsigned int steps_per_length);
-		void perform(const server::Data& cfg) override;
+		void perform(const manager::Data& cfg) override;
 		Type type() const override;
 	private:
 		Inventory<server::ResourceId, StepperMotor> *m_stepper_motor_inventory;
@@ -61,7 +61,7 @@ namespace manager {
 		m_step_length = static_cast<double>(1) / m_steps_per_length;
 	}
 
-	inline void CircularMovement::perform(const server::Data& cfg) {
+	inline void CircularMovement::perform(const manager::Data& cfg) {
 		using namespace server;
 		const auto& cfg_obj(Data::cast<server::Object>(cfg));
 		const auto rotation_vector(retrieve_vector(cfg_obj, "rotation_center"));

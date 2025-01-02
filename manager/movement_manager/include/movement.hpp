@@ -11,7 +11,7 @@ namespace manager {
 			CIRCULAR
 		};
 		virtual ~Movement() noexcept = default;
-		virtual void perform(const server::Data& cfg) = 0;
+		virtual void perform(const manager::Data& cfg) = 0;
 		virtual Type type() const = 0;
 	};
 }
