@@ -1,7 +1,7 @@
 #ifndef	IPC_CONNECTION_HPP
 #define	IPC_CONNECTION_HPP
 
-namespace mcu_app {
+namespace ipc {
 	template <typename Tincoming, typename Toutgoing>
 	class IpcConnection {
 	public:
