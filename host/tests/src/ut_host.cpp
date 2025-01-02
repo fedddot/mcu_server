@@ -1,5 +1,5 @@
 #include <exception>
-#include <iostream>
+#include <functional>
 #include <stdexcept>
 #include <string>
 
@@ -7,52 +7,27 @@
 
 #include "host.hpp"
 #include "manager.hpp"
-#include "provider.hpp"
-#include "ipc_connection.hpp"
+#include "providers.hpp"
+#include "test_ipc_connection.hpp"
+#include "test_providers.hpp"
 
-using namespace mcu_app;
+using namespace manager;
+using namespace host;
+using namespace host_tests;
+using namespace ipc;
 
 using Request = std::string;
 using Response = int;
+using ProviderId = std::string;
+using ProvidersCfg = std::string;
 using ManagerCfg = std::string;
-using ProviderCfg = std::string;
 using IpcCfg = std::string;
 
-using TestHost = Host<Request, Response, ManagerCfg, ProviderCfg, IpcCfg>;
+using TestHost = Host<Request, Response, ProviderId, ProvidersCfg, ManagerCfg, IpcCfg>;
 
-class TestIpc: public IpcConnection<Request, Response> {
+class TestManager: public Manager<Request, Response, ProviderId> {
 public:
-	TestIpc(const IpcCfg& cfg): m_cfg(cfg) {}
-	TestIpc(const TestIpc&) = delete;
-	TestIpc& operator=(const TestIpc&) = delete;
-	bool readable() const override {
-		return true;
-	}
-	Request read() override {
-		return Request("test request");
-	}
-	void write(const Response& data) const override {
-		std::cout << "response: " << data << std::endl;
-	}
-private:
-	const IpcCfg m_cfg;
-};
-
-class TestProvider: public Provider {
-public:
-	TestProvider(const ProviderCfg& cfg): m_cfg(cfg) {}
-	TestProvider(const TestProvider&) = delete;
-	TestProvider& operator=(const TestProvider&) = delete;
-	void provide() const {
-		std::cout << "provider cfg: " << m_cfg << std::endl;
-	}
-private:
-	const ProviderCfg m_cfg;
-};
-
-class TestManager: public Manager<Request, Response> {
-public:
-	TestManager(Provider *provider, const ManagerCfg& cfg): m_provider(dynamic_cast<TestProvider *>(provider)) {
+	TestManager(Providers<ProviderId> *provider, const ManagerCfg& cfg): m_provider(provider) {
 		if (!m_provider) {
 			throw std::invalid_argument("invalid provider received");
 		}
@@ -61,26 +36,34 @@ public:
 	TestManager& operator=(const TestManager&) = delete;
 	
 	Response run(const Request& request) override {
-		m_provider->provide();
+		(void)request;
 		return Response(0);
 	}
+	const Providers<ProviderId>& providers() const override {
+		return std::ref(*m_provider);
+	}
 private:
-	TestProvider *m_provider;
+	Providers<ProviderId> *m_provider;
 };
 
 TEST(ut_host, sanity) {
 	// GIVEN
 	const auto ipc_cfg = IpcCfg("ipc config");
 	auto ipc_factory = [](const IpcCfg& cfg) {
-		return new TestIpc(cfg);
+		return new TestIpcConnection<Request, Response>(
+			[](const Response& response) {
+
+			},
+			1000
+		);
 	};
 	const auto manager_cfg = ManagerCfg("manager config");
-	auto manager_factory = [](Provider *provider, const ManagerCfg& cfg) {
-		return new TestManager(provider, cfg);
+	auto manager_factory = [](Providers<ProviderId> *providers, const ManagerCfg& cfg) {
+		return new TestManager(providers, cfg);
 	};
-	const auto provider_cfg = ProviderCfg("provider config");
-	auto provider_factory = [](const ProviderCfg& cfg) {
-		return new TestProvider(cfg);
+	const auto providers_cfg = ProvidersCfg("providers config");
+	auto providers_factory = [](const ProvidersCfg& cfg) {
+		return new TestProviders<ProviderId>();
 	};
 	// WHEN:
 	TestHost *instance(nullptr);
@@ -92,13 +75,14 @@ TEST(ut_host, sanity) {
 			ipc_cfg,
 			manager_factory,
 			manager_cfg,
-			provider_factory,
-			provider_cfg,
+			providers_factory,
+			providers_cfg,
 			[](const std::exception& e) {
 				return -1;
 			}
 		)
 	);
+	
 	ASSERT_NO_THROW(instance->run_once());
 	ASSERT_NO_THROW(delete instance);
 }
