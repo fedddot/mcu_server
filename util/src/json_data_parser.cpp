@@ -14,8 +14,8 @@
 
 #include "json_data_parser.hpp"
 
-using namespace server;
-using namespace server_utl;
+using namespace manager;
+using namespace manager_utl;
 
 Data *JsonDataParser::operator()(const std::string& data) const {
 	Json::Value root;

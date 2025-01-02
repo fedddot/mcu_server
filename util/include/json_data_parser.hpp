@@ -9,7 +9,7 @@ namespace Json {
 	class Value;
 }
 
-namespace server_utl {
+namespace util {
 	class JsonDataParser {
 	public:
 		JsonDataParser() = default;
@@ -17,14 +17,14 @@ namespace server_utl {
 		JsonDataParser& operator=(const JsonDataParser& other) = default;
 		virtual ~JsonDataParser() noexcept = default;
 		
-		server::Data *operator()(const std::string& data) const;
+		manager::Data *operator()(const std::string& data) const;
 	private:
-		static server::Data *parseValue(const Json::Value& root);
-		static server::Data *parseObject(const Json::Value& root);
-		static server::Data *parseArray(const Json::Value& root);
-		static server::Data *parseString(const Json::Value& root);
-		static server::Data *parseInteger(const Json::Value& root);
-		static server::Data *parseDouble(const Json::Value& root);
+		static manager::Data *parseValue(const Json::Value& root);
+		static manager::Data *parseObject(const Json::Value& root);
+		static manager::Data *parseArray(const Json::Value& root);
+		static manager::Data *parseString(const Json::Value& root);
+		static manager::Data *parseInteger(const Json::Value& root);
+		static manager::Data *parseDouble(const Json::Value& root);
 	};
 }
 
