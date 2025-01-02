@@ -7,6 +7,7 @@
 #include "data.hpp"
 #include "gpio_app_types.hpp"
 #include "gpio_request.hpp"
+#include "gpio_response.hpp"
 #include "integer.hpp"
 #include "ipc_connection.hpp"
 #include "object.hpp"
