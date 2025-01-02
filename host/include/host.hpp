@@ -8,23 +8,26 @@
 
 #include "ipc_connection.hpp"
 #include "manager.hpp"
-#include "provider.hpp"
+#include "providers.hpp"
 
-namespace mcu_app {
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tprovider_cfg, typename Tipc_config>
+namespace host {
+	template <typename Trequest, typename Tresponse, typename Tprovider_id, typename Tproviders_cfg, typename Tmanager_cfg, typename Tipc_config>
 	class Host {
 	public:
-		using IpcFactory = std::function<IpcConnection<Trequest, Tresponse> *(const Tipc_config&)>;
-		using ManagerFactory = std::function<Manager<Trequest, Tresponse> *(Provider *, const Tmanager_cfg&)>;
-		using ProviderFactory = std::function<Provider *(const Tprovider_cfg&)>;
+		using IpcConnection = ipc::IpcConnection<Trequest, Tresponse>;
+		using IpcFactory = std::function<IpcConnection *(const Tipc_config&)>;
+		using Manager = manager::Manager<Trequest, Tresponse, Tprovider_id>;
+		using Providers = manager::Providers<Tprovider_id>;
+		using ManagerFactory = std::function<Manager *(Providers *, const Tmanager_cfg&)>;
+		using ProvidersFactory = std::function<Providers *(const Tproviders_cfg&)>;
 		using FailureReporter = std::function<Tresponse(const std::exception&)>;
 		Host(
 			const IpcFactory& ipc_factory,
 			const Tipc_config& ipc_config,
 			const ManagerFactory& manager_factory,
 			const Tmanager_cfg& manager_config,
-			const ProviderFactory& provider_factory,
-			const Tprovider_cfg& provider_config,
+			const ProvidersFactory& providers_factory,
+			const Tproviders_cfg& providers_config,
 			const FailureReporter& failure_reporter
 		);
 		virtual ~Host() noexcept = default;
@@ -36,31 +39,31 @@ namespace mcu_app {
 		FailureReporter m_failure_reporter;
 		bool m_is_running;
 
-		std::unique_ptr<IpcConnection<Trequest, Tresponse>> m_ipc_connection;
-		std::unique_ptr<Provider> m_provider;
-		std::unique_ptr<Manager<Trequest, Tresponse>> m_manager;
+		std::unique_ptr<IpcConnection> m_ipc_connection;
+		std::unique_ptr<Providers> m_providers;
+		std::unique_ptr<Manager> m_manager;
 	};
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tprovider_cfg, typename Tipc_config>
-	inline Host<Trequest, Tresponse, Tmanager_cfg, Tprovider_cfg, Tipc_config>::Host(
+	template <typename Trequest, typename Tresponse, typename Tprovider_id, typename Tproviders_cfg, typename Tmanager_cfg, typename Tipc_config>
+	inline Host<Trequest, Tresponse, Tprovider_id, Tproviders_cfg, Tmanager_cfg, Tipc_config>::Host(
 		const IpcFactory& ipc_factory,
 		const Tipc_config& ipc_config,
 		const ManagerFactory& manager_factory,
 		const Tmanager_cfg& manager_config,
-		const ProviderFactory& provider_factory,
-		const Tprovider_cfg& provider_config,
+		const ProvidersFactory& providers_factory,
+		const Tproviders_cfg& providers_config,
 		const FailureReporter& failure_reporter
 	): m_failure_reporter(failure_reporter), m_is_running(false) {
-		if (!ipc_factory || !manager_factory || !provider_factory || !failure_reporter) {
+		if (!ipc_factory || !manager_factory || !providers_factory || !failure_reporter) {
 			throw std::invalid_argument("invalid host args");
 		}
-		m_ipc_connection = std::unique_ptr<IpcConnection<Trequest, Tresponse>>(ipc_factory(ipc_config));
-		m_provider = std::unique_ptr<Provider>(provider_factory(provider_config));
-		m_manager = std::unique_ptr<Manager<Trequest, Tresponse>>(manager_factory(m_provider.get(), manager_config));
+		m_ipc_connection = std::unique_ptr<IpcConnection>(ipc_factory(ipc_config));
+		m_providers = std::unique_ptr<Providers>(providers_factory(providers_config));
+		m_manager = std::unique_ptr<Manager>(manager_factory(m_providers.get(), manager_config));
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tprovider_cfg, typename Tipc_config>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg, Tprovider_cfg, Tipc_config>::run_once() {
+	template <typename Trequest, typename Tresponse, typename Tprovider_id, typename Tproviders_cfg, typename Tmanager_cfg, typename Tipc_config>
+	inline void Host<Trequest, Tresponse, Tprovider_id, Tproviders_cfg, Tmanager_cfg, Tipc_config>::run_once() {
 		try {
 			if (!m_ipc_connection->readable()) {
 				return;
@@ -73,21 +76,21 @@ namespace mcu_app {
 		}
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tprovider_cfg, typename Tipc_config>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg, Tprovider_cfg, Tipc_config>::run() {
+	template <typename Trequest, typename Tresponse, typename Tprovider_id, typename Tproviders_cfg, typename Tmanager_cfg, typename Tipc_config>
+	inline void Host<Trequest, Tresponse, Tprovider_id, Tproviders_cfg, Tmanager_cfg, Tipc_config>::run() {
 		m_is_running = true;
 		while (m_is_running) {
 			run_once();
 		}
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tprovider_cfg, typename Tipc_config>
-	inline bool Host<Trequest, Tresponse, Tmanager_cfg, Tprovider_cfg, Tipc_config>::is_running() const {
+	template <typename Trequest, typename Tresponse, typename Tprovider_id, typename Tproviders_cfg, typename Tmanager_cfg, typename Tipc_config>
+	inline bool Host<Trequest, Tresponse, Tprovider_id, Tproviders_cfg, Tmanager_cfg, Tipc_config>::is_running() const {
 		return m_is_running;
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tprovider_cfg, typename Tipc_config>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg, Tprovider_cfg, Tipc_config>::stop() {
+	template <typename Trequest, typename Tresponse, typename Tprovider_id, typename Tproviders_cfg, typename Tmanager_cfg, typename Tipc_config>
+	inline void Host<Trequest, Tresponse, Tprovider_id, Tproviders_cfg, Tmanager_cfg, Tipc_config>::stop() {
 		m_is_running = false;
 	}
 }
