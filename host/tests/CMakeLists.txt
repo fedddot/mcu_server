@@ -17,8 +17,9 @@ target_link_libraries(
 	host_tests
 	PRIVATE
     host
-	test_ipc_connection
+    manager
+    providers
+    test_ipc_connection
     test_providers
-	manager
 	gtest
 )
