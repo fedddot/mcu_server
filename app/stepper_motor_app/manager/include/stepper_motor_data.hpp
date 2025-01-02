@@ -8,6 +8,7 @@
 #include <string>
 
 #include "data.hpp"
+#include "string.hpp"
 
 namespace manager {
 	using StepperMotorId = std::string;
@@ -36,7 +37,7 @@ namespace manager {
 
 	class StepperMotorResponse {
 	public:
-		StepperMotorResponse(const StepperMotorResponseCode& code, const Data& data);
+		StepperMotorResponse(const StepperMotorResponseCode& code = StepperMotorResponseCode::EXCEPTION, const Data& data = String("UNDEFINED"));
 		StepperMotorResponse(const StepperMotorResponse&);
 		StepperMotorResponse& operator=(const StepperMotorResponse&);
 
