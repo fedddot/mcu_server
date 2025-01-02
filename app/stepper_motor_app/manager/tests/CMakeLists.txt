@@ -1,6 +1,6 @@
 add_library(test_stepper_motor INTERFACE)
 target_include_directories(test_stepper_motor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(test_stepper_motor INTERFACE stepper_motor)
+target_link_libraries(test_stepper_motor INTERFACE stepper_motor stepper_motor_data)
 
 add_executable(
 	stepper_motor_manager_tests
@@ -12,11 +12,8 @@ target_link_libraries(
 	stepper_motor_manager_tests
 	PRIVATE
     data_lib
-    stepper_motor
     stepper_motor_manager
-    in_memory_inventory
-    server_types
-    test_gpo
-
+    stepper_motor_data
+    test_providers
 	gtest
 )

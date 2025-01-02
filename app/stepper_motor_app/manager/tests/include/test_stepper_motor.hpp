@@ -5,11 +5,12 @@
 #include <stdexcept>
 
 #include "stepper_motor.hpp"
+#include "stepper_motor_data.hpp"
 
-namespace manager_uts {
+namespace manager_tests {
 	class TestStepperMotor: public manager::StepperMotor {
 	public:
-        using StepAction = std::function<void(const Direction&)>;
+        using StepAction = std::function<void(const manager::StepperMotorDirection&)>;
 
         TestStepperMotor(const StepAction& action): m_action(action), m_is_enabled(false) {
             if (!m_action) {
@@ -28,7 +29,7 @@ namespace manager_uts {
 		bool enabled() const override {
             return m_is_enabled;
         }
-		void step(const Direction& direction) override {
+		void step(const manager::StepperMotorDirection& direction) override {
             m_action(direction);
         }
     private:
