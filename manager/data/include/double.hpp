@@ -3,7 +3,7 @@
 
 #include "data.hpp"
 
-namespace data {
+namespace manager {
 	class Double: public Data {
 	public:
 		Double(double val);

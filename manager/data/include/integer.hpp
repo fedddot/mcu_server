@@ -3,7 +3,7 @@
 
 #include "data.hpp"
 
-namespace data {
+namespace manager {
 	class Integer: public Data {
 	public:
 		Integer(int val);

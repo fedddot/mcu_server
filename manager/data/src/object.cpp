@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-using namespace data;
+using namespace manager;
 
 void Object::for_each(const std::function<void(const std::string&, const Data&)>& action) const {
 	std::for_each(
