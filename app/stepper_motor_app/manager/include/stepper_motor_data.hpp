@@ -24,6 +24,48 @@ namespace manager {
 		STEPS
 	};
 
+	enum class StepperMotorResponseCode: int {
+		OK,
+		EXCEPTION
+	};
+
+	enum class StepperMotorProviderType: int {
+		MOTOR_CREATOR,
+		MOTOR_READER
+	};
+
+	class StepperMotorResponse {
+	public:
+		StepperMotorResponse(const StepperMotorResponseCode& code, const Data& data);
+		StepperMotorResponse(const StepperMotorResponse&);
+		StepperMotorResponse& operator=(const StepperMotorResponse&);
+
+		virtual ~StepperMotorResponse() noexcept = default;
+
+		const StepperMotorResponseCode code() const;
+		const Data& data() const;
+	private:
+		StepperMotorResponseCode m_code;
+		std::unique_ptr<Data> m_data;
+	};
+	inline StepperMotorResponse::StepperMotorResponse(const StepperMotorResponseCode& code, const Data& data): m_code(code), m_data(data.clone()) {
+
+	}
+	inline StepperMotorResponse::StepperMotorResponse(const StepperMotorResponse& other): m_code(other.m_code), m_data(other.m_data->clone()) {
+
+	}
+	inline StepperMotorResponse& StepperMotorResponse::operator=(const StepperMotorResponse& other) {
+		m_code = other.m_code;
+		m_data = std::unique_ptr<Data>(other.m_data->clone());
+		return std::ref(*this);
+	}
+	inline const StepperMotorResponseCode StepperMotorResponse::code() const {
+		return m_code;
+	}
+	inline const Data& StepperMotorResponse::data() const {
+		return std::ref(*m_data);
+	}
+
 	class StepperMotorRequest {
 	public:
 		virtual ~StepperMotorRequest() noexcept = default;
@@ -56,6 +98,18 @@ namespace manager {
 		StepperMotorId m_id;
 		std::unique_ptr<Data> m_create_data;
 	};
+	inline CreateStepperMotorRequest::CreateStepperMotorRequest(const StepperMotorId& id, const Data& create_data): m_id(id), m_create_data(create_data.clone()) {
+
+	}
+	inline const StepperMotorRequestType CreateStepperMotorRequest::type() const {
+		return StepperMotorRequestType::CREATE_STEPPER;
+	}
+	inline const StepperMotorId CreateStepperMotorRequest::id() const {
+		return m_id;
+	}
+	inline const Data& CreateStepperMotorRequest::create_data() const {
+		return std::ref(*m_create_data);
+	}
 
 	class DeleteStepperMotorRequest: public StepperMotorRequest {
 	public:
@@ -68,6 +122,15 @@ namespace manager {
 	private:
 		StepperMotorId m_id;
 	};
+	inline DeleteStepperMotorRequest::DeleteStepperMotorRequest(const StepperMotorId& id): m_id(id) {
+
+	}
+	inline const StepperMotorRequestType DeleteStepperMotorRequest::type() const {
+		return StepperMotorRequestType::DELETE_STEPPER;
+	}
+	inline const StepperMotorId DeleteStepperMotorRequest::id() const {
+		return m_id;
+	}
 
 	class ReadStepperMotorRequest: public StepperMotorRequest {
 	public:
@@ -80,6 +143,15 @@ namespace manager {
 	private:
 		StepperMotorId m_id;
 	};
+	inline ReadStepperMotorRequest::ReadStepperMotorRequest(const StepperMotorId& id): m_id(id) {
+
+	}
+	inline const StepperMotorRequestType ReadStepperMotorRequest::type() const {
+		return StepperMotorRequestType::READ_STEPPER;
+	}
+	inline const StepperMotorId ReadStepperMotorRequest::id() const {
+		return m_id;
+	}
 
 	class StepsStepperMotorRequest: public StepperMotorRequest {
 	public:
@@ -96,6 +168,21 @@ namespace manager {
 		StepperMotorDirection m_direction;
 		std::size_t m_steps_number;
 	};
+	inline StepsStepperMotorRequest::StepsStepperMotorRequest(const StepperMotorId& id, const StepperMotorDirection& direction, const std::size_t& steps_number): m_id(id), m_direction(direction), m_steps_number(steps_number) {
+
+	}
+	inline const StepperMotorRequestType StepsStepperMotorRequest::type() const {
+		return StepperMotorRequestType::STEPS;
+	}
+	inline const StepperMotorId StepsStepperMotorRequest::id() const {
+		return m_id;
+	}
+	inline const StepperMotorDirection StepsStepperMotorRequest::direction() const {
+		return m_direction;
+	}
+	inline const std::size_t StepsStepperMotorRequest::steps_number() const {
+		return m_steps_number;
+	}
 }
 
 #endif // STEPPER_MOTOR_DATA_HPP
