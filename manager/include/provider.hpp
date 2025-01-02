@@ -1,7 +1,7 @@
 #ifndef	PROVIDER_HPP
 #define	PROVIDER_HPP
 
-namespace mcu_app {
+namespace manager {
 	class Provider {
 	public:
 		virtual ~Provider() noexcept = default;
