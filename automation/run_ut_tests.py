@@ -20,12 +20,12 @@ uts = [
     "data_tests",
     "host_tests",
     "stepper_motor_manager_tests",
+    "util_tests",
     # "gpio_manager_tests",
     # "ipc_tests",
     # "manager_tests",
     # "movement_manager_tests",
     # "resources_vendor_tests",
-    # "server_util_tests",
     # "stepper_motor_manager_util_tests",
 ]
 
