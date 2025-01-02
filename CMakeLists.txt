@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_subdirectory(app)
 add_subdirectory(host)
 add_subdirectory(manager)
 add_subdirectory(ipc)
-# add_subdirectory(apps)
 add_subdirectory(external)
