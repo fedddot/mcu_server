@@ -14,7 +14,7 @@
 #include "json_data_serializer.hpp"
 
 using namespace manager;
-using namespace manager_utl;
+using namespace util;
 
 std::string JsonDataSerializer::operator()(const Data& data) const {
 	Json::StreamWriterBuilder wbuilder;

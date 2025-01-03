@@ -7,8 +7,8 @@
 #include "json_data_parser.hpp"
 #include "object.hpp"
 
-using namespace server;
-using namespace server_utl;
+using namespace manager;
+using namespace util;
 
 TEST(ut_json_data_parser, parse_sanity) {
 	// GIVEN:

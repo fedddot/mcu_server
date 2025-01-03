@@ -9,7 +9,7 @@ namespace Json {
 	class Value;
 }
 
-namespace manager_utl {
+namespace util {
 	class JsonDataSerializer {
 	public:
 		JsonDataSerializer() = default;
