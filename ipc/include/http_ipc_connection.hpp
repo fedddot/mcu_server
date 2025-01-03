@@ -14,7 +14,7 @@
 
 namespace ipc {
 	template <typename Trequest, typename Tresponse>
-	class HttpIpcConnection: public mcu_app::IpcConnection<Trequest, Tresponse> {
+	class HttpIpcConnection: public IpcConnection<Trequest, Tresponse> {
 	public:
 		using HttpRequestToRequestTransformer = std::function<Trequest(const web::http::http_request&)>;
 		using ResponseToHttpResponseTransformer = std::function<web::http::http_response(const Tresponse&)>;
