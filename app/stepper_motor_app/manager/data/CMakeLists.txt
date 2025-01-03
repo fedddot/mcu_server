@@ -4,3 +4,7 @@ target_include_directories(stepper_motor_types INTERFACE ${CMAKE_CURRENT_LIST_DI
 add_library(stepper_motor_request INTERFACE)
 target_include_directories(stepper_motor_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(stepper_motor_request INTERFACE stepper_motor_types)
+
+add_library(stepper_motor_response INTERFACE)
+target_include_directories(stepper_motor_response INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(stepper_motor_response INTERFACE stepper_motor_types)
