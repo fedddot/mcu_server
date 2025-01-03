@@ -10,6 +10,7 @@ namespace manager {
 
 	enum class StepperMotorResponseCode: int {
 		OK,
+		UNSUPPORTED,
 		EXCEPTION
 	};
 

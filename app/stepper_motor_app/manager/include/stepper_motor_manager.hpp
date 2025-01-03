@@ -11,6 +11,7 @@
 #include "stepper_motor_types.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
+#include "stepper_motor_creator.hpp"
 
 namespace manager {
 	template <typename Tcreate_cfg>
@@ -27,7 +28,7 @@ namespace manager {
 		StepperMotorManagerConfig m_manager_cfg;
 		std::map<StepperMotorId, std::unique_ptr<StepperMotor>> m_motors;
 
-		void create_stepper(const StepperMotorId& id, const Tcreate_cfg& create_cfg);
+		StepperMotorResponse create_stepper(const CreateStepperMotorRequest<Tcreate_cfg>& create_req);
 	};
 
 	template <typename Tcreate_cfg>
@@ -39,12 +40,30 @@ namespace manager {
 
 	template <typename Tcreate_cfg>
 	inline StepperMotorResponse StepperMotorManager<Tcreate_cfg>::run(const StepperMotorRequest& request) {
-		return StepperMotorResponse(StepperMotorResponseCode::EXCEPTION);
+		switch (request.type()) {
+		case StepperMotorRequestType::CREATE_STEPPER:
+			return create_stepper(
+				request.id(),
+				StepperMotorRequest::cast<CreateStepperMotorRequest<Tcreate_cfg>>(request).create_data()
+			);
+		default:
+			return StepperMotorResponse(StepperMotorResponseCode::UNSUPPORTED);
+		}
 	}
 
 	template <typename Tcreate_cfg>
 	inline const Providers<StepperMotorProviderType>& StepperMotorManager<Tcreate_cfg>::providers() const {
 		return std::ref(*m_providers);
+	}
+
+	template <typename Tcreate_cfg>
+	StepperMotorResponse StepperMotorManager<Tcreate_cfg>::create_stepper(const CreateStepperMotorRequest<Tcreate_cfg>& create_req) {
+		if (m_motors.end() != m_motors.find(create_req.id())) {
+			return StepperMotorResponse(StepperMotorResponseCode::EXCEPTION);
+		}
+		auto& create_provider_raw = m_providers->access_provider(StepperMotorProviderType::MOTOR_CREATOR);
+		auto& create_provider = dynamic_cast<StepperMotorCreator<Tcreate_cfg>&>(create_provider_raw);
+		m_motors[create_req.id()] = std::unique_ptr<StepperMotor>(create_provider.create(create_req.create_data()));
 	}
 }
 
