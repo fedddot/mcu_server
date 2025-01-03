@@ -1,7 +1,7 @@
 #ifndef	STEPPER_MOTOR_HPP
 #define	STEPPER_MOTOR_HPP
 
-#include "stepper_motor_data.hpp"
+#include "stepper_motor_types.hpp"
 
 namespace manager {
 	class StepperMotor {

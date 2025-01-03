@@ -4,19 +4,19 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
-#include <string>
 
-#include "data.hpp"
 #include "manager.hpp"
 #include "providers.hpp"
 #include "stepper_motor.hpp"
-#include "stepper_motor_data.hpp"
-#include "string.hpp"
+#include "stepper_motor_types.hpp"
+#include "stepper_motor_request.hpp"
+#include "stepper_motor_response.hpp"
 
 namespace manager {
+	template <typename Tcreate_cfg>
 	class StepperMotorManager: public Manager<StepperMotorRequest, StepperMotorResponse, StepperMotorProviderType> {
 	public:
-		StepperMotorManager(Providers<StepperMotorProviderType> *providers, const Data& manager_cfg);
+		StepperMotorManager(Providers<StepperMotorProviderType> *providers, const StepperMotorManagerConfig& manager_cfg);
 		StepperMotorManager(const StepperMotorManager& other) = delete;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 
@@ -24,21 +24,26 @@ namespace manager {
 		const Providers<StepperMotorProviderType>& providers() const override;
 	private:
 		Providers<StepperMotorProviderType> *m_providers;
-		std::unique_ptr<Data> m_manager_cfg;
+		StepperMotorManagerConfig m_manager_cfg;
 		std::map<StepperMotorId, std::unique_ptr<StepperMotor>> m_motors;
+
+		void create_stepper(const StepperMotorId& id, const Tcreate_cfg& create_cfg);
 	};
 
-	inline StepperMotorManager::StepperMotorManager(Providers<StepperMotorProviderType> *providers, const Data& manager_cfg): m_providers(providers), m_manager_cfg(manager_cfg.clone()) {
+	template <typename Tcreate_cfg>
+	inline StepperMotorManager<Tcreate_cfg>::StepperMotorManager(Providers<StepperMotorProviderType> *providers, const StepperMotorManagerConfig& manager_cfg): m_providers(providers), m_manager_cfg(manager_cfg) {
 		if (!m_providers) {
 			throw std::invalid_argument("invalid providers ptr received");
 		}
 	}
 
-	inline StepperMotorResponse StepperMotorManager::run(const StepperMotorRequest& request) {
-		return StepperMotorResponse(StepperMotorResponseCode::EXCEPTION, String("NOT IMPLEMENTED"));
+	template <typename Tcreate_cfg>
+	inline StepperMotorResponse StepperMotorManager<Tcreate_cfg>::run(const StepperMotorRequest& request) {
+		return StepperMotorResponse(StepperMotorResponseCode::EXCEPTION);
 	}
 
-	inline const Providers<StepperMotorProviderType>& StepperMotorManager::providers() const {
+	template <typename Tcreate_cfg>
+	inline const Providers<StepperMotorProviderType>& StepperMotorManager<Tcreate_cfg>::providers() const {
 		return std::ref(*m_providers);
 	}
 }
