@@ -1,0 +1,2 @@
+add_library(stepper_motor_types INTERFACE)
+target_include_directories(stepper_motor_types INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
