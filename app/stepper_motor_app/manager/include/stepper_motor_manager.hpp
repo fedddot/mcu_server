@@ -42,10 +42,7 @@ namespace manager {
 	inline StepperMotorResponse StepperMotorManager<Tcreate_cfg>::run(const StepperMotorRequest& request) {
 		switch (request.type()) {
 		case StepperMotorRequestType::CREATE_STEPPER:
-			return create_stepper(
-				request.id(),
-				StepperMotorRequest::cast<CreateStepperMotorRequest<Tcreate_cfg>>(request).create_data()
-			);
+			return create_stepper(StepperMotorRequest::cast<CreateStepperMotorRequest<Tcreate_cfg>>(request));
 		default:
 			return StepperMotorResponse(StepperMotorResponseCode::UNSUPPORTED);
 		}
@@ -61,9 +58,14 @@ namespace manager {
 		if (m_motors.end() != m_motors.find(create_req.id())) {
 			return StepperMotorResponse(StepperMotorResponseCode::EXCEPTION);
 		}
-		auto& create_provider_raw = m_providers->access_provider(StepperMotorProviderType::MOTOR_CREATOR);
-		auto& create_provider = dynamic_cast<StepperMotorCreator<Tcreate_cfg>&>(create_provider_raw);
-		m_motors[create_req.id()] = std::unique_ptr<StepperMotor>(create_provider.create(create_req.create_data()));
+		try {
+			auto& create_provider_raw = m_providers->access_provider(StepperMotorProviderType::MOTOR_CREATOR);
+			auto& create_provider = dynamic_cast<StepperMotorCreator<Tcreate_cfg>&>(create_provider_raw);
+			m_motors[create_req.id()] = std::unique_ptr<StepperMotor>(create_provider.create(create_req.create_data()));
+			return StepperMotorResponse(StepperMotorResponseCode::OK);
+		} catch (...) {
+			return StepperMotorResponse(StepperMotorResponseCode::EXCEPTION);
+		}
 	}
 }
 

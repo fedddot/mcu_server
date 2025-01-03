@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 #include "stepper_motor.hpp"
-#include "stepper_motor_data.hpp"
+#include "stepper_motor_types.hpp"
 
 namespace manager_tests {
 	class TestStepperMotor: public manager::StepperMotor {
