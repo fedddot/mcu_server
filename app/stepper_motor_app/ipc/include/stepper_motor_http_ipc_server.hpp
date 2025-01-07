@@ -7,9 +7,10 @@
 #include <vector>
 
 #include "cpprest/http_msg.h"
+#include "pplx/pplxtasks.h"
+
 #include "ipc_connection.hpp"
 #include "http_ipc_connection.hpp"
-#include "pplx/pplxtasks.h"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_request_data.hpp"
 #include "stepper_motor_response.hpp"
