@@ -2,14 +2,14 @@
 #include <stdexcept>
 #include <string>
 
-#include "cpprest/http_msg.h"
 #include "host.hpp"
-#include "http_ipc_connection.hpp"
 #include "ipc_connection.hpp"
 #include "manager.hpp"
 #include "providers.hpp"
+#include "stepper_motor_http_ipc_server.hpp"
 #include "stepper_motor_manager.hpp"
 #include "stepper_motor_request.hpp"
+#include "stepper_motor_request_data.hpp"
 #include "stepper_motor_response.hpp"
 #include "stepper_motor_types.hpp"
 
@@ -46,16 +46,14 @@ int main(void) {
 }
 
 IpcConnection<StepperMotorRequest, StepperMotorResponse> *create_ipc(const IpcConfig& cfg) {
-    return new HttpIpcConnection<StepperMotorRequest, StepperMotorResponse>(
-        "http://127.0.0.1:5555",
-		2,
-		10,
-		[](const web::http::http_request& request)-> StepperMotorRequest {
+    // TODO: retrieve the params from cfg
+    return new StepperMotorHttpIpcServer<StepperCreateCfg>(
+        [](const std::vector<char>& raw_data) -> StepperMotorCreateRequestData<StepperMotorId, StepperCreateCfg> {
             throw std::runtime_error("NOT IMPLEMENTED");
         },
-        [](const StepperMotorResponse& response)-> web::http::http_response {
-            throw std::runtime_error("NOT IMPLEMENTED");
-        }
+        "http://127.0.0.1:5555",
+        2,
+        10
     );
 }
 
