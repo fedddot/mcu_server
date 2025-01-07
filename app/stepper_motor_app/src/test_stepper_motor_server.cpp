@@ -1,4 +1,6 @@
 #include <exception>
+#include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -8,13 +10,17 @@
 #include "host.hpp"
 #include "ipc_connection.hpp"
 #include "manager.hpp"
+#include "provider.hpp"
 #include "providers.hpp"
+#include "stepper_motor.hpp"
+#include "stepper_motor_creator.hpp"
 #include "stepper_motor_http_ipc_server.hpp"
 #include "stepper_motor_manager.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_request_data.hpp"
 #include "stepper_motor_response.hpp"
 #include "stepper_motor_types.hpp"
+#include "test_stepper_motor.hpp"
 
 using namespace manager;
 using namespace host;
@@ -86,9 +92,26 @@ Manager<StepperMotorRequest, StepperMotorResponse> *create_manager(Providers<Ste
     return new StepperMotorManager<StepperCreateCfg>(providers);
 }
 
+class TestMotorCreator: public StepperMotorCreator<StepperCreateCfg> {
+public:
+    TestMotorCreator() = default;
+    TestMotorCreator(const TestMotorCreator&) = delete;
+    TestMotorCreator& operator=(const TestMotorCreator&) = delete;
+    StepperMotor *create(const StepperCreateCfg& create_cfg) const override {
+        (void)create_cfg;
+        return new manager_tests::TestStepperMotor(
+            [](const StepperMotorDirection& direction) {
+                std::cout << "stepper steps in direction " << std::to_string(static_cast<int>(direction)) << std::endl;
+            }
+        );
+    }
+};
+
 class TestProviders: public Providers<StepperMotorProviderType> {
 public:
-    TestProviders() = default;
+    TestProviders() {
+        m_providers[StepperMotorProviderType::MOTOR_CREATOR] = std::unique_ptr<Provider>(new TestMotorCreator());
+    }
     TestProviders(const TestProviders&) = delete;
     TestProviders& operator=(const TestProviders&) = delete;
     
