@@ -1,4 +1,4 @@
 add_executable(test_stepper_motor_server ${CMAKE_CURRENT_LIST_DIR}/src/test_stepper_motor_server.cpp)
-target_link_libraries(test_stepper_motor_server PRIVATE host ipc stepper_motor_manager)
+target_link_libraries(test_stepper_motor_server PRIVATE host ipc_connection stepper_motor_manager http_ipc_connection)
 
 add_subdirectory(manager)
