@@ -2,6 +2,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
+
 #include "stepper_motor_manager.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_request_data.hpp"
