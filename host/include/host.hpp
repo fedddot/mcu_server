@@ -16,7 +16,7 @@ namespace host {
 	public:
 		using IpcConnection = ipc::IpcConnection<Trequest, Tresponse>;
 		using IpcFactory = std::function<IpcConnection *(const Tipc_config&)>;
-		using Manager = manager::Manager<Trequest, Tresponse, Tprovider_id>;
+		using Manager = manager::Manager<Trequest, Tresponse>;
 		using Providers = manager::Providers<Tprovider_id>;
 		using ManagerFactory = std::function<Manager *(Providers *, const Tmanager_cfg&)>;
 		using ProvidersFactory = std::function<Providers *(const Tproviders_cfg&)>;
