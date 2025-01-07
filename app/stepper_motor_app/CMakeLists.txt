@@ -12,6 +12,7 @@ target_link_libraries(
     stepper_motor_request_data
     stepper_motor_response
     stepper_motor_types
+    jsoncpp_static
 )
 
 add_subdirectory(ipc)

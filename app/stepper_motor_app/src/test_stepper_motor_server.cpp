@@ -2,6 +2,9 @@
 #include <stdexcept>
 #include <string>
 
+#include "json/reader.h"
+#include "json/value.h"
+
 #include "host.hpp"
 #include "ipc_connection.hpp"
 #include "manager.hpp"
@@ -45,12 +48,33 @@ int main(void) {
     return 0;
 }
 
+static StepperMotorCreateRequestData<StepperMotorId, StepperCreateCfg> parse_create_request(const std::vector<char>& raw_data) {
+    auto reader = Json::Reader();
+    auto root = Json::Value();
+    if (!reader.parse(std::string(raw_data.begin(), raw_data.end()), root)) {
+        throw std::invalid_argument("failed to parse data from input");
+    }
+    if (!root.isObject()) {
+        throw std::invalid_argument("wrong data format");
+    }
+    const auto id_ptr = root.find("id");
+    if (!id_ptr || !(id_ptr->isString())) {
+        throw std::invalid_argument("id not found or has invalid format");
+    }
+    const auto create_cfg_ptr = root.find("create_cfg");
+    if (!create_cfg_ptr || !(create_cfg_ptr->isString())) {
+        throw std::invalid_argument("create_cfg not found or has invalid format");
+    }
+    return StepperMotorCreateRequestData<StepperMotorId, StepperCreateCfg>(
+        static_cast<StepperMotorId>(id_ptr->asString()),
+        static_cast<StepperCreateCfg>(create_cfg_ptr->asString())
+    );
+}
+
 IpcConnection<StepperMotorRequest, StepperMotorResponse> *create_ipc(const IpcConfig& cfg) {
     // TODO: retrieve the params from cfg
     return new StepperMotorHttpIpcServer<StepperCreateCfg>(
-        [](const std::vector<char>& raw_data) -> StepperMotorCreateRequestData<StepperMotorId, StepperCreateCfg> {
-            throw std::runtime_error("NOT IMPLEMENTED");
-        },
+        parse_create_request,
         "http://127.0.0.1:5555",
         2,
         10
