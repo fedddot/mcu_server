@@ -35,7 +35,7 @@ namespace ipc {
 		manager::StepperMotorRequest read() override;
 	private:
 		CreateRequestDataParser m_create_request_parser;
-		HttpIpcServer<manager::StepperMotorRequest, manager::StepperMotorResponse> m_http_connection;
+		HttpIpcServer<manager::StepperMotorRequest, manager::StepperMotorResponse> m_http_server;
 		manager::StepperMotorRequest http_request_to_stepper_request(const web::http::http_request& request) const;
 		web::http::http_response stepper_response_to_http_response(const manager::StepperMotorResponse& response) const;
 	};
@@ -48,7 +48,7 @@ namespace ipc {
 		const unsigned int response_timeout_s
 	):
 		m_create_request_parser(create_request_parser),
-		m_http_connection(
+		m_http_server(
 			uri, polling_timeout_s, response_timeout_s,
 			[this](const web::http::http_request& request) {
 				return http_request_to_stepper_request(request);
@@ -62,17 +62,17 @@ namespace ipc {
 
 	template <typename Tcreate_cfg>
 	inline void StepperMotorHttpIpcServer<Tcreate_cfg>::write(const manager::StepperMotorResponse& response) const {
-		m_http_connection.write(response);
+		m_http_server.write(response);
 	}
 
 	template <typename Tcreate_cfg>
 	inline bool StepperMotorHttpIpcServer<Tcreate_cfg>::readable() const {
-		return m_http_connection.readable();
+		return m_http_server.readable();
 	}
 
 	template <typename Tcreate_cfg>
 	inline manager::StepperMotorRequest StepperMotorHttpIpcServer<Tcreate_cfg>::read() {
-		return m_http_connection.read();
+		return m_http_server.read();
 	}
 
 	template <typename Tcreate_cfg>

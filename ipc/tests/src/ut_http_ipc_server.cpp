@@ -5,7 +5,7 @@
 #include "http_ipc_server.hpp"
 
 using namespace ipc;
-using TestConnection = HttpIpcServer<web::http::http_request, web::http::http_response>;
+using TestServer = HttpIpcServer<web::http::http_request, web::http::http_response>;
 
 TEST(ut_http_ipc_server, ctor_dtor_sanity) {
     // GIVEN
@@ -14,11 +14,11 @@ TEST(ut_http_ipc_server, ctor_dtor_sanity) {
     const auto response_timeout = 3;
 
     // WHEN
-    TestConnection *instance_ptr(nullptr);
+    TestServer *instance_ptr(nullptr);
 
     // THEN
     ASSERT_NO_THROW(
-        instance_ptr = new TestConnection(
+        instance_ptr = new TestServer(
             test_url,
             polling_timeout,
             response_timeout,
@@ -43,7 +43,7 @@ TEST(ut_http_ipc_server, write_readable_read_sanity) {
     const auto test_response = web::http::http_response(web::http::status_codes::BadRequest);
 
     // WHEN
-    TestConnection instance(
+    TestServer instance(
         test_url,
         polling_timeout,
         response_timeout,
