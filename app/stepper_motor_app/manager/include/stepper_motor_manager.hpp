@@ -1,6 +1,7 @@
 #ifndef	STEPPER_MOTOR_MANAGER_HPP
 #define	STEPPER_MOTOR_MANAGER_HPP
 
+#include <exception>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -63,8 +64,10 @@ namespace manager {
 
 			m_motors[create_config.motor_id()] = std::unique_ptr<StepperMotor>(create_provider.create(create_config.create_cfg()));
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
-		} catch (...) {
-			return StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
+		} catch (const std::exception& e) {
+			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
+			response.set_message("an exception caught in stepper motor manager: " + std::string(e.what()));
+			return response;
 		}
 	}
 

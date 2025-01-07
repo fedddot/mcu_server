@@ -44,8 +44,10 @@ int main(void) {
         "",
         create_providers,
         "",
-        [](const std::exception&) {
-            return StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
+        [](const std::exception& e) {
+            auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
+            response.set_message(std::string(e.what()));
+            return response;
         }
     );
 
