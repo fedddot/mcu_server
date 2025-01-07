@@ -12,6 +12,7 @@ namespace manager {
 		enum class ResultCode: int {
 			OK,
 			UNSUPPORTED,
+			BAD_REQUEST,
 			EXCEPTION
 		};
 		StepperMotorResponse(const ResultCode& code = ResultCode::EXCEPTION);
