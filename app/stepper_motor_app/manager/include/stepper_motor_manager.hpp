@@ -67,6 +67,16 @@ namespace manager {
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
 		}
 	}
+
+	template <typename Tcreate_cfg>
+	template <typename Tin, typename Tout>
+	const Tout& StepperMotorManager<Tcreate_cfg>::cast_dynamically(const Tin& input) {
+		try {
+			return dynamic_cast<const Tout&>(input);
+		} catch (...) {
+			throw std::invalid_argument("failed to perform dynamic downcast in stepper motor manager");
+		}
+	}
 }
 
 #endif // STEPPER_MOTOR_MANAGER_HPP
