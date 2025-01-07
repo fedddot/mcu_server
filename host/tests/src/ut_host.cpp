@@ -25,7 +25,7 @@ using IpcCfg = std::string;
 
 using TestHost = Host<Request, Response, ProviderId, ProvidersCfg, ManagerCfg, IpcCfg>;
 
-class TestManager: public Manager<Request, Response, ProviderId> {
+class TestManager: public Manager<Request, Response> {
 public:
 	TestManager(Providers<ProviderId> *provider, const ManagerCfg& cfg): m_provider(provider) {
 		if (!m_provider) {
@@ -38,9 +38,6 @@ public:
 	Response run(const Request& request) override {
 		(void)request;
 		return Response(0);
-	}
-	const Providers<ProviderId>& providers() const override {
-		return std::ref(*m_provider);
 	}
 private:
 	Providers<ProviderId> *m_provider;
