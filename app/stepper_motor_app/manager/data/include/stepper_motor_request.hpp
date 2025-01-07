@@ -34,13 +34,17 @@ namespace manager {
 
 	}
 
-	inline StepperMotorRequest::StepperMotorRequest(const StepperMotorRequest& other): m_type(other.m_type), m_data(other.m_data->clone()) {
-
+	inline StepperMotorRequest::StepperMotorRequest(const StepperMotorRequest& other): m_type(other.m_type) {
+		if (other.m_data != nullptr) {
+			m_data = std::unique_ptr<StepperMotorRequestData>(other.m_data->clone());
+		}
 	}
 
 	inline StepperMotorRequest& StepperMotorRequest::operator=(const StepperMotorRequest& other) {
 		m_type = other.m_type;
-		m_data = std::unique_ptr<StepperMotorRequestData>(other.m_data->clone());
+		if (other.m_data != nullptr) {
+			m_data = std::unique_ptr<StepperMotorRequestData>(other.m_data->clone());
+		}
 		return *this;
 	}
 
