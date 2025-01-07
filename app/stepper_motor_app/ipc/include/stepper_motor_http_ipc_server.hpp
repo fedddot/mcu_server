@@ -98,7 +98,25 @@ namespace ipc {
 
 	template <typename Tcreate_cfg>
 	inline web::http::http_response StepperMotorHttpIpcServer<Tcreate_cfg>::stepper_response_to_http_response(const manager::StepperMotorResponse& response) const {
-		throw std::runtime_error("NOT IMPLEMENTED: stepper_response_to_http_response");
+		using namespace manager;
+		auto http_response = web::http::http_response();
+		switch (response.code()) {
+		case StepperMotorResponse::ResultCode::OK:
+			http_response.set_status_code(web::http::status_codes::OK);
+			break;
+		case StepperMotorResponse::ResultCode::UNSUPPORTED:
+			http_response.set_status_code(web::http::status_codes::MethodNotAllowed);
+			break;
+		case StepperMotorResponse::ResultCode::BAD_REQUEST:
+			http_response.set_status_code(web::http::status_codes::BadRequest);
+			break;
+		case StepperMotorResponse::ResultCode::EXCEPTION:
+			http_response.set_status_code(web::http::status_codes::InternalError);
+			break;
+		default:
+			throw std::invalid_argument("unsupported result code");
+		}
+		return http_response;
 	}
 }
 

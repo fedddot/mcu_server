@@ -77,7 +77,7 @@ IpcConnection<StepperMotorRequest, StepperMotorResponse> *create_ipc(const IpcCo
         parse_create_request,
         "http://127.0.0.1:5555",
         2,
-        10
+        100
     );
 }
 
