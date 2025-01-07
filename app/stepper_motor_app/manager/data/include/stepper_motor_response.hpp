@@ -12,6 +12,7 @@ namespace manager {
 	public:
 		enum class ResultCode: int {
 			OK,
+			NOT_FOUND,
 			UNSUPPORTED,
 			BAD_REQUEST,
 			EXCEPTION
