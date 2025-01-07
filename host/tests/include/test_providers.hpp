@@ -24,6 +24,9 @@ namespace host_tests {
 			}
 			return std::ref(*(iter->second));
 		}
+		void add_provider(const Tprovider_id& id, manager::Provider *raw_provider_ptr) {
+			m_providers[id] = std::unique_ptr<manager::Provider>(raw_provider_ptr);
+		}
 	private:
 		mutable std::map<Tprovider_id, std::unique_ptr<manager::Provider>> m_providers;
 	};
