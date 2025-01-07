@@ -2,6 +2,7 @@
 #define	HTTP_IPC_CONNECTION_HPP
 
 #include <condition_variable>
+#include <exception>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -112,27 +113,38 @@ namespace ipc {
 
 	template <typename Trequest, typename Tresponse>
 	inline void HttpIpcConnection<Trequest, Tresponse>::request_handler(const web::http::http_request& request) {
-		{
-			std::unique_lock lock(m_request_mux);
-			if (m_request) {
-				request.reply(web::http::status_codes::TooManyRequests).wait();
+		try {
+			{
+				std::unique_lock lock(m_request_mux);
+				if (m_request) {
+					request.reply(web::http::status_codes::TooManyRequests).wait();
+					m_request_cond.notify_one();
+					return;
+				}
+				m_request = std::make_unique<Trequest>(m_http_request_to_request(request));
 				m_request_cond.notify_one();
+			}
+			std::unique_lock lock(m_response_mux);
+			if (!m_response) {
+				m_response_cond.wait_for(lock, std::chrono::seconds(m_response_timeout_s));
+			}
+			if (!m_response) {
+				const auto timeout_response = web::http::http_response(web::http::status_codes::RequestTimeout);
+				request.reply(timeout_response).wait();
 				return;
 			}
-			m_request = std::make_unique<Trequest>(m_http_request_to_request(request));
+			request.reply(m_response_to_http_response(*m_response)).wait();
+			m_response = nullptr;
+		} catch (const std::exception& e) {
+			auto response = web::http::http_response(web::http::status_codes::InternalError);
+			response.set_body("\"" + std::string(e.what()) + "\"", utf8string("application/json; charset=utf-8"));
+			request.reply(response).wait();
+			m_request = nullptr;
 			m_request_cond.notify_one();
-		}
-		std::unique_lock lock(m_response_mux);
-		if (!m_response) {
-			m_response_cond.wait_for(lock, std::chrono::seconds(m_response_timeout_s));
-		}
-		if (!m_response) {
-			const auto timeout_response = web::http::http_response(web::http::status_codes::RequestTimeout);
-			request.reply(timeout_response).wait();
+			m_response = nullptr;
+			m_response_cond.notify_one();
 			return;
 		}
-		request.reply(m_response_to_http_response(*m_response)).wait();
-		m_response = nullptr;
 	}
 }
 
