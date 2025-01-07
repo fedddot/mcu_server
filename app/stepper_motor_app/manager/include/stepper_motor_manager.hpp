@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include "manager.hpp"
+#include "provider.hpp"
 #include "providers.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_creator.hpp"

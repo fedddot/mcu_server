@@ -12,6 +12,7 @@ target_link_libraries(
     stepper_motor_manager
     INTERFACE
     manager
+    provider
     providers
     stepper_motor
     stepper_motor_creator
