@@ -10,5 +10,5 @@ target_link_libraries(
     stepper_motor_response
     stepper_motor_types
 
-    jsoncpp
+    jsoncpp_static
 )

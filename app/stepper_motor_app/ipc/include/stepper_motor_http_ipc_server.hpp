@@ -29,8 +29,6 @@ namespace ipc {
 		StepperMotorHttpIpcServer(const StepperMotorHttpIpcServer&) = delete;
 		StepperMotorHttpIpcServer& operator=(const StepperMotorHttpIpcServer&) = delete;
 		
-		~StepperMotorHttpIpcServer() noexcept override;
-
 		void write(const manager::StepperMotorResponse& response) const override;
 		bool readable() const override;
 		manager::StepperMotorRequest read() override;
