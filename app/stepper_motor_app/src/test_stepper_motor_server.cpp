@@ -43,7 +43,7 @@ int main(void) {
         }
     );
 
-    host.run_once();
+    host.run();
 
     return 0;
 }
