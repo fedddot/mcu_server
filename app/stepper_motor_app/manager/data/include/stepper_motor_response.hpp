@@ -7,32 +7,30 @@
 #include "stepper_motor_types.hpp"
 
 namespace manager {
-
-	enum class StepperMotorResponseCode: int {
-		OK,
-		UNSUPPORTED,
-		EXCEPTION
-	};
-
 	class StepperMotorResponse {
 	public:
-		StepperMotorResponse(const StepperMotorResponseCode& code = StepperMotorResponseCode::EXCEPTION);
+		enum class ResultCode: int {
+			OK,
+			UNSUPPORTED,
+			EXCEPTION
+		};
+		StepperMotorResponse(const ResultCode& code = ResultCode::EXCEPTION);
 		StepperMotorResponse(const StepperMotorResponse&);
 		StepperMotorResponse& operator=(const StepperMotorResponse&);
 
 		virtual ~StepperMotorResponse() noexcept = default;
 
-		const StepperMotorResponseCode code() const;
-		void set_code(const StepperMotorResponseCode& code);
-		const StepperMotorState state() const;
-		const bool has_state() const;
+		ResultCode code() const;
+
+		bool has_state() const;
+		StepperMotorState state() const;
 		void set_state(const StepperMotorState& state);
 	private:
-		StepperMotorResponseCode m_code;
+		ResultCode m_code;
 		std::unique_ptr<StepperMotorState> m_state;
 	};
 
-	inline StepperMotorResponse::StepperMotorResponse(const StepperMotorResponseCode& code): m_code(code), m_state(nullptr) {
+	inline StepperMotorResponse::StepperMotorResponse(const ResultCode& code): m_code(code) {
 
 	}
 
@@ -50,22 +48,21 @@ namespace manager {
 		return std::ref(*this);
 	}
 
-	inline const StepperMotorResponseCode StepperMotorResponse::code() const {
+	inline typename StepperMotorResponse::ResultCode StepperMotorResponse::code() const {
 		return m_code;
 	}
 
-	inline void StepperMotorResponse::set_code(const StepperMotorResponseCode& code) {
-		m_code = code;
+	inline bool StepperMotorResponse::has_state() const {
+		return nullptr != m_state;
 	}
-	inline const StepperMotorState StepperMotorResponse::state() const {
+
+	inline StepperMotorState StepperMotorResponse::state() const {
 		if (!m_state) {
 			throw std::runtime_error("state has not been set");
 		}
 		return *m_state;
 	}
-	inline const bool StepperMotorResponse::has_state() const {
-		return nullptr != m_state;
-	}
+
 	inline void StepperMotorResponse::set_state(const StepperMotorState& state) {
 		m_state = std::make_unique<StepperMotorState>(state);
 	}
