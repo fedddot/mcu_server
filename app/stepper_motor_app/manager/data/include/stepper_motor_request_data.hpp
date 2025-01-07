@@ -1,6 +1,10 @@
 #ifndef	STEPPER_MOTOR_REQUEST_DATA_HPP
 #define	STEPPER_MOTOR_REQUEST_DATA_HPP
 
+#include <cstddef>
+
+#include "stepper_motor_types.hpp"
+
 namespace manager {
 	class StepperMotorRequestData {
 	public:
@@ -89,6 +93,62 @@ namespace manager {
 	template <typename Tmotor_id, typename Tcreate_cfg>
 	inline Tcreate_cfg StepperMotorCreateRequestData<Tmotor_id, Tcreate_cfg>::create_cfg() const {
 		return m_create_cfg;
+	}
+
+	template <typename Tmotor_id>
+	class StepperMotorStepsRequestData: public StepperMotorRequestData {
+	public:
+		StepperMotorStepsRequestData(const Tmotor_id& motor_id, const StepperMotorDirection& direction, const std::size_t& steps_num, const std::size_t& step_duration);
+		StepperMotorStepsRequestData(const StepperMotorStepsRequestData&) = default;
+		StepperMotorStepsRequestData& operator=(const StepperMotorStepsRequestData&) = default;
+		
+		Type type() const override;
+		StepperMotorRequestData *clone() const override;
+
+		Tmotor_id motor_id() const;
+		StepperMotorDirection direction() const;
+		std::size_t steps_number() const;
+		std::size_t step_duration() const;
+	private:
+		Tmotor_id m_motor_id;
+		StepperMotorDirection m_direction;
+		std::size_t m_steps_num;
+		std::size_t m_step_duration;
+	};
+
+	template <typename Tmotor_id>
+	inline StepperMotorStepsRequestData<Tmotor_id>::StepperMotorStepsRequestData(const Tmotor_id& motor_id, const StepperMotorDirection& direction, const std::size_t& steps_num, const std::size_t& step_duration): m_motor_id(motor_id), m_direction(direction), m_steps_num(steps_num), m_step_duration(step_duration) {
+
+	}
+
+	template <typename Tmotor_id>
+	inline typename StepperMotorStepsRequestData<Tmotor_id>::Type StepperMotorStepsRequestData<Tmotor_id>::type() const {
+		return Type::STEPS_CONFIG;
+	}
+	
+	template <typename Tmotor_id>
+	inline StepperMotorRequestData *StepperMotorStepsRequestData<Tmotor_id>::clone() const {
+		return new StepperMotorStepsRequestData(*this);
+	}
+
+	template <typename Tmotor_id>
+	inline Tmotor_id StepperMotorStepsRequestData<Tmotor_id>::motor_id() const {
+		return m_motor_id;
+	}
+
+	template <typename Tmotor_id>
+	inline StepperMotorDirection StepperMotorStepsRequestData<Tmotor_id>::direction() const {
+		return m_direction;
+	}
+
+	template <typename Tmotor_id>
+	inline std::size_t StepperMotorStepsRequestData<Tmotor_id>::steps_number() const {
+		return m_steps_num;
+	}
+
+	template <typename Tmotor_id>
+	inline std::size_t StepperMotorStepsRequestData<Tmotor_id>::step_duration() const {
+		return m_step_duration;
 	}
 }
 
