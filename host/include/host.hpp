@@ -6,7 +6,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "ipc_connection.hpp"
+#include "ipc_server.hpp"
 #include "manager.hpp"
 #include "providers.hpp"
 
@@ -14,8 +14,8 @@ namespace host {
 	template <typename Trequest, typename Tresponse, typename Tprovider_id, typename Tproviders_cfg, typename Tmanager_cfg, typename Tipc_config>
 	class Host {
 	public:
-		using IpcConnection = ipc::IpcConnection<Trequest, Tresponse>;
-		using IpcFactory = std::function<IpcConnection *(const Tipc_config&)>;
+		using IpcServer = ipc::IpcServer<Trequest, Tresponse>;
+		using IpcFactory = std::function<IpcServer *(const Tipc_config&)>;
 		using Manager = manager::Manager<Trequest, Tresponse>;
 		using Providers = manager::Providers<Tprovider_id>;
 		using ManagerFactory = std::function<Manager *(Providers *, const Tmanager_cfg&)>;
@@ -39,7 +39,7 @@ namespace host {
 		FailureReporter m_failure_reporter;
 		bool m_is_running;
 
-		std::unique_ptr<IpcConnection> m_ipc_connection;
+		std::unique_ptr<IpcServer> m_ipc_server;
 		std::unique_ptr<Providers> m_providers;
 		std::unique_ptr<Manager> m_manager;
 	};
@@ -57,7 +57,7 @@ namespace host {
 		if (!ipc_factory || !manager_factory || !providers_factory || !failure_reporter) {
 			throw std::invalid_argument("invalid host args");
 		}
-		m_ipc_connection = std::unique_ptr<IpcConnection>(ipc_factory(ipc_config));
+		m_ipc_server = std::unique_ptr<IpcServer>(ipc_factory(ipc_config));
 		m_providers = std::unique_ptr<Providers>(providers_factory(providers_config));
 		m_manager = std::unique_ptr<Manager>(manager_factory(m_providers.get(), manager_config));
 	}
@@ -65,14 +65,14 @@ namespace host {
 	template <typename Trequest, typename Tresponse, typename Tprovider_id, typename Tproviders_cfg, typename Tmanager_cfg, typename Tipc_config>
 	inline void Host<Trequest, Tresponse, Tprovider_id, Tproviders_cfg, Tmanager_cfg, Tipc_config>::run_once() {
 		try {
-			if (!m_ipc_connection->readable()) {
+			if (!m_ipc_server->readable()) {
 				return;
 			}
-			const auto request = m_ipc_connection->read();
+			const auto request = m_ipc_server->read();
 			const auto response = m_manager->run(request);
-			m_ipc_connection->write(response);
+			m_ipc_server->write(response);
 		} catch (const std::exception& e) {
-			m_ipc_connection->write(m_failure_reporter(e));
+			m_ipc_server->write(m_failure_reporter(e));
 		}
 	}
 

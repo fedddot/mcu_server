@@ -2,12 +2,12 @@
 #include "cpprest/http_client.h"
 #include "cpprest/http_msg.h"
 
-#include "http_ipc_connection.hpp"
+#include "http_ipc_server.hpp"
 
 using namespace ipc;
-using TestConnection = HttpIpcConnection<web::http::http_request, web::http::http_response>;
+using TestConnection = HttpIpcServer<web::http::http_request, web::http::http_response>;
 
-TEST(ut_http_ipc_connection, ctor_dtor_sanity) {
+TEST(ut_http_ipc_server, ctor_dtor_sanity) {
     // GIVEN
     const auto test_url = "http://127.0.0.1:5000";
     const auto polling_timeout = 3;
@@ -34,7 +34,7 @@ TEST(ut_http_ipc_connection, ctor_dtor_sanity) {
     instance_ptr = nullptr;
 }
 
-TEST(ut_http_ipc_connection, write_readable_read_sanity) {
+TEST(ut_http_ipc_server, write_readable_read_sanity) {
     // GIVEN
     const auto test_url = "http://127.0.0.1:5000";
     const auto polling_timeout = 2;

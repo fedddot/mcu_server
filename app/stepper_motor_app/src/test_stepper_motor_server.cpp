@@ -8,7 +8,7 @@
 #include "json/value.h"
 
 #include "host.hpp"
-#include "ipc_connection.hpp"
+#include "ipc_server.hpp"
 #include "manager.hpp"
 #include "provider.hpp"
 #include "providers.hpp"
@@ -32,7 +32,7 @@ using StepperCreateCfg = std::string;
 
 using StepperMotorHost = Host<StepperMotorRequest, StepperMotorResponse, StepperMotorProviderType, ProvidersConfig, StepperMotorManagerConfig, IpcConfig>;
 
-static IpcConnection<StepperMotorRequest, StepperMotorResponse> *create_ipc(const IpcConfig& cfg);
+static IpcServer<StepperMotorRequest, StepperMotorResponse> *create_ipc(const IpcConfig& cfg);
 static Manager<StepperMotorRequest, StepperMotorResponse> *create_manager(Providers<StepperMotorProviderType> *providers, const StepperMotorManagerConfig& cfg);
 static Providers<StepperMotorProviderType> *create_providers(const ProvidersConfig& cfg);
 
@@ -77,7 +77,7 @@ static StepperMotorCreateRequestData<StepperMotorId, StepperCreateCfg> parse_cre
     );
 }
 
-IpcConnection<StepperMotorRequest, StepperMotorResponse> *create_ipc(const IpcConfig& cfg) {
+IpcServer<StepperMotorRequest, StepperMotorResponse> *create_ipc(const IpcConfig& cfg) {
     // TODO: retrieve the params from cfg
     return new StepperMotorHttpIpcServer<StepperCreateCfg>(
         parse_create_request,

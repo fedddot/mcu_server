@@ -3,7 +3,7 @@ target_link_libraries(
     test_stepper_motor_server
     PRIVATE
     host
-    ipc_connection
+    ipc_server
     manager
     providers
     stepper_motor_creator

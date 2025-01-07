@@ -1,5 +1,5 @@
-#ifndef	TEST_IPC_CONNECTION_HPP
-#define	TEST_IPC_CONNECTION_HPP
+#ifndef	TEST_IPC_SERVER_HPP
+#define	TEST_IPC_SERVER_HPP
 
 #include <chrono>
 #include <condition_variable>
@@ -9,18 +9,18 @@
 #include <mutex>
 #include <stdexcept>
 
-#include "ipc_connection.hpp"
+#include "ipc_server.hpp"
 
 namespace host_tests {
 	template <typename Tincoming, typename Toutgoing>
-	class TestIpcConnection: public ipc::IpcConnection<Tincoming, Toutgoing> {
+	class TestIpcServer: public ipc::IpcServer<Tincoming, Toutgoing> {
 	public:
 		using OnWriteCallback = std::function<void(const Toutgoing& data)>;
-		TestIpcConnection(const OnWriteCallback& on_write, const std::size_t& timeout_ms): m_on_write(on_write), m_timeout_ms(timeout_ms) {
+		TestIpcServer(const OnWriteCallback& on_write, const std::size_t& timeout_ms): m_on_write(on_write), m_timeout_ms(timeout_ms) {
 
 		}
-		TestIpcConnection(const TestIpcConnection&) = delete;
-		TestIpcConnection& operator=(const TestIpcConnection&) = delete;
+		TestIpcServer(const TestIpcServer&) = delete;
+		TestIpcServer& operator=(const TestIpcServer&) = delete;
 		bool readable() const override {
 			std::unique_lock lock(m_mux);
 			if (m_test_message) {
@@ -59,4 +59,4 @@ namespace host_tests {
 
 }
 
-#endif // TEST_IPC_CONNECTION_HPP
+#endif // TEST_IPC_SERVER_HPP

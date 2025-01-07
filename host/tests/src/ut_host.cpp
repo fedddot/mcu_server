@@ -8,7 +8,7 @@
 #include "host.hpp"
 #include "manager.hpp"
 #include "providers.hpp"
-#include "test_ipc_connection.hpp"
+#include "test_ipc_server.hpp"
 #include "test_providers.hpp"
 
 using namespace manager;
@@ -50,7 +50,7 @@ TEST(ut_host, sanity) {
 	// GIVEN
 	const auto ipc_cfg = IpcCfg("ipc config");
 	auto ipc_factory = [](const IpcCfg& cfg) {
-		return new TestIpcConnection<Request, Response>(
+		return new TestIpcServer<Request, Response>(
 			[](const Response& response) {
 
 			},

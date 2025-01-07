@@ -1,5 +1,5 @@
-#ifndef	HTTP_IPC_CONNECTION_HPP
-#define	HTTP_IPC_CONNECTION_HPP
+#ifndef	HTTP_IPC_SERVER_HPP
+#define	HTTP_IPC_SERVER_HPP
 
 #include <condition_variable>
 #include <exception>
@@ -11,25 +11,25 @@
 #include "cpprest/http_msg.h"
 #include "cpprest/http_listener.h"
 
-#include "ipc_connection.hpp"
+#include "ipc_server.hpp"
 
 namespace ipc {
 	template <typename Trequest, typename Tresponse>
-	class HttpIpcConnection: public IpcConnection<Trequest, Tresponse> {
+	class HttpIpcServer: public IpcServer<Trequest, Tresponse> {
 	public:
 		using HttpRequestToRequestTransformer = std::function<Trequest(const web::http::http_request&)>;
 		using ResponseToHttpResponseTransformer = std::function<web::http::http_response(const Tresponse&)>;
-		HttpIpcConnection(
+		HttpIpcServer(
 			const std::string& uri,
 			const unsigned int polling_timeout_s,
 			const unsigned int response_timeout_s,
 			const HttpRequestToRequestTransformer& http_request_to_request,
 			const ResponseToHttpResponseTransformer& response_to_http_response
 		);
-		HttpIpcConnection(const HttpIpcConnection&) = delete;
-		HttpIpcConnection& operator=(const HttpIpcConnection&) = delete;
+		HttpIpcServer(const HttpIpcServer&) = delete;
+		HttpIpcServer& operator=(const HttpIpcServer&) = delete;
 		
-		~HttpIpcConnection() noexcept override;
+		~HttpIpcServer() noexcept override;
 
 		void write(const Tresponse& response) const override;
 		bool readable() const override;
@@ -56,7 +56,7 @@ namespace ipc {
 	};
 
 	template <typename Trequest, typename Tresponse>
-	inline HttpIpcConnection<Trequest, Tresponse>::HttpIpcConnection(
+	inline HttpIpcServer<Trequest, Tresponse>::HttpIpcServer(
 		const std::string& uri,
 		const unsigned int polling_timeout_s,
 		const unsigned int response_timeout_s,
@@ -79,19 +79,19 @@ namespace ipc {
 	}
 
 	template <typename Trequest, typename Tresponse>
-	inline HttpIpcConnection<Trequest, Tresponse>::~HttpIpcConnection() noexcept {
+	inline HttpIpcServer<Trequest, Tresponse>::~HttpIpcServer() noexcept {
 		m_listener.close().wait();
 	}
 
 	template <typename Trequest, typename Tresponse>
-	inline void HttpIpcConnection<Trequest, Tresponse>::write(const Tresponse& outgoing_data) const {
+	inline void HttpIpcServer<Trequest, Tresponse>::write(const Tresponse& outgoing_data) const {
 		std::unique_lock response_lock(m_response_mux);
 		m_response = std::make_unique<Tresponse>(outgoing_data);
 		m_response_cond.notify_one();
 	}
 
 	template <typename Trequest, typename Tresponse>
-	inline bool HttpIpcConnection<Trequest, Tresponse>::readable() const {
+	inline bool HttpIpcServer<Trequest, Tresponse>::readable() const {
 		std::unique_lock lock(m_request_mux);
 		if (m_request) {
 			return true;
@@ -101,7 +101,7 @@ namespace ipc {
 	}
 
 	template <typename Trequest, typename Tresponse>
-	Trequest HttpIpcConnection<Trequest, Tresponse>::read() {
+	Trequest HttpIpcServer<Trequest, Tresponse>::read() {
 		std::unique_lock lock(m_request_mux);
 		if (!m_request) {
 			throw std::runtime_error("there is no request to read");
@@ -112,7 +112,7 @@ namespace ipc {
 	}
 
 	template <typename Trequest, typename Tresponse>
-	inline void HttpIpcConnection<Trequest, Tresponse>::request_handler(const web::http::http_request& request) {
+	inline void HttpIpcServer<Trequest, Tresponse>::request_handler(const web::http::http_request& request) {
 		try {
 			{
 				std::unique_lock lock(m_request_mux);
@@ -148,4 +148,4 @@ namespace ipc {
 	}
 }
 
-#endif // HTTP_IPC_CONNECTION_HPP
+#endif // HTTP_IPC_SERVER_HPP

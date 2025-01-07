@@ -9,8 +9,8 @@
 #include "cpprest/http_msg.h"
 #include "pplx/pplxtasks.h"
 
-#include "ipc_connection.hpp"
-#include "http_ipc_connection.hpp"
+#include "ipc_server.hpp"
+#include "http_ipc_server.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_request_data.hpp"
 #include "stepper_motor_response.hpp"
@@ -18,7 +18,7 @@
 
 namespace ipc {
 	template <typename Tcreate_cfg>
-	class StepperMotorHttpIpcServer: public IpcConnection<manager::StepperMotorRequest, manager::StepperMotorResponse> {
+	class StepperMotorHttpIpcServer: public IpcServer<manager::StepperMotorRequest, manager::StepperMotorResponse> {
 	public:
 		using CreateRequestDataParser = std::function<manager::StepperMotorCreateRequestData<manager::StepperMotorId, Tcreate_cfg>(const std::vector<char>&)>;
 		StepperMotorHttpIpcServer(
@@ -35,7 +35,7 @@ namespace ipc {
 		manager::StepperMotorRequest read() override;
 	private:
 		CreateRequestDataParser m_create_request_parser;
-		HttpIpcConnection<manager::StepperMotorRequest, manager::StepperMotorResponse> m_http_connection;
+		HttpIpcServer<manager::StepperMotorRequest, manager::StepperMotorResponse> m_http_connection;
 		manager::StepperMotorRequest http_request_to_stepper_request(const web::http::http_request& request) const;
 		web::http::http_response stepper_response_to_http_response(const manager::StepperMotorResponse& response) const;
 	};
