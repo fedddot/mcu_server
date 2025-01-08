@@ -44,14 +44,11 @@ namespace manager {
 
 	template <typename Tcreate_cfg>
 	inline StepperMotorResponse StepperMotorManager<Tcreate_cfg>::run(const StepperMotorRequest<Tcreate_cfg>& request) {
-		if (!request.has_data()) {
-			return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST);
-		}
 		switch (request.type()) {
 		case StepperMotorRequest<Tcreate_cfg>::Type::CREATE_STEPPER:
-			return serve_create(request.data());
+			return serve_create(request);
 		case StepperMotorRequest<Tcreate_cfg>::Type::DELETE_STEPPER:
-			return serve_delete(request.data());
+			return serve_delete(request);
 		default:
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::UNSUPPORTED);
 		}

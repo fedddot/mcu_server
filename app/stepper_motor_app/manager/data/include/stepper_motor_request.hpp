@@ -72,6 +72,11 @@ namespace manager {
 	}
 
 	template <typename Tcreate_cfg>
+	inline StepperMotorId StepperMotorRequest<Tcreate_cfg>::motor_id() const {
+		return m_motor_id;
+	}
+
+	template <typename Tcreate_cfg>
 	inline void StepperMotorRequest<Tcreate_cfg>::set_state(const StepperMotorState& state) {
 		m_state = std::make_unique<StepperMotorState>(state);
 	}
