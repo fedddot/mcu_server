@@ -5,7 +5,6 @@
 
 #include "stepper_motor_manager.hpp"
 #include "stepper_motor_request.hpp"
-#include "stepper_motor_request_data.hpp"
 #include "stepper_motor_response.hpp"
 #include "stepper_motor_types.hpp"
 #include "test_providers.hpp"

@@ -1,6 +1,8 @@
 #ifndef	STEPPER_MOTOR_HTTP_IPC_SERVER_HPP
 #define	STEPPER_MOTOR_HTTP_IPC_SERVER_HPP
 
+#include "json/reader.h"
+#include "json/value.h"
 #include <functional>
 #include <stdexcept>
 #include <string>
@@ -12,7 +14,6 @@
 #include "ipc_server.hpp"
 #include "http_ipc_server.hpp"
 #include "stepper_motor_request.hpp"
-#include "stepper_motor_request_data.hpp"
 #include "stepper_motor_response.hpp"
 #include "stepper_motor_types.hpp"
 
@@ -88,8 +89,32 @@ namespace ipc {
 			return m_create_request_parser(std::vector<char>(raw_data.begin(), raw_data.end())); 
 		};
 
+		auto generate_regular_request_data = [this](const web::http::http_request& request) {
+			auto data_retrieve_task = request.extract_vector();
+			if (pplx::task_status::completed != data_retrieve_task.wait()) {
+				throw std::runtime_error("failed to retrieve request data");
+			}
+			const auto raw_data = data_retrieve_task.get();
+			auto reader = Json::Reader();
+			auto root = Json::Value();
+			if (!reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(root), false)) {
+				throw std::invalid_argument("failed to parse http data");
+			}
+			if (!root.isObject()) {
+				throw std::invalid_argument("received data has invalid format");
+			}
+			const auto *id_ptr = root;
+			return m_create_request_parser(std::vector<char>(raw_data.begin(), raw_data.end())); 
+		};
+
 		if ("POST" == request.method()) {
 			auto motor_request = StepperMotorRequest(StepperMotorRequest::Type::CREATE_STEPPER);
+			motor_request.set_data(generate_create_request_data(request));
+			return motor_request;
+		}
+
+		if ("DELETE" == request.method()) {
+			auto motor_request = StepperMotorRequest(StepperMotorRequest::Type::DELETE_STEPPER);
 			motor_request.set_data(generate_create_request_data(request));
 			return motor_request;
 		}

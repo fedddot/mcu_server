@@ -6,7 +6,6 @@ target_link_libraries(
     ipc_server
     http_ipc_server
     stepper_motor_request
-    stepper_motor_request_data
     stepper_motor_response
     stepper_motor_types
 

@@ -12,25 +12,24 @@
 #include "stepper_motor.hpp"
 #include "stepper_motor_creator.hpp"
 #include "stepper_motor_request.hpp"
-#include "stepper_motor_request_data.hpp"
 #include "stepper_motor_response.hpp"
 #include "stepper_motor_types.hpp"
 
 namespace manager {
 	template <typename Tcreate_cfg>
-	class StepperMotorManager: public Manager<StepperMotorRequest, StepperMotorResponse> {
+	class StepperMotorManager: public Manager<StepperMotorRequest<Tcreate_cfg>, StepperMotorResponse> {
 	public:
 		StepperMotorManager(Providers<StepperMotorProviderType> *providers);
 		StepperMotorManager(const StepperMotorManager& other) = delete;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 
-		StepperMotorResponse run(const StepperMotorRequest& request) override;
+		StepperMotorResponse run(const StepperMotorRequest<Tcreate_cfg>& request) override;
 	private:
 		Providers<StepperMotorProviderType> *m_providers;
 		std::map<StepperMotorId, std::unique_ptr<StepperMotor>> m_motors;
 
-		StepperMotorResponse serve_create(const StepperMotorRequestData& data);
-		StepperMotorResponse serve_delete(const StepperMotorRequestData& data);
+		StepperMotorResponse serve_create(const StepperMotorRequest<Tcreate_cfg>& request);
+		StepperMotorResponse serve_delete(const StepperMotorRequest<Tcreate_cfg>& request);
 
 		template <typename Tin, typename Tout>
 		static const Tout& cast_dynamically(const Tin& input);
@@ -44,14 +43,14 @@ namespace manager {
 	}
 
 	template <typename Tcreate_cfg>
-	inline StepperMotorResponse StepperMotorManager<Tcreate_cfg>::run(const StepperMotorRequest& request) {
+	inline StepperMotorResponse StepperMotorManager<Tcreate_cfg>::run(const StepperMotorRequest<Tcreate_cfg>& request) {
 		if (!request.has_data()) {
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST);
 		}
 		switch (request.type()) {
-		case StepperMotorRequest::Type::CREATE_STEPPER:
+		case StepperMotorRequest<Tcreate_cfg>::Type::CREATE_STEPPER:
 			return serve_create(request.data());
-		case StepperMotorRequest::Type::DELETE_STEPPER:
+		case StepperMotorRequest<Tcreate_cfg>::Type::DELETE_STEPPER:
 			return serve_delete(request.data());
 		default:
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::UNSUPPORTED);
@@ -59,26 +58,26 @@ namespace manager {
 	}
 
 	template <typename Tcreate_cfg>
-	StepperMotorResponse StepperMotorManager<Tcreate_cfg>::serve_create(const StepperMotorRequestData& data) {
+	StepperMotorResponse StepperMotorManager<Tcreate_cfg>::serve_create(const StepperMotorRequest<Tcreate_cfg>& request) {
 		try {
 			const auto& create_provider_raw = m_providers->access_provider(StepperMotorProviderType::MOTOR_CREATOR);
 			const auto& create_provider = cast_dynamically<Provider, StepperMotorCreator<Tcreate_cfg>>(create_provider_raw);
-			const auto& create_config = cast_dynamically<StepperMotorRequestData, StepperMotorCreateRequestData<StepperMotorId, Tcreate_cfg>>(data);
-
-			m_motors[create_config.motor_id()] = std::unique_ptr<StepperMotor>(create_provider.create(create_config.create_cfg()));
+			if (!request.has_create_config()) {
+				return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST);
+			}
+			m_motors[request.motor_id()] = std::unique_ptr<StepperMotor>(create_provider.create(request.create_config()));
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
 		} catch (const std::exception& e) {
 			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
-			response.set_message("an exception caught in stepper motor manager: " + std::string(e.what()));
+			response.set_message("an exception caught in stepper motor manager while creating a stepper motor: " + std::string(e.what()));
 			return response;
 		}
 	}
 
 	template <typename Tcreate_cfg>
-	StepperMotorResponse StepperMotorManager<Tcreate_cfg>::serve_delete(const StepperMotorRequestData& data) {
+	StepperMotorResponse StepperMotorManager<Tcreate_cfg>::serve_delete(const StepperMotorRequest<Tcreate_cfg>& request) {
 		try {
-			const auto& create_config = cast_dynamically<StepperMotorRequestData, StepperMotorRegularRequestData<StepperMotorId>>(data);
-			const auto iter = m_motors.find(create_config.motor_id());
+			const auto iter = m_motors.find(request.motor_id());
 			if (m_motors.end() == iter) {
 				return StepperMotorResponse(StepperMotorResponse::ResultCode::NOT_FOUND);
 			}
@@ -97,7 +96,7 @@ namespace manager {
 		try {
 			return dynamic_cast<const Tout&>(input);
 		} catch (...) {
-			throw std::invalid_argument("failed to perform dynamic downcast in stepper motor manager");
+			throw std::invalid_argument("failed to perform dynamic downcast");
 		}
 	}
 }
