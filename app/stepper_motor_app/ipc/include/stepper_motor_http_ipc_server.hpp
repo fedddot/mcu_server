@@ -19,9 +19,9 @@
 
 namespace ipc {
 	template <typename Tcreate_cfg>
-	class StepperMotorHttpIpcServer: public IpcServer<manager::StepperMotorRequest, manager::StepperMotorResponse> {
+	class StepperMotorHttpIpcServer: public IpcServer<manager::StepperMotorRequest<Tcreate_cfg>, manager::StepperMotorResponse> {
 	public:
-		using CreateRequestDataParser = std::function<manager::StepperMotorCreateRequestData<manager::StepperMotorId, Tcreate_cfg>(const std::vector<char>&)>;
+		using CreateRequestDataParser = std::function<Tcreate_cfg(const std::vector<char>&)>;
 		StepperMotorHttpIpcServer(
 			const CreateRequestDataParser& create_request_parser,
 			const std::string& uri,
@@ -33,11 +33,11 @@ namespace ipc {
 		
 		void write(const manager::StepperMotorResponse& response) const override;
 		bool readable() const override;
-		manager::StepperMotorRequest read() override;
+		manager::StepperMotorRequest<Tcreate_cfg> read() override;
 	private:
 		CreateRequestDataParser m_create_request_parser;
-		HttpIpcServer<manager::StepperMotorRequest, manager::StepperMotorResponse> m_http_server;
-		manager::StepperMotorRequest http_request_to_stepper_request(const web::http::http_request& request) const;
+		HttpIpcServer<manager::StepperMotorRequest<Tcreate_cfg>, manager::StepperMotorResponse> m_http_server;
+		manager::StepperMotorRequest<Tcreate_cfg> http_request_to_stepper_request(const web::http::http_request& request) const;
 		web::http::http_response stepper_response_to_http_response(const manager::StepperMotorResponse& response) const;
 	};
 
@@ -72,13 +72,26 @@ namespace ipc {
 	}
 
 	template <typename Tcreate_cfg>
-	inline manager::StepperMotorRequest StepperMotorHttpIpcServer<Tcreate_cfg>::read() {
+	inline manager::StepperMotorRequest<Tcreate_cfg> StepperMotorHttpIpcServer<Tcreate_cfg>::read() {
 		return m_http_server.read();
 	}
 
 	template <typename Tcreate_cfg>
-	inline manager::StepperMotorRequest StepperMotorHttpIpcServer<Tcreate_cfg>::http_request_to_stepper_request(const web::http::http_request& request) const {
+	inline manager::StepperMotorRequest<Tcreate_cfg> StepperMotorHttpIpcServer<Tcreate_cfg>::http_request_to_stepper_request(const web::http::http_request& request) const {
 		using namespace manager;
+		auto parse_request_data = [](const web::http::http_request& request) {
+			auto data_retrieve_task = request.extract_vector();
+			if (pplx::task_status::completed != data_retrieve_task.wait()) {
+				throw std::runtime_error("failed to retrieve request data");
+			}
+			const auto raw_data = data_retrieve_task.get();
+			auto reader = Json::Reader();
+			auto root = Json::Value();
+			if (!reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(root), false)) {
+				throw std::invalid_argument("failed to parse http data");
+			}
+			return root; 
+		};
 
 		auto generate_create_request_data = [this](const web::http::http_request& request) {
 			auto data_retrieve_task = request.extract_vector();
@@ -90,31 +103,17 @@ namespace ipc {
 		};
 
 		auto generate_regular_request_data = [this](const web::http::http_request& request) {
-			auto data_retrieve_task = request.extract_vector();
-			if (pplx::task_status::completed != data_retrieve_task.wait()) {
-				throw std::runtime_error("failed to retrieve request data");
-			}
-			const auto raw_data = data_retrieve_task.get();
-			auto reader = Json::Reader();
-			auto root = Json::Value();
-			if (!reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(root), false)) {
-				throw std::invalid_argument("failed to parse http data");
-			}
-			if (!root.isObject()) {
-				throw std::invalid_argument("received data has invalid format");
-			}
-			const auto *id_ptr = root;
-			return m_create_request_parser(std::vector<char>(raw_data.begin(), raw_data.end())); 
+
 		};
 
 		if ("POST" == request.method()) {
-			auto motor_request = StepperMotorRequest(StepperMotorRequest::Type::CREATE_STEPPER);
+			auto motor_request = StepperMotorRequest<Tcreate_cfg>(StepperMotorRequest<Tcreate_cfg>::Type::CREATE_STEPPER);
 			motor_request.set_data(generate_create_request_data(request));
 			return motor_request;
 		}
 
 		if ("DELETE" == request.method()) {
-			auto motor_request = StepperMotorRequest(StepperMotorRequest::Type::DELETE_STEPPER);
+			auto motor_request = StepperMotorRequest<Tcreate_cfg>(StepperMotorRequest<Tcreate_cfg>::Type::DELETE_STEPPER);
 			motor_request.set_data(generate_create_request_data(request));
 			return motor_request;
 		}
