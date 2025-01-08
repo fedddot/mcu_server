@@ -17,7 +17,8 @@ namespace manager {
 	};
 
 	enum class StepperMotorProviderType: int {
-		MOTOR_CREATOR
+		MOTOR_CREATOR,
+		DELAY_GENERATOR
 	};
 
 	using StepperMotorManagerConfig = std::string;

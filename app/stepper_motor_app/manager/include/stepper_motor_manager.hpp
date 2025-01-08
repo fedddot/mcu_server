@@ -11,6 +11,7 @@
 #include "providers.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_creator.hpp"
+#include "stepper_motor_delay_generator.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
 #include "stepper_motor_types.hpp"
@@ -30,6 +31,7 @@ namespace manager {
 
 		StepperMotorResponse serve_create(const StepperMotorRequest<Tcreate_cfg>& request);
 		StepperMotorResponse serve_delete(const StepperMotorRequest<Tcreate_cfg>& request);
+		StepperMotorResponse serve_steps(const StepperMotorRequest<Tcreate_cfg>& request);
 
 		template <typename Tin, typename Tout>
 		static const Tout& cast_dynamically(const Tin& input);
@@ -49,6 +51,8 @@ namespace manager {
 			return serve_create(request);
 		case StepperMotorRequest<Tcreate_cfg>::Type::DELETE_STEPPER:
 			return serve_delete(request);
+		case StepperMotorRequest<Tcreate_cfg>::Type::STEPS:
+			return serve_steps(request);
 		default:
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::UNSUPPORTED);
 		}
@@ -66,7 +70,7 @@ namespace manager {
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
 		} catch (const std::exception& e) {
 			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
-			response.set_message("an exception caught in stepper motor manager while creating a stepper motor: " + std::string(e.what()));
+			response.set_message("an exception caught in StepperMotorManager::serve_create: " + std::string(e.what()));
 			return response;
 		}
 	}
@@ -82,7 +86,37 @@ namespace manager {
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
 		} catch (const std::exception& e) {
 			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
-			response.set_message("an exception caught in stepper motor manager: " + std::string(e.what()));
+			response.set_message("an exception caught in StepperMotorManager::serve_delete: " + std::string(e.what()));
+			return response;
+		}
+	}
+
+	template <typename Tcreate_cfg>
+	StepperMotorResponse StepperMotorManager<Tcreate_cfg>::serve_steps(const StepperMotorRequest<Tcreate_cfg>& request) {
+		try {
+			if (!request.has_steps()) {
+				return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST); 
+			}
+			const auto steps = request.steps();
+			const auto iter = m_motors.find(request.motor_id());
+			if (m_motors.end() == iter) {
+				return StepperMotorResponse(StepperMotorResponse::ResultCode::NOT_FOUND);
+			}
+			const auto& delay_provider_raw = m_providers->access_provider(StepperMotorProviderType::DELAY_GENERATOR);
+			const auto& delay_provider = cast_dynamically<Provider, StepperMotorDelayGenerator>(delay_provider_raw);
+
+			auto remaining_steps = steps.steps_number;
+			iter->second->enable();
+			while (remaining_steps) {
+				iter->second->step(steps.direction);
+				delay_provider.delay(steps.step_duration);
+				--remaining_steps;
+			}
+			iter->second->disable();
+			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
+		} catch (const std::exception& e) {
+			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
+			response.set_message("an exception caught in StepperMotorManager::serve_steps: " + std::string(e.what()));
 			return response;
 		}
 	}
