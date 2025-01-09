@@ -11,21 +11,30 @@
 #include "cpprest/http_msg.h"
 #include "cpprest/http_listener.h"
 
+#include "ipc_config.hpp"
 #include "ipc_server.hpp"
 
 namespace ipc {
 	template <typename Trequest, typename Tresponse>
+	struct HttoIpcServerConfig: public IpcConfig {
+		using ToRequestTransformer = std::function<Trequest(const web::http::http_request&)>;
+		using ToResponseTransformer = std::function<web::http::http_response(const Tresponse&)>;
+		
+		HttoIpcServerConfig() = default;
+		HttoIpcServerConfig(const HttoIpcServerConfig&) = default;
+		HttoIpcServerConfig& operator=(const HttoIpcServerConfig&) = default;
+		
+		std::string uri;
+		unsigned int polling_timeout_s;
+		unsigned int response_timeout_s;
+		ToRequestTransformer to_request;
+		ToResponseTransformer to_response;
+	};
+
+	template <typename Trequest, typename Tresponse>
 	class HttpIpcServer: public IpcServer<Trequest, Tresponse> {
 	public:
-		using HttpRequestToRequestTransformer = std::function<Trequest(const web::http::http_request&)>;
-		using ResponseToHttpResponseTransformer = std::function<web::http::http_response(const Tresponse&)>;
-		HttpIpcServer(
-			const std::string& uri,
-			const unsigned int polling_timeout_s,
-			const unsigned int response_timeout_s,
-			const HttpRequestToRequestTransformer& http_request_to_request,
-			const ResponseToHttpResponseTransformer& response_to_http_response
-		);
+		HttpIpcServer(const HttoIpcServerConfig<Trequest, Tresponse>& config);
 		HttpIpcServer(const HttpIpcServer&) = delete;
 		HttpIpcServer& operator=(const HttpIpcServer&) = delete;
 		
@@ -35,10 +44,7 @@ namespace ipc {
 		bool readable() const override;
 		Trequest read() override;
 	private:
-		unsigned int m_polling_timeout_s;
-		unsigned int m_response_timeout_s;
-		HttpRequestToRequestTransformer m_http_request_to_request;
-		ResponseToHttpResponseTransformer m_response_to_http_response;
+		HttoIpcServerConfig<Trequest, Tresponse> m_config;
 		web::http::experimental::listener::http_listener m_listener;
 		
 		mutable std::unique_ptr<Tresponse> m_response;
@@ -56,18 +62,9 @@ namespace ipc {
 	};
 
 	template <typename Trequest, typename Tresponse>
-	inline HttpIpcServer<Trequest, Tresponse>::HttpIpcServer(
-		const std::string& uri,
-		const unsigned int polling_timeout_s,
-		const unsigned int response_timeout_s,
-		const HttpRequestToRequestTransformer& http_request_to_request,
-		const ResponseToHttpResponseTransformer& response_to_http_response
-	):
-		m_polling_timeout_s(polling_timeout_s),
-		m_response_timeout_s(response_timeout_s),
-		m_http_request_to_request(http_request_to_request),
-		m_response_to_http_response(response_to_http_response),
-		m_listener(uri),
+	inline HttpIpcServer<Trequest, Tresponse>::HttpIpcServer(const HttoIpcServerConfig<Trequest, Tresponse>& config):
+		m_config(config),
+		m_listener(config.uri),
 		m_response(nullptr), m_request(nullptr) {
 
 		m_listener.support(
@@ -96,7 +93,7 @@ namespace ipc {
 		if (m_request) {
 			return true;
 		}
-		m_request_cond.wait_for(std::ref(lock), std::chrono::seconds(m_polling_timeout_s));
+		m_request_cond.wait_for(std::ref(lock), std::chrono::seconds(m_config.polling_timeout_s));
 		return nullptr != m_request;
 	}
 
@@ -121,19 +118,19 @@ namespace ipc {
 					m_request_cond.notify_one();
 					return;
 				}
-				m_request = std::make_unique<Trequest>(m_http_request_to_request(request));
+				m_request = std::make_unique<Trequest>(m_config.to_request(request));
 				m_request_cond.notify_one();
 			}
 			std::unique_lock lock(m_response_mux);
 			if (!m_response) {
-				m_response_cond.wait_for(lock, std::chrono::seconds(m_response_timeout_s));
+				m_response_cond.wait_for(lock, std::chrono::seconds(m_config.response_timeout_s));
 			}
 			if (!m_response) {
 				const auto timeout_response = web::http::http_response(web::http::status_codes::RequestTimeout);
 				request.reply(timeout_response).wait();
 				return;
 			}
-			request.reply(m_response_to_http_response(*m_response)).wait();
+			request.reply(m_config.to_response(*m_response)).wait();
 			m_response = nullptr;
 		} catch (const std::exception& e) {
 			auto response = web::http::http_response(web::http::status_codes::InternalError);
