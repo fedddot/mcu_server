@@ -15,6 +15,3 @@ target_link_libraries(
     test_stepper_motor
     jsoncpp_static
 )
-
-add_subdirectory(ipc)
-add_subdirectory(manager)
