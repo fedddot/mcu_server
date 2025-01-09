@@ -61,19 +61,15 @@ static inline StepperMotorId retrieve_motor_id(const Json::Value& root) {
     return static_cast<StepperMotorId>(value_ptr->asString());
 }
 
-static inline typename StepperMotorRequest<StepperCreateCfg>::Type retrieve_request_type(const Json::Value& root) {
+static inline typename StepperMotorRequest<StepperCreateCfg>::Type retrieve_request_type(const web::http::http_request& http_request) {
     using ReqType = typename StepperMotorRequest<StepperCreateCfg>::Type;
     const auto type_map = std::map<std::string, ReqType> {
-        {"CREATE_STEPPER",  ReqType::CREATE_STEPPER},
-        {"DELETE_STEPPER",  ReqType::DELETE_STEPPER},
-        {"READ_STEPPER",    ReqType::READ_STEPPER},
-        {"STEPS",           ReqType::STEPS},
+        {"POST",  ReqType::CREATE_STEPPER},
+        {"DEL",  ReqType::DELETE_STEPPER},
+        {"GET",    ReqType::READ_STEPPER},
+        {"PUT",           ReqType::STEPS},
     };
-    const auto value_ptr = root.find("request_type");
-    if (!value_ptr || !(value_ptr->isString())) {
-        throw std::invalid_argument("motor_id not found or has invalid format");
-    }
-    const auto iter = type_map.find(value_ptr->asString());
+    const auto iter = type_map.find(http_request.method());
     if (type_map.end() == iter) {
         throw std::invalid_argument("unsupported request type");
     }
@@ -124,7 +120,7 @@ static StepperMotorRequest<StepperCreateCfg> transform_to_request(const web::htt
         throw std::invalid_argument("wrong data format");
     }
 
-    const auto request_type = retrieve_request_type(root);
+    const auto request_type = retrieve_request_type(http_request);
     const auto motor_id = retrieve_motor_id(root);
 
     auto request = StepperMotorRequest<StepperCreateCfg>(request_type, motor_id);
