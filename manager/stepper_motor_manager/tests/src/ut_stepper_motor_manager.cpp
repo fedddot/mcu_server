@@ -31,7 +31,7 @@ TEST(ut_stepper_motor_manager, sanity) {
 
 	const auto test_direction = StepperMotorDirection::CW;
 	const auto test_steps_num = std::size_t(20);
-	const auto test_step_duration = std::size_t(500);
+	const auto test_step_duration = std::size_t(50);
 	auto test_steps_request = TestStepperMotorRequest(TestStepperMotorRequest::Type::STEPS, test_motor_id);
 	test_steps_request.set_steps(
 		TestStepperMotorRequest::StepperMotorSteps {
