@@ -13,7 +13,7 @@ namespace manager_tests {
 	public:
         using StepAction = typename TestStepperMotor::StepAction;
 
-        TestStepperMotorCreator(const StepAction& action): m_action(action) {
+        TestStepperMotorCreator(const StepAction& action): m_action(action), m_is_enabled(false) {
             if (!m_action) {
                 throw std::invalid_argument("invalid action received");
             }
@@ -23,6 +23,10 @@ namespace manager_tests {
 		
         manager::StepperMotor *create(const Tcreate_cfg& create_cfg) const override {
             return new TestStepperMotor(m_action);
+        }
+
+        manager::StepperMotorCreator<Tcreate_cfg> *clone() const override {
+            return new TestStepperMotorCreator<Tcreate_cfg>(m_action);
         }
     private:
         const StepAction m_action;

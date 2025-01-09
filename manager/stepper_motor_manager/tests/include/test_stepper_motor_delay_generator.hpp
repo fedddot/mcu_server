@@ -16,6 +16,10 @@ namespace manager_tests {
         void delay(const std::size_t& timeout_ms) const override {
             std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms));
         }
+
+        manager::StepperMotorDelayGenerator  *clone() const override {
+            return new TestStepperMotorDelayGenerator();
+        }
 	};
 }
 

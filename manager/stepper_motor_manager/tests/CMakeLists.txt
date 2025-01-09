@@ -23,7 +23,6 @@ target_link_libraries(
     stepper_motor_request
     stepper_motor_response
     stepper_motor_types
-    test_providers
     test_stepper_motor_creator
     test_stepper_motor_delay_generator
 	gtest

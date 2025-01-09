@@ -9,6 +9,7 @@ namespace manager {
 	class StepperMotorDelayGenerator: public Provider {
 	public:
 		virtual void delay(const std::size_t& timeout_ms) const = 0;
+		virtual StepperMotorDelayGenerator *clone() const = 0;
 	};
 }
 

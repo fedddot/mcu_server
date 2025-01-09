@@ -10,7 +10,6 @@ add_library(stepper_motor_delay_generator INTERFACE)
 target_include_directories(stepper_motor_delay_generator INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(stepper_motor_delay_generator INTERFACE provider)
 
-
 add_library(stepper_motor_manager INTERFACE)
 target_include_directories(stepper_motor_manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
@@ -18,7 +17,6 @@ target_link_libraries(
     INTERFACE
     manager
     provider
-    providers
     stepper_motor
     stepper_motor_creator
     stepper_motor_delay_generator

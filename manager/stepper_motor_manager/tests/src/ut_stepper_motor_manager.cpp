@@ -9,7 +9,6 @@
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
 #include "stepper_motor_types.hpp"
-#include "test_providers.hpp"
 #include "test_stepper_motor_creator.hpp"
 #include "test_stepper_motor_delay_generator.hpp"
 
@@ -41,33 +40,25 @@ TEST(ut_stepper_motor_manager, sanity) {
 			.step_duration = test_step_duration
 		}
 	);
-
-	host_tests::TestProviders<StepperMotorProviderType> providers;
+	const auto motor_ctor = TestStepperMotorCreator<StepperCreateConfig>(
+		[](const StepperMotorDirection& direction) {
+			const auto dir_to_str_map = std::map<StepperMotorDirection, std::string> {
+				{StepperMotorDirection::CCW, "<-CCW"},
+				{StepperMotorDirection::CW, "CW->"},
+			};
+			std::cout << dir_to_str_map.at(direction);
+			std::cout.flush();
+		}
+	);
+	const auto delay_gtor = TestStepperMotorDelayGenerator();
 
 	// WHEN
-	providers.add_provider(
-		StepperMotorProviderType::MOTOR_CREATOR,
-		new TestStepperMotorCreator<StepperCreateConfig>(
-			[](const StepperMotorDirection& direction) {
-				const auto dir_to_str_map = std::map<StepperMotorDirection, std::string> {
-					{StepperMotorDirection::CCW, "<-CCW"},
-					{StepperMotorDirection::CW, "CW->"},
-				};
-				std::cout << dir_to_str_map.at(direction);
-				std::cout.flush();
-			}
-		)
-	);
-	providers.add_provider(
-		StepperMotorProviderType::DELAY_GENERATOR,
-		new TestStepperMotorDelayGenerator()
-	);
 	StepperMotorManager<StepperCreateConfig> *instance_ptr(nullptr);
 	StepperMotorResponse response;
 
 	// THEN
 	// ctor
-	ASSERT_NO_THROW(instance_ptr = new StepperMotorManager<StepperCreateConfig>(&providers));
+	ASSERT_NO_THROW(instance_ptr = new StepperMotorManager<StepperCreateConfig>(motor_ctor, delay_gtor));
 	ASSERT_NE(nullptr, instance_ptr);
 
 	// run create

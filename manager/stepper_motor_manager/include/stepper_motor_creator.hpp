@@ -9,6 +9,7 @@ namespace manager {
 	class StepperMotorCreator: public Provider {
 	public:
 		virtual StepperMotor *create(const Tcreate_cfg& create_cfg) const = 0;
+		virtual StepperMotorCreator *clone() const = 0;
 	};
 }
 

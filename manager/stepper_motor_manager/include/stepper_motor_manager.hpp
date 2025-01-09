@@ -7,8 +7,6 @@
 #include <stdexcept>
 
 #include "manager.hpp"
-#include "provider.hpp"
-#include "providers.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_creator.hpp"
 #include "stepper_motor_delay_generator.hpp"
@@ -20,13 +18,14 @@ namespace manager {
 	template <typename Tcreate_cfg>
 	class StepperMotorManager: public Manager<StepperMotorRequest<Tcreate_cfg>, StepperMotorResponse> {
 	public:
-		StepperMotorManager(Providers<StepperMotorProviderType> *providers);
+		StepperMotorManager(const StepperMotorCreator<Tcreate_cfg>& motor_ctor, const StepperMotorDelayGenerator& delay_generator);
 		StepperMotorManager(const StepperMotorManager& other) = delete;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 
 		StepperMotorResponse run(const StepperMotorRequest<Tcreate_cfg>& request) override;
 	private:
-		Providers<StepperMotorProviderType> *m_providers;
+		std::unique_ptr<StepperMotorCreator<Tcreate_cfg>> m_motor_ctor;
+		std::unique_ptr<StepperMotorDelayGenerator> m_delay_generator;
 		std::map<StepperMotorId, std::unique_ptr<StepperMotor>> m_motors;
 
 		StepperMotorResponse serve_create(const StepperMotorRequest<Tcreate_cfg>& request);
@@ -38,10 +37,8 @@ namespace manager {
 	};
 
 	template <typename Tcreate_cfg>
-	inline StepperMotorManager<Tcreate_cfg>::StepperMotorManager(Providers<StepperMotorProviderType> *providers): m_providers(providers) {
-		if (!m_providers) {
-			throw std::invalid_argument("invalid providers ptr received");
-		}
+	inline StepperMotorManager<Tcreate_cfg>::StepperMotorManager(const StepperMotorCreator<Tcreate_cfg>& motor_ctor, const StepperMotorDelayGenerator& delay_generator): m_motor_ctor(motor_ctor.clone()), m_delay_generator(delay_generator.clone()) {
+		
 	}
 
 	template <typename Tcreate_cfg>
@@ -61,12 +58,10 @@ namespace manager {
 	template <typename Tcreate_cfg>
 	StepperMotorResponse StepperMotorManager<Tcreate_cfg>::serve_create(const StepperMotorRequest<Tcreate_cfg>& request) {
 		try {
-			const auto& create_provider_raw = m_providers->access_provider(StepperMotorProviderType::MOTOR_CREATOR);
-			const auto& create_provider = cast_dynamically<Provider, StepperMotorCreator<Tcreate_cfg>>(create_provider_raw);
 			if (!request.has_create_config()) {
 				return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST);
 			}
-			m_motors[request.motor_id()] = std::unique_ptr<StepperMotor>(create_provider.create(request.create_config()));
+			m_motors[request.motor_id()] = std::unique_ptr<StepperMotor>(m_motor_ctor->create(request.create_config()));
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
 		} catch (const std::exception& e) {
 			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
@@ -102,14 +97,11 @@ namespace manager {
 			if (m_motors.end() == iter) {
 				return StepperMotorResponse(StepperMotorResponse::ResultCode::NOT_FOUND);
 			}
-			const auto& delay_provider_raw = m_providers->access_provider(StepperMotorProviderType::DELAY_GENERATOR);
-			const auto& delay_provider = cast_dynamically<Provider, StepperMotorDelayGenerator>(delay_provider_raw);
-
 			auto remaining_steps = steps.steps_number;
 			iter->second->enable();
 			while (remaining_steps) {
 				iter->second->step(steps.direction);
-				delay_provider.delay(steps.step_duration);
+				m_delay_generator->delay(steps.step_duration);
 				--remaining_steps;
 			}
 			iter->second->disable();
