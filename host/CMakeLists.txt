@@ -5,7 +5,6 @@ target_link_libraries(
     INTERFACE
     ipc_server
     manager
-    providers
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
