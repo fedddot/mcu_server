@@ -1,47 +1,25 @@
 #include <exception>
-#include <functional>
-#include <stdexcept>
+#include <iostream>
 #include <string>
 
 #include "gtest/gtest.h"
 
 #include "host.hpp"
-#include "manager.hpp"
-#include "providers.hpp"
 #include "test_ipc_server.hpp"
-#include "test_providers.hpp"
+#include "test_manager.hpp"
 
 using namespace manager;
+using namespace manager_tests;
 using namespace host;
-using namespace host_tests;
+using namespace ipc_tests;
 using namespace ipc;
 
 using Request = std::string;
 using Response = int;
-using ProviderId = std::string;
-using ProvidersCfg = std::string;
 using ManagerCfg = std::string;
 using IpcCfg = std::string;
 
-using TestHost = Host<Request, Response, ProviderId, ProvidersCfg, ManagerCfg, IpcCfg>;
-
-class TestManager: public Manager<Request, Response> {
-public:
-	TestManager(Providers<ProviderId> *provider, const ManagerCfg& cfg): m_provider(provider) {
-		if (!m_provider) {
-			throw std::invalid_argument("invalid provider received");
-		}
-	}
-	TestManager(const TestManager&) = delete;
-	TestManager& operator=(const TestManager&) = delete;
-	
-	Response run(const Request& request) override {
-		(void)request;
-		return Response(0);
-	}
-private:
-	Providers<ProviderId> *m_provider;
-};
+using TestHost = Host<Request, Response, ManagerCfg, IpcCfg>;
 
 TEST(ut_host, sanity) {
 	// GIVEN
@@ -55,13 +33,15 @@ TEST(ut_host, sanity) {
 		);
 	};
 	const auto manager_cfg = ManagerCfg("manager config");
-	auto manager_factory = [](Providers<ProviderId> *providers, const ManagerCfg& cfg) {
-		return new TestManager(providers, cfg);
+	auto manager_factory = [](const ManagerCfg& cfg) {
+		return new TestManager<Request, Response>(
+			[](const Request& request) {
+				std::cout << "received request: " << request;
+				return 0;
+			}
+		);
 	};
-	const auto providers_cfg = ProvidersCfg("providers config");
-	auto providers_factory = [](const ProvidersCfg& cfg) {
-		return new TestProviders<ProviderId>();
-	};
+
 	// WHEN:
 	TestHost *instance(nullptr);
 
@@ -72,8 +52,6 @@ TEST(ut_host, sanity) {
 			ipc_cfg,
 			manager_factory,
 			manager_cfg,
-			providers_factory,
-			providers_cfg,
 			[](const std::exception& e) {
 				return -1;
 			}

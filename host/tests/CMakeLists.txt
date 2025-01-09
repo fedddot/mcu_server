@@ -10,5 +10,6 @@ target_link_libraries(
     host
     manager
     test_ipc_server
+	test_manager
 	gtest
 )
