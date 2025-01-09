@@ -11,7 +11,7 @@
 
 #include "ipc_server.hpp"
 
-namespace host_tests {
+namespace ipc_tests {
 	template <typename Tincoming, typename Toutgoing>
 	class TestIpcServer: public ipc::IpcServer<Tincoming, Toutgoing> {
 	public:
