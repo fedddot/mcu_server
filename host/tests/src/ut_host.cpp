@@ -5,6 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "host.hpp"
+#include "ipc_config.hpp"
 #include "test_ipc_server.hpp"
 #include "test_manager.hpp"
 
@@ -17,20 +18,20 @@ using namespace ipc;
 using Request = std::string;
 using Response = int;
 using ManagerCfg = std::string;
-using IpcCfg = std::string;
 
-using TestHost = Host<Request, Response, ManagerCfg, IpcCfg>;
+using TestHost = Host<Request, Response, ManagerCfg>;
 
 TEST(ut_host, sanity) {
 	// GIVEN
-	const auto ipc_cfg = IpcCfg("ipc config");
-	auto ipc_factory = [](const IpcCfg& cfg) {
-		return new TestIpcServer<Request, Response>(
-			[](const Response& response) {
+	const auto ipc_cfg = TestIpcConfig<Response>(
+		[](const Response& response) {
 
-			},
-			1000
-		);
+		},
+		1000
+	);
+	auto ipc_factory = [](const IpcConfig& cfg) {
+		const auto& cfg_casted = dynamic_cast<const TestIpcConfig<Response>&>(cfg);
+		return new TestIpcServer<Request, Response>(cfg_casted);
 	};
 	const auto manager_cfg = ManagerCfg("manager config");
 	auto manager_factory = [](const ManagerCfg& cfg) {
