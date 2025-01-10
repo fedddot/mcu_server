@@ -5,7 +5,6 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
-#include <string>
 
 #include "ipc_config.hpp"
 #include "ipc_server.hpp"
@@ -15,12 +14,12 @@ namespace host {
 	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
 	class Host {
 	public:
-		using IpcFactory = std::function<ipc::IpcServer<Trequest, Tresponse> *(const std::string& type, const TypedIpcConfig& config)>;
+		using IpcFactory = std::function<ipc::IpcServer<Trequest, Tresponse> *(const ipc::IpcConfig& config)>;
 		using ManagerFactory = std::function<manager::Manager<Trequest, Tresponse> *(const Tmanager_cfg&)>;
 		using FailureReporter = std::function<Tresponse(const std::exception&)>;
 		Host(
 			const IpcFactory& ipc_factory,
-			const TypedIpcConfig& ipc_config,
+			const ipc::IpcConfig& ipc_config,
 			const ManagerFactory& manager_factory,
 			const Tmanager_cfg& manager_config,
 			const FailureReporter& failure_reporter
@@ -44,7 +43,7 @@ namespace host {
 	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
 	inline Host<Trequest, Tresponse, Tmanager_cfg>::Host(
 		const IpcFactory& ipc_factory,
-		const TypedIpcConfig& ipc_config,
+		const ipc::IpcConfig& ipc_config,
 		const ManagerFactory& manager_factory,
 		const Tmanager_cfg& manager_config,
 		const FailureReporter& failure_reporter
