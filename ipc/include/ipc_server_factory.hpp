@@ -31,6 +31,16 @@ namespace ipc {
 		}
 		throw std::invalid_argument("insupported ipc server type");
 	}
+
+	template <typename Tincoming, typename Toutgoing>
+	template <typename Tconfig>
+	const Tconfig& IpcServerFactory<Tincoming, Toutgoing>::cast_config(const IpcConfig& config) {
+		try {
+			return dynamic_cast<const Tconfig&>(config);
+		} catch (...) {
+			throw std::runtime_error("failed to cast ipc server config into target type: " + config.type());
+		}
+	}
 }
 
 #endif // IPC_SERVER_FACTORY_HPP
