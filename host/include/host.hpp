@@ -5,20 +5,22 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
+#include "ipc_config.hpp"
 #include "ipc_server.hpp"
 #include "manager.hpp"
 
 namespace host {
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tipc_config>
+	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
 	class Host {
 	public:
-		using IpcFactory = std::function<ipc::IpcServer<Trequest, Tresponse> *(const Tipc_config&)>;
+		using IpcFactory = std::function<ipc::IpcServer<Trequest, Tresponse> *(const std::string& type, const TypedIpcConfig& config)>;
 		using ManagerFactory = std::function<manager::Manager<Trequest, Tresponse> *(const Tmanager_cfg&)>;
 		using FailureReporter = std::function<Tresponse(const std::exception&)>;
 		Host(
 			const IpcFactory& ipc_factory,
-			const Tipc_config& ipc_config,
+			const TypedIpcConfig& ipc_config,
 			const ManagerFactory& manager_factory,
 			const Tmanager_cfg& manager_config,
 			const FailureReporter& failure_reporter
@@ -39,10 +41,10 @@ namespace host {
 		std::unique_ptr<Manager> m_manager;
 	};
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tipc_config>
-	inline Host<Trequest, Tresponse, Tmanager_cfg, Tipc_config>::Host(
+	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
+	inline Host<Trequest, Tresponse, Tmanager_cfg>::Host(
 		const IpcFactory& ipc_factory,
-		const Tipc_config& ipc_config,
+		const TypedIpcConfig& ipc_config,
 		const ManagerFactory& manager_factory,
 		const Tmanager_cfg& manager_config,
 		const FailureReporter& failure_reporter
@@ -54,8 +56,8 @@ namespace host {
 		m_manager = std::unique_ptr<Manager>(manager_factory(manager_config));
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tipc_config>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg, Tipc_config>::run_once() {
+	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
+	inline void Host<Trequest, Tresponse, Tmanager_cfg>::run_once() {
 		try {
 			if (!m_ipc_server->readable()) {
 				return;
@@ -68,21 +70,21 @@ namespace host {
 		}
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tipc_config>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg, Tipc_config>::run() {
+	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
+	inline void Host<Trequest, Tresponse, Tmanager_cfg>::run() {
 		m_is_running = true;
 		while (m_is_running) {
 			run_once();
 		}
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tipc_config>
-	inline bool Host<Trequest, Tresponse, Tmanager_cfg, Tipc_config>::is_running() const {
+	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
+	inline bool Host<Trequest, Tresponse, Tmanager_cfg>::is_running() const {
 		return m_is_running;
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg, typename Tipc_config>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg, Tipc_config>::stop() {
+	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
+	inline void Host<Trequest, Tresponse, Tmanager_cfg>::stop() {
 		m_is_running = false;
 	}
 }

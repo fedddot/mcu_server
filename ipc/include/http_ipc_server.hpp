@@ -16,13 +16,16 @@
 
 namespace ipc {
 	template <typename Trequest, typename Tresponse>
-	struct HttoIpcServerConfig: public IpcConfig {
+	class HttoIpcServerConfig: public IpcConfig {
+	public:
 		using ToRequestTransformer = std::function<Trequest(const web::http::http_request&)>;
 		using ToResponseTransformer = std::function<web::http::http_response(const Tresponse&)>;
 		
 		HttoIpcServerConfig() = default;
 		HttoIpcServerConfig(const HttoIpcServerConfig&) = default;
 		HttoIpcServerConfig& operator=(const HttoIpcServerConfig&) = default;
+
+		std::string type() const override;
 		
 		std::string uri;
 		unsigned int polling_timeout_s;
@@ -30,6 +33,11 @@ namespace ipc {
 		ToRequestTransformer to_request;
 		ToResponseTransformer to_response;
 	};
+
+	template <typename Trequest, typename Tresponse>
+	inline std::string HttoIpcServerConfig<Trequest, Tresponse>::type() const {
+		return std::string("ipc.server.http");
+	}
 
 	template <typename Trequest, typename Tresponse>
 	class HttpIpcServer: public IpcServer<Trequest, Tresponse> {
