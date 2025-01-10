@@ -6,11 +6,13 @@ add_executable(
 	ipc_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_http_ipc_server.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_ipc_server_factory.cpp
 )
 
 target_link_libraries(
 	ipc_tests
 	PRIVATE
+	ipc_server_factory
 	http_ipc_server
 	cpprest
 	gtest
