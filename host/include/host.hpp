@@ -11,17 +11,17 @@
 #include "manager.hpp"
 
 namespace host {
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
+	template <typename Request, typename Response, typename MaganegCfg>
 	class Host {
 	public:
-		using IpcFactory = std::function<ipc::IpcServer<Trequest, Tresponse> *(const ipc::IpcConfig& config)>;
-		using ManagerFactory = std::function<manager::Manager<Trequest, Tresponse> *(const Tmanager_cfg&)>;
-		using FailureReporter = std::function<Tresponse(const std::exception&)>;
+		using IpcFactory = std::function<ipc::IpcServer<Request, Response> *(const ipc::IpcConfig& config)>;
+		using ManagerFactory = std::function<manager::Manager<Request, Response> *(const MaganegCfg&)>;
+		using FailureReporter = std::function<Response(const std::exception&)>;
 		Host(
 			const IpcFactory& ipc_factory,
 			const ipc::IpcConfig& ipc_config,
 			const ManagerFactory& manager_factory,
-			const Tmanager_cfg& manager_config,
+			const MaganegCfg& manager_config,
 			const FailureReporter& failure_reporter
 		);
 		virtual ~Host() noexcept = default;
@@ -33,19 +33,19 @@ namespace host {
 		FailureReporter m_failure_reporter;
 		bool m_is_running;
 
-		using IpcServer = ipc::IpcServer<Trequest, Tresponse>;
-		using Manager = manager::Manager<Trequest, Tresponse>;
+		using IpcServer = ipc::IpcServer<Request, Response>;
+		using Manager = manager::Manager<Request, Response>;
 
 		std::unique_ptr<IpcServer> m_ipc_server;
 		std::unique_ptr<Manager> m_manager;
 	};
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
-	inline Host<Trequest, Tresponse, Tmanager_cfg>::Host(
+	template <typename Request, typename Response, typename MaganegCfg>
+	inline Host<Request, Response, MaganegCfg>::Host(
 		const IpcFactory& ipc_factory,
 		const ipc::IpcConfig& ipc_config,
 		const ManagerFactory& manager_factory,
-		const Tmanager_cfg& manager_config,
+		const MaganegCfg& manager_config,
 		const FailureReporter& failure_reporter
 	): m_failure_reporter(failure_reporter), m_is_running(false) {
 		if (!ipc_factory || !manager_factory || !failure_reporter) {
@@ -55,35 +55,35 @@ namespace host {
 		m_manager = std::unique_ptr<Manager>(manager_factory(manager_config));
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg>::run_once() {
+	template <typename Request, typename Response, typename MaganegCfg>
+	inline void Host<Request, Response, MaganegCfg>::run_once() {
 		try {
-			if (!m_ipc_server->readable()) {
+			const auto request_option = m_ipc_server->read();
+			if (!request_option.some()) {
 				return;
 			}
-			const auto request = m_ipc_server->read();
-			const auto response = m_manager->run(request);
+			const auto response = m_manager->run(request_option.get());
 			m_ipc_server->write(response);
 		} catch (const std::exception& e) {
 			m_ipc_server->write(m_failure_reporter(e));
 		}
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg>::run() {
+	template <typename Request, typename Response, typename MaganegCfg>
+	inline void Host<Request, Response, MaganegCfg>::run() {
 		m_is_running = true;
 		while (m_is_running) {
 			run_once();
 		}
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
-	inline bool Host<Trequest, Tresponse, Tmanager_cfg>::is_running() const {
+	template <typename Request, typename Response, typename MaganegCfg>
+	inline bool Host<Request, Response, MaganegCfg>::is_running() const {
 		return m_is_running;
 	}
 
-	template <typename Trequest, typename Tresponse, typename Tmanager_cfg>
-	inline void Host<Trequest, Tresponse, Tmanager_cfg>::stop() {
+	template <typename Request, typename Response, typename MaganegCfg>
+	inline void Host<Request, Response, MaganegCfg>::stop() {
 		m_is_running = false;
 	}
 }
