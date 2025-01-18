@@ -22,11 +22,11 @@ namespace ipc {
 
 	template <typename Request, typename Response>
 	inline IpcServer<Request, Response> *IpcServerFactory<Request, Response>::operator()(const IpcConfig& config) const {
-		if ("ipc.server.http" == config.type()) {
-			return new HttpIpcServer<Request, Response>(cast_config<HttpIpcServerConfig<Request, Response>>(config));
-		}
 		if ("ipc.server.buffered" == config.type()) {
 			return new BufferedIpcServer<Request, Response>(cast_config<BufferedIpcServerConfig<Request, Response>>(config));
+		}
+		if ("ipc.server.http" == config.type()) {
+			return new HttpIpcServer<Request, Response>(cast_config<HttpIpcServerConfig<Request, Response>>(config));
 		}
 		throw std::invalid_argument("insupported ipc server type");
 	}
