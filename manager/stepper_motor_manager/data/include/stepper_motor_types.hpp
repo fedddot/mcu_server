@@ -20,8 +20,6 @@ namespace manager {
 		MOTOR_CREATOR,
 		DELAY_GENERATOR
 	};
-
-	using StepperMotorManagerConfig = std::string;
 }
 
 #endif // STEPPER_MOTOR_TYPES_HPP
