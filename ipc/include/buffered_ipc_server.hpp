@@ -13,11 +13,11 @@
 namespace ipc {
 	using RawData = std::vector<char>;
 
-	template <typename Trequest, typename Tresponse>
+	template <typename Request, typename Response>
 	class BufferedIpcServerConfig: public IpcConfig {
 	public:
-		using RequestReader = std::function<Option<Trequest>(RawData *)>;
-		using ResponseWriter = std::function<void(const Tresponse&)>;
+		using RequestReader = std::function<Option<Request>(RawData *)>;
+		using ResponseWriter = std::function<void(const Response&)>;
 		
 		BufferedIpcServerConfig() = default;
 		BufferedIpcServerConfig(const BufferedIpcServerConfig&) = default;
@@ -30,47 +30,47 @@ namespace ipc {
 		std::size_t realloc_size;
 	};
 
-	template <typename Trequest, typename Tresponse>
-	inline std::string BufferedIpcServerConfig<Trequest, Tresponse>::type() const {
+	template <typename Request, typename Response>
+	inline std::string BufferedIpcServerConfig<Request, Response>::type() const {
 		return std::string("ipc.server.buffered");
 	}
 
-	template <typename Trequest, typename Tresponse>
-	class BufferedIpcServer: public IpcServer<Trequest, Tresponse> {
+	template <typename Request, typename Response>
+	class BufferedIpcServer: public IpcServer<Request, Response> {
 	public:
-		BufferedIpcServer(const BufferedIpcServerConfig<Trequest, Tresponse>& config);
+		BufferedIpcServer(const BufferedIpcServerConfig<Request, Response>& config);
 		BufferedIpcServer(const BufferedIpcServer&) = delete;
 		BufferedIpcServer& operator=(const BufferedIpcServer&) = delete;
 
-		void write(const Tresponse& response) const override;
-		Option<Trequest> read() override;
+		void write(const Response& response) const override;
+		Option<Request> read() override;
 
 		void feed(const char ch);
 	private:
-		BufferedIpcServerConfig<Trequest, Tresponse> m_config;
+		BufferedIpcServerConfig<Request, Response> m_config;
 		RawData m_buffer;
 	};
 
-	template <typename Trequest, typename Tresponse>
-	inline BufferedIpcServer<Trequest, Tresponse>::BufferedIpcServer(const BufferedIpcServerConfig<Trequest, Tresponse>& config): m_config(config) {
+	template <typename Request, typename Response>
+	inline BufferedIpcServer<Request, Response>::BufferedIpcServer(const BufferedIpcServerConfig<Request, Response>& config): m_config(config) {
 		if (!(m_config.request_reader) || !(m_config.response_writer)) {
 			throw std::invalid_argument("invalid config received - required fields (reader and/or writer) are uninitialized");
 		}
 		m_buffer.reserve(m_config.realloc_size);
 	}
 
-	template <typename Trequest, typename Tresponse>
-	inline void BufferedIpcServer<Trequest, Tresponse>::write(const Tresponse& outgoing_data) const {
+	template <typename Request, typename Response>
+	inline void BufferedIpcServer<Request, Response>::write(const Response& outgoing_data) const {
 		m_config.response_writer(outgoing_data);
 	}
 
-	template <typename Trequest, typename Tresponse>
-	Option<Trequest> BufferedIpcServer<Trequest, Tresponse>::read() {
+	template <typename Request, typename Response>
+	Option<Request> BufferedIpcServer<Request, Response>::read() {
 		return m_config.request_reader(&m_buffer);
 	}
 
-	template <typename Trequest, typename Tresponse>
-	void BufferedIpcServer<Trequest, Tresponse>::feed(const char ch) {
+	template <typename Request, typename Response>
+	void BufferedIpcServer<Request, Response>::feed(const char ch) {
 		if (m_buffer.size() == m_buffer.capacity()) {
 			m_buffer.reserve(m_buffer.size() + m_config.realloc_size);
 		}

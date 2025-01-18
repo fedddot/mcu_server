@@ -4,9 +4,10 @@
 #include "cpprest/http_msg.h"
 
 #include "http_ipc_server.hpp"
+#include "ipc_option.hpp"
 
 using namespace ipc;
-using TestServerConfig = HttoIpcServerConfig<web::http::http_request, web::http::http_response>;
+using TestServerConfig = HttpIpcServerConfig<web::http::http_request, web::http::http_response>;
 using TestServer = HttpIpcServer<web::http::http_request, web::http::http_response>;
 
 TEST(ut_http_ipc_server, ctor_dtor_sanity) {
@@ -31,7 +32,7 @@ TEST(ut_http_ipc_server, ctor_dtor_sanity) {
     instance_ptr = nullptr;
 }
 
-TEST(ut_http_ipc_server, write_readable_read_sanity) {
+TEST(ut_http_ipc_server, write_read_sanity) {
     // GIVEN
     auto test_cfg = TestServerConfig();
     test_cfg.uri = "http://127.0.0.1:5000";
@@ -48,18 +49,19 @@ TEST(ut_http_ipc_server, write_readable_read_sanity) {
 
     // WHEN
     TestServer instance(test_cfg);
-    web::http::http_request read_result;
+    Option<web::http::http_request> read_result(nullptr);
 
     // THEN
-    ASSERT_FALSE(instance.readable());
+    ASSERT_NO_THROW(read_result = instance.read());
+    ASSERT_FALSE(read_result.some());
 
     // send test request
     web::http::client::http_client client(test_cfg.uri);
     auto request_task = client.request(test_request);
     
-    ASSERT_TRUE(instance.readable());
     ASSERT_NO_THROW(read_result = instance.read());
-    ASSERT_EQ(test_request.method(), read_result.method());
+    ASSERT_TRUE(read_result.some());
+    ASSERT_EQ(test_request.method(), read_result.get().method());
     ASSERT_NO_THROW(instance.write(test_response));
     ASSERT_EQ(request_task.wait(), pplx::task_status::completed);
 }

@@ -24,8 +24,12 @@ target_link_libraries(
     http_ipc_server
     INTERFACE
     ipc_config
+    ipc_option
     ipc_server
+
     cpprest
+    boost_system
+	crypto
 )
 
 add_library(ipc_server_factory INTERFACE)

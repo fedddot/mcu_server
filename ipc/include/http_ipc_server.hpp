@@ -12,18 +12,19 @@
 #include "cpprest/http_listener.h"
 
 #include "ipc_config.hpp"
+#include "ipc_option.hpp"
 #include "ipc_server.hpp"
 
 namespace ipc {
-	template <typename Trequest, typename Tresponse>
-	class HttoIpcServerConfig: public IpcConfig {
+	template <typename Request, typename Response>
+	class HttpIpcServerConfig: public IpcConfig {
 	public:
-		using ToRequestTransformer = std::function<Trequest(const web::http::http_request&)>;
-		using ToResponseTransformer = std::function<web::http::http_response(const Tresponse&)>;
+		using ToRequestTransformer = std::function<Request(const web::http::http_request&)>;
+		using ToResponseTransformer = std::function<web::http::http_response(const Response&)>;
 		
-		HttoIpcServerConfig() = default;
-		HttoIpcServerConfig(const HttoIpcServerConfig&) = default;
-		HttoIpcServerConfig& operator=(const HttoIpcServerConfig&) = default;
+		HttpIpcServerConfig() = default;
+		HttpIpcServerConfig(const HttpIpcServerConfig&) = default;
+		HttpIpcServerConfig& operator=(const HttpIpcServerConfig&) = default;
 
 		std::string type() const override;
 		
@@ -34,29 +35,28 @@ namespace ipc {
 		ToResponseTransformer to_response;
 	};
 
-	template <typename Trequest, typename Tresponse>
-	inline std::string HttoIpcServerConfig<Trequest, Tresponse>::type() const {
+	template <typename Request, typename Response>
+	inline std::string HttpIpcServerConfig<Request, Response>::type() const {
 		return std::string("ipc.server.http");
 	}
 
-	template <typename Trequest, typename Tresponse>
-	class HttpIpcServer: public IpcServer<Trequest, Tresponse> {
+	template <typename Request, typename Response>
+	class HttpIpcServer: public IpcServer<Request, Response> {
 	public:
-		HttpIpcServer(const HttoIpcServerConfig<Trequest, Tresponse>& config);
+		HttpIpcServer(const HttpIpcServerConfig<Request, Response>& config);
 		HttpIpcServer(const HttpIpcServer&) = delete;
 		HttpIpcServer& operator=(const HttpIpcServer&) = delete;
 		
 		~HttpIpcServer() noexcept override;
 
-		void write(const Tresponse& response) const override;
-		bool readable() const override;
-		Trequest read() override;
+		void write(const Response& response) const override;
+		Option<Request> read() override;
 	private:
-		HttoIpcServerConfig<Trequest, Tresponse> m_config;
+		HttpIpcServerConfig<Request, Response> m_config;
 		web::http::experimental::listener::http_listener m_listener;
 		
-		mutable std::unique_ptr<Tresponse> m_response;
-		mutable std::unique_ptr<Trequest> m_request;
+		mutable std::unique_ptr<Response> m_response;
+		mutable std::unique_ptr<Request> m_request;
 
 		mutable bool m_request_received;
 		mutable std::mutex m_request_mux;
@@ -69,8 +69,8 @@ namespace ipc {
 		void request_handler(const web::http::http_request& request);
 	};
 
-	template <typename Trequest, typename Tresponse>
-	inline HttpIpcServer<Trequest, Tresponse>::HttpIpcServer(const HttoIpcServerConfig<Trequest, Tresponse>& config):
+	template <typename Request, typename Response>
+	inline HttpIpcServer<Request, Response>::HttpIpcServer(const HttpIpcServerConfig<Request, Response>& config):
 		m_config(config),
 		m_listener(config.uri),
 		m_response(nullptr), m_request(nullptr) {
@@ -83,41 +83,34 @@ namespace ipc {
 		m_listener.open().wait();
 	}
 
-	template <typename Trequest, typename Tresponse>
-	inline HttpIpcServer<Trequest, Tresponse>::~HttpIpcServer() noexcept {
+	template <typename Request, typename Response>
+	inline HttpIpcServer<Request, Response>::~HttpIpcServer() noexcept {
 		m_listener.close().wait();
 	}
 
-	template <typename Trequest, typename Tresponse>
-	inline void HttpIpcServer<Trequest, Tresponse>::write(const Tresponse& outgoing_data) const {
+	template <typename Request, typename Response>
+	inline void HttpIpcServer<Request, Response>::write(const Response& outgoing_data) const {
 		std::unique_lock response_lock(m_response_mux);
-		m_response = std::make_unique<Tresponse>(outgoing_data);
+		m_response = std::make_unique<Response>(outgoing_data);
 		m_response_cond.notify_one();
 	}
 
-	template <typename Trequest, typename Tresponse>
-	inline bool HttpIpcServer<Trequest, Tresponse>::readable() const {
-		std::unique_lock lock(m_request_mux);
-		if (m_request) {
-			return true;
-		}
-		m_request_cond.wait_for(std::ref(lock), std::chrono::seconds(m_config.polling_timeout_s));
-		return nullptr != m_request;
-	}
-
-	template <typename Trequest, typename Tresponse>
-	Trequest HttpIpcServer<Trequest, Tresponse>::read() {
+	template <typename Request, typename Response>
+	Option<Request> HttpIpcServer<Request, Response>::read() {
 		std::unique_lock lock(m_request_mux);
 		if (!m_request) {
-			throw std::runtime_error("there is no request to read");
+			m_request_cond.wait_for(std::ref(lock), std::chrono::seconds(m_config.polling_timeout_s));
 		}
-		Trequest request(*m_request);
+		if (!m_request) {
+			return Option<Request>(nullptr);
+		}
+		const auto result = Option<Request>(new Request(*m_request));
 		m_request = nullptr;
-		return request;
+		return result;
 	}
 
-	template <typename Trequest, typename Tresponse>
-	inline void HttpIpcServer<Trequest, Tresponse>::request_handler(const web::http::http_request& request) {
+	template <typename Request, typename Response>
+	inline void HttpIpcServer<Request, Response>::request_handler(const web::http::http_request& request) {
 		try {
 			{
 				std::unique_lock lock(m_request_mux);
@@ -126,7 +119,7 @@ namespace ipc {
 					m_request_cond.notify_one();
 					return;
 				}
-				m_request = std::make_unique<Trequest>(m_config.to_request(request));
+				m_request = std::make_unique<Request>(m_config.to_request(request));
 				m_request_cond.notify_one();
 			}
 			std::unique_lock lock(m_response_mux);
