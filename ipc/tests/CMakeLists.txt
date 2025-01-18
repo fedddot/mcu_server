@@ -16,6 +16,7 @@ target_link_libraries(
 	ipc_server_factory
 	buffered_ipc_server
 	http_ipc_server
+	
 	cpprest
 	gtest
 )

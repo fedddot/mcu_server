@@ -37,10 +37,10 @@ target_include_directories(ipc_server_factory INTERFACE ${CMAKE_CURRENT_LIST_DIR
 target_link_libraries(
     ipc_server_factory
     INTERFACE
+    buffered_ipc_server
+    http_ipc_server
     ipc_config
     ipc_server
-    test_ipc_server
-    http_ipc_server
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
