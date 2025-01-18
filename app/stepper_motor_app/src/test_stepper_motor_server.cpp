@@ -36,7 +36,7 @@ static StepperMotorRequest<StepperCreateCfg> transform_to_request(const web::htt
 static web::http::http_response transform_to_response(const StepperMotorResponse& response);
 
 int main(void) {
-    auto ipc_config = HttoIpcServerConfig<StepperMotorRequest<StepperCreateCfg>, StepperMotorResponse>();
+    auto ipc_config = HttpIpcServerConfig<StepperMotorRequest<StepperCreateCfg>, StepperMotorResponse>();
     ipc_config.uri = "http://127.0.0.1:5555";
     ipc_config.polling_timeout_s = 1;
     ipc_config.response_timeout_s = 60;

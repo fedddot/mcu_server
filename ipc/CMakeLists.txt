@@ -30,6 +30,7 @@ target_link_libraries(
     cpprest
     boost_system
 	crypto
+    pthread
 )
 
 add_library(ipc_server_factory INTERFACE)

@@ -2,11 +2,11 @@
 #define	MANAGER_HPP
 
 namespace manager {
-	template <typename Trequest, typename Tresponse>
+	template <typename Request, typename Response>
 	class Manager {
 	public:
 		virtual ~Manager() noexcept = default;
-		virtual Tresponse run(const Trequest& request) = 0;
+		virtual Response run(const Request& request) = 0;
 	};
 }
 

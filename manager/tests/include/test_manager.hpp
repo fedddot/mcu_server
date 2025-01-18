@@ -6,17 +6,17 @@
 #include "manager.hpp"
 
 namespace manager_tests {
-	template <typename Trequest, typename Tresponse>
-	class TestManager: public manager::Manager<Trequest, Tresponse> {
+	template <typename Request, typename Response>
+	class TestManager: public manager::Manager<Request, Response> {
 	public:
-		using Action = std::function<Tresponse(const Trequest&)>;
+		using Action = std::function<Response(const Request&)>;
 		TestManager(const Action& action): m_action(action) {
 
 		}
 		TestManager(const TestManager&) = delete;
 		TestManager& operator=(const TestManager&) = delete;
 		
-		Tresponse run(const Trequest& request) override {
+		Response run(const Request& request) override {
 			return m_action(request);
 		}
 	private:
