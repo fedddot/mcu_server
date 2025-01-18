@@ -7,12 +7,14 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_http_ipc_server.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_ipc_server_factory.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_buffered_ipc_server.cpp
 )
 
 target_link_libraries(
 	ipc_tests
 	PRIVATE
 	ipc_server_factory
+	buffered_ipc_server
 	http_ipc_server
 	cpprest
 	gtest
