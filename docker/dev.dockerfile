@@ -3,7 +3,7 @@ FROM debian:buster
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
-RUN apt-get install -y gcc g++ gdb cmake
+RUN apt-get install -y make gcc g++ gdb
 RUN apt-get install -y git
 RUN apt-get install -y wget
 RUN apt-get install -y libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev
@@ -12,6 +12,15 @@ RUN apt-get install -y python3
 RUN apt-get install -y libcpprest-dev
 RUN apt-get install -y protobuf-compiler
 RUN apt-get install -y lsb-release gnupg software-properties-common
+
+WORKDIR /usr/app/external/cmake
+ARG CMAKE_VERSION=3.31.4
+ARG CMAKE_PLATFORM=linux-x86_64
+RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh
+RUN chmod +x cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh
+RUN echo "y" | sh cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh --prefix=/usr
+ENV PATH=${PATH}:/usr/cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}/bin
+
 
 WORKDIR /usr/app/external/llvm
 RUN wget https://apt.llvm.org/llvm.sh
