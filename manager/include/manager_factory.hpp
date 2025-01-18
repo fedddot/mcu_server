@@ -22,7 +22,7 @@ namespace manager {
 
 	template <typename Request, typename Response, typename StepperCreateConfig>
 	inline Manager<Request, Response> *ManagerFactory<Request, Response, StepperCreateConfig>::operator()(const ManagerConfig& config) const {
-		if ("manager.server" == config.type()) {
+		if ("manager.stepper_motor" == config.type()) {
 			return new StepperMotorManager<StepperCreateConfig>(cast_config<StepperMotorManagerConfig<StepperCreateConfig>>(config));
 		}
 		throw std::invalid_argument("unsupported manager type");

@@ -9,13 +9,13 @@
 #include "json/writer.h"
 
 #include "cpprest/http_msg.h"
-#include "http_ipc_server.hpp"
 #include "pplx/pplxtasks.h"
 
 #include "host.hpp"
+#include "http_ipc_server.hpp"
 #include "ipc_server_factory.hpp"
-#include "manager.hpp"
-#include "stepper_motor_manager.hpp"
+#include "manager_factory.hpp"
+#include "stepper_motor_manager_config.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
 #include "stepper_motor_types.hpp"
@@ -26,28 +26,39 @@ using namespace manager;
 using namespace host;
 using namespace ipc;
 
-using ProvidersConfig = std::string;
 using StepperCreateCfg = std::string;
+using Request = StepperMotorRequest<StepperCreateCfg>;
+using Response = StepperMotorResponse;
 
-using StepperMotorHost = Host<StepperMotorRequest<StepperCreateCfg>, StepperMotorResponse, StepperMotorManagerConfig>;
-
-static Manager<StepperMotorRequest<StepperCreateCfg>, StepperMotorResponse> *create_manager(const StepperMotorManagerConfig& cfg);
-static StepperMotorRequest<StepperCreateCfg> transform_to_request(const web::http::http_request& http_request);
-static web::http::http_response transform_to_response(const StepperMotorResponse& response);
+static Request transform_to_request(const web::http::http_request& http_request);
+static web::http::http_response transform_to_response(const Response& response);
 
 int main(void) {
-    auto ipc_config = HttpIpcServerConfig<StepperMotorRequest<StepperCreateCfg>, StepperMotorResponse>();
+    auto ipc_config = HttpIpcServerConfig<Request, Response>();
     ipc_config.uri = "http://127.0.0.1:5555";
     ipc_config.polling_timeout_s = 1;
     ipc_config.response_timeout_s = 60;
     ipc_config.to_request = transform_to_request;
     ipc_config.to_response = transform_to_response;
     
-    auto host = StepperMotorHost(
-        IpcServerFactory<StepperMotorRequest<StepperCreateCfg>, StepperMotorResponse>(),
+    const auto manager_config = StepperMotorManagerConfig<StepperCreateCfg>(
+        manager_tests::TestStepperMotorCreator<StepperCreateCfg>(
+            [](const StepperMotorDirection& dir) {
+                auto dir_str = std::string("CW");
+                if (StepperMotorDirection::CCW == dir) {
+                    dir_str = "CCW";
+                }
+                std::cout << "test stepper steps in " << dir_str << " dir" << std::endl;
+            }
+        ),
+        manager_tests::TestStepperMotorDelayGenerator()
+    );
+
+    auto host = Host<Request, Response>(
+        IpcServerFactory<Request, Response>(),
         ipc_config,
-        create_manager,
-        "",
+        ManagerFactory<Request, Response, StepperCreateCfg>(),
+        manager_config,
         [](const std::exception& e) {
             auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
             response.set_message(std::string(e.what()));
@@ -167,22 +178,4 @@ inline web::http::http_response transform_to_response(const StepperMotorResponse
     const auto resp_body_raw = Json::FastWriter().write(resp_body);
     http_resp.set_body(resp_body_raw, utf8string("application/json; charset=utf-8"));
     return http_resp;
-}
-
-Manager<StepperMotorRequest<StepperCreateCfg>, StepperMotorResponse> *create_manager(const StepperMotorManagerConfig& cfg) {
-    using namespace manager_tests;
-    (void)cfg;
-
-    return new StepperMotorManager<StepperCreateCfg>(
-        TestStepperMotorCreator<StepperCreateCfg>(
-            [](const StepperMotorDirection& dir) {
-                auto dir_str = std::string("CCW");
-                if (StepperMotorDirection::CW == dir) {
-                    dir_str = "CW";
-                }
-                std::cout << "motor steps in direction: " << dir_str << std::endl;
-            }
-        ),
-        TestStepperMotorDelayGenerator()
-    );
 }

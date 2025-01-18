@@ -3,10 +3,10 @@ target_link_libraries(
     test_stepper_motor_server
     PRIVATE
     host
+    http_ipc_server
     ipc_server_factory
     manager_factory
-    manager
-    stepper_motor_manager
+    stepper_motor_manager_config
     stepper_motor_request
     stepper_motor_response
     stepper_motor_types
