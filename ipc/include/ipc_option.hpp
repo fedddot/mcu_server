@@ -32,9 +32,11 @@ namespace ipc {
 
 	template <typename T>
 	inline Option<T>& Option<T>::operator=(const Option& other) {
+		m_instance = nullptr;
 		if (other.m_instance) {
 			m_instance = std::unique_ptr<T>(new T(*(other.m_instance)));
 		}
+		return *this;
 	}
 
 	template <typename T>
