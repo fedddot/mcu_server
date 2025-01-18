@@ -4,6 +4,7 @@ target_link_libraries(
     PRIVATE
     host
     ipc_server_factory
+    manager_factory
     manager
     stepper_motor_manager
     stepper_motor_request
