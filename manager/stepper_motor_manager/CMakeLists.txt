@@ -26,10 +26,8 @@ target_link_libraries(
     stepper_motor_manager
     INTERFACE
     manager
-    provider
+    stepper_motor_manager_config
     stepper_motor
-    stepper_motor_creator
-    stepper_motor_delay_generator
     stepper_motor_request
     stepper_motor_response
     stepper_motor_types
