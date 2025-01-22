@@ -1,8 +1,10 @@
-#include "gtest/gtest.h"
+#include <condition_variable>
 #include <functional>
 #include <iostream>
-#include <stdexcept>
 #include <string>
+#include <thread>
+
+#include "gtest/gtest.h"
 
 #include "cpprest/http_client.h"
 #include "cpprest/http_msg.h"
@@ -69,6 +71,16 @@ TEST(ut_http_ipc_server, write_read_sanity) {
         http_response.set_body(std::to_string(response));
         return http_response;
     };
+    const auto test_http_request_body = std::string("booboo");
+    auto test_http_request = web::http::http_request(web::http::methods::POST);
+    test_http_request.set_request_uri("/one/two");
+    test_http_request.set_body(
+        test_http_request_body,
+        utf8string("application/json; charset=utf-8")
+    );
+
+    auto mux = std::mutex();
+    auto cond = std::condition_variable();
 
 
     // WHEN
@@ -80,11 +92,22 @@ TEST(ut_http_ipc_server, write_read_sanity) {
     auto handler = TestHandler(
         [](const TestRequest& request) {
             std::cout << "received request: " << request << std::endl;
-            throw std::runtime_error("test_exception");
             return 0;
         }
     );
-    
+  
     // THEN
-    ASSERT_NO_THROW(instance.serve(&handler));
+    auto serving_thread = std::thread(
+        [](TestServer *server, IpcRequestHandler<TestRequest, TestResponse> *handler) {
+            server->serve(handler);
+        },
+        &instance,
+        &handler
+    );
+
+    web::http::client::http_client client(uri);
+    auto result = client.request(test_http_request).get();
+    ASSERT_EQ(web::http::status_codes::OK, result.status_code());
+    instance.stop();
+    serving_thread.join();
 }
