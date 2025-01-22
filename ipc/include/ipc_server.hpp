@@ -1,15 +1,14 @@
 #ifndef	IPC_SERVER_HPP
 #define	IPC_SERVER_HPP
 
-#include "ipc_option.hpp"
+#include "ipc_request_handler.hpp"
 
 namespace ipc {
 	template <typename Request, typename Response>
 	class IpcServer {
 	public:
 		virtual ~IpcServer() noexcept = default;
-		virtual Option<Request> read() = 0;
-		virtual void write(const Response& data) const = 0;
+		virtual void serve(IpcRequestHandler<Request, Response> *request_handler) const = 0;
 	};
 }
 

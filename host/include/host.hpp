@@ -6,30 +6,21 @@
 #include <memory>
 #include <stdexcept>
 
-#include "ipc_config.hpp"
 #include "ipc_server.hpp"
 #include "manager.hpp"
-#include "manager_config.hpp"
 
 namespace host {
 	template <typename Request, typename Response>
 	class Host {
 	public:
-		using IpcFactory = std::function<ipc::IpcServer<Request, Response> *(const ipc::IpcConfig&)>;
-		using ManagerFactory = std::function<manager::Manager<Request, Response> *(const manager::ManagerConfig&)>;
 		using FailureReporter = std::function<Response(const std::exception&)>;
 		Host(
-			const IpcFactory& ipc_factory,
-			const ipc::IpcConfig& ipc_config,
-			const ManagerFactory& manager_factory,
-			const manager::ManagerConfig& manager_config,
+			ipc::IpcServer<Request, Response> *ipc_server,
+			manager::Manager<Request, Response> *manager,
 			const FailureReporter& failure_reporter
 		);
 		virtual ~Host() noexcept = default;
-		void run_once();
 		void run();
-		bool is_running() const;
-		void stop();
 	private:
 		FailureReporter m_failure_reporter;
 		bool m_is_running;
