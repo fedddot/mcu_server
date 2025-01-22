@@ -1,4 +1,3 @@
-#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -10,20 +9,22 @@ using namespace ipc;
 
 using TestRequest = std::string;
 using TestResponse = int;
+using RawData = std::string;
 
-using TestServerConfig = BufferedIpcServerConfig<TestRequest, TestResponse>;
-using TestServer = BufferedIpcServer<TestRequest, TestResponse>;
+using TestServer = BufferedIpcServer<TestRequest, TestResponse, RawData>;
+using TestServerConfig = BufferedIpcServerConfig<TestRequest, TestResponse, RawData>;
 
 TEST(ut_buffered_ipc_server, ctor_dtor_sanity) {
     // GIVEN
-    auto test_cfg = TestServerConfig();
-    test_cfg.request_reader = [](RawData *buffer)-> Option<TestRequest> {
-        throw std::runtime_error("NOT IMPLEMENTED");
-    };
-    test_cfg.response_writer = [](const TestResponse& response) {
-        throw std::runtime_error("NOT IMPLEMENTED");
-    };
-    test_cfg.realloc_size = 2UL;
+    const auto test_cfg = TestServerConfig(
+        [](RawData *) -> Option<TestRequest> {
+            return Option<TestRequest>(nullptr);
+        },
+		[](const TestResponse&) {
+
+        },
+        10UL
+    );
 
     // WHEN
     TestServer *instance_ptr(nullptr);
@@ -37,22 +38,22 @@ TEST(ut_buffered_ipc_server, ctor_dtor_sanity) {
 TEST(ut_buffered_ipc_server, feed_read_sanity) {
     // GIVEN
     const auto test_request = TestRequest("test_request");
+    const auto test_cfg = TestServerConfig(
+        [&test_request](RawData *buffer)-> Option<TestRequest> {
+            if (test_request.size() > buffer->size()) {
+                return Option<TestRequest>(nullptr);
+            }
+            const auto request_start = buffer->begin();
+            const auto request_end = request_start + test_request.size();
+            const auto request = TestRequest(request_start, request_end);
+            buffer->erase(request_start, request_end);
+            return Option<TestRequest>(new TestRequest(request));
+        },
+		[](const TestResponse&) {
 
-    auto test_cfg = TestServerConfig();
-    test_cfg.request_reader = [&test_request](RawData *buffer)-> Option<TestRequest> {
-        if (test_request.size() > buffer->size()) {
-            return Option<TestRequest>(nullptr);
-        }
-        const auto request_start = buffer->begin();
-        const auto request_end = request_start + test_request.size();
-        const auto request = TestRequest(request_start, request_end);
-        buffer->erase(request_start, request_end);
-        return Option<TestRequest>(new TestRequest(request));
-    };
-    test_cfg.response_writer = [](const TestResponse& response) {
-        throw std::runtime_error("NOT IMPLEMENTED");
-    };
-    test_cfg.realloc_size = 2UL;
+        },
+        10UL
+    );
 
     // WHEN
     TestServer instance(test_cfg);

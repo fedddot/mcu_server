@@ -9,7 +9,7 @@
 #include "ipc_server.hpp"
 
 namespace ipc {
-	template <typename Request, typename Response>
+	template <typename Request, typename Response, typename RawData>
 	class IpcServerFactory {
 	public:
 		IpcServerFactory() = default;
@@ -20,10 +20,10 @@ namespace ipc {
 		static const Config& cast_config(const IpcConfig& config);
 	};
 
-	template <typename Request, typename Response>
-	inline IpcServer<Request, Response> *IpcServerFactory<Request, Response>::operator()(const IpcConfig& config) const {
+	template <typename Request, typename Response, typename RawData>
+	inline IpcServer<Request, Response> *IpcServerFactory<Request, Response, RawData>::operator()(const IpcConfig& config) const {
 		if ("ipc.server.buffered" == config.type()) {
-			return new BufferedIpcServer<Request, Response>(cast_config<BufferedIpcServerConfig<Request, Response>>(config));
+			return new BufferedIpcServer<Request, Response, RawData>(cast_config<BufferedIpcServerConfig<Request, Response, RawData>>(config));
 		}
 		if ("ipc.server.http" == config.type()) {
 			return new HttpIpcServer<Request, Response>(cast_config<HttpIpcServerConfig<Request, Response>>(config));
@@ -31,9 +31,9 @@ namespace ipc {
 		throw std::invalid_argument("insupported ipc server type");
 	}
 
-	template <typename Request, typename Response>
+	template <typename Request, typename Response, typename RawData>
 	template <typename Config>
-	const Config& IpcServerFactory<Request, Response>::cast_config(const IpcConfig& config) {
+	const Config& IpcServerFactory<Request, Response, RawData>::cast_config(const IpcConfig& config) {
 		try {
 			return dynamic_cast<const Config&>(config);
 		} catch (...) {

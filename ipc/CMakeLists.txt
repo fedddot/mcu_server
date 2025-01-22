@@ -8,14 +8,23 @@ target_link_libraries(ipc_server INTERFACE ipc_option)
 add_library(ipc_config INTERFACE)
 target_include_directories(ipc_config INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(buffered_ipc_server_config INTERFACE)
+target_include_directories(buffered_ipc_server_config INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    buffered_ipc_server_config
+    INTERFACE
+    ipc_config
+    ipc_option
+)
+
 add_library(buffered_ipc_server INTERFACE)
 target_include_directories(buffered_ipc_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     buffered_ipc_server
     INTERFACE
-    ipc_config
     ipc_option
     ipc_server
+    buffered_ipc_server_config
 )
 
 add_library(http_ipc_server INTERFACE)

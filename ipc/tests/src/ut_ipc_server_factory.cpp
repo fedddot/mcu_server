@@ -6,7 +6,7 @@ using namespace ipc;
 
 using Request = std::string;
 using Response = std::string;
-using TestFactory = IpcServerFactory<std::string, std::string>;
+using TestFactory = IpcServerFactory<std::string, std::string, std::string>;
 
 TEST(ut_ipc_server_factory, ctor_dtor_sanity) {
     // WHEN
