@@ -1,6 +1,7 @@
 #ifndef	HTTP_IPC_SERVER_HPP
 #define	HTTP_IPC_SERVER_HPP
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <exception>
@@ -29,13 +30,14 @@ namespace ipc {
 		HttpIpcServer(const HttpIpcServer&) = delete;
 		HttpIpcServer& operator=(const HttpIpcServer&) = delete;
 
-		void serve(IpcRequestHandler<Request, Response> *request_handler) const override;
+		void serve(IpcRequestHandler<Request, Response> *request_handler) override;
+		void stop() override;
 	private:
 		std::string m_uri;
 		const HttpToRequestTransformer& m_http2request_transformer;
 		const ResponseToHttpTransformer& m_response2http_transformer;
 
-		void request_handler(const web::http::http_request& request);
+		std::atomic_bool m_is_running;
 	};
 
 	template <typename Request, typename Response>
@@ -43,12 +45,12 @@ namespace ipc {
 		const std::string& uri,
 		const HttpToRequestTransformer& http2request_transformer,
 		const ResponseToHttpTransformer& response2http_transformer
-	): m_uri(uri), m_http2request_transformer(http2request_transformer), m_response2http_transformer(response2http_transformer) {
+	): m_uri(uri), m_http2request_transformer(http2request_transformer), m_response2http_transformer(response2http_transformer), m_is_running(false) {
 	
 	}
 
 	template <typename Request, typename Response>
-	inline void HttpIpcServer<Request, Response>::serve(IpcRequestHandler<Request, Response> *request_handler) const {
+	inline void HttpIpcServer<Request, Response>::serve(IpcRequestHandler<Request, Response> *request_handler) {
 		auto mux = std::mutex();
 		auto cond = std::condition_variable();
 		
@@ -71,10 +73,17 @@ namespace ipc {
 			}
 		);
 		listener.open().wait();
-		while (true) {
+		m_is_running = true;
+		while (m_is_running) {
 			auto lock = std::unique_lock(mux);
 			cond.wait_for(lock, std::chrono::milliseconds(500UL));
 		}
+		listener.close().wait();
+	}
+
+	template <typename Request, typename Response>
+	inline void HttpIpcServer<Request, Response>::stop() {
+		m_is_running = false;
 	}
 }
 
