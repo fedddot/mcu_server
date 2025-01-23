@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "json/reader.h"
 #include "json/value.h"
@@ -14,10 +15,13 @@
 
 #include "host.hpp"
 #include "http_ipc_server.hpp"
+#include "test_stepper_motor.hpp"
+#include "stepper_motor_manager.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
 
 using namespace manager;
+using namespace manager_tests;
 using namespace host;
 using namespace ipc;
 
@@ -30,28 +34,30 @@ static web::http::http_response transform_to_response(const Response& response);
 
 int main(void) {
     const auto uri = std::string("http://127.0.0.1:5000");
-    auto manager = StepperMotorManager<StepperCreateCfg>(
-        manager_tests::TestStepperMotorCreator<StepperCreateCfg>(
-            [](const StepperMotorDirection& dir) {
-                auto dir_str = std::string("CW");
-                if (StepperMotorDirection::CCW == dir) {
-                    dir_str = "CCW";
-                }
-                std::cout << "test stepper steps in " << dir_str << " dir" << std::endl;
-            }
-        ),
-        manager_tests::TestStepperMotorDelayGenerator()
-    );
+    auto ipc_server = HttpIpcServer<Request, Response>(uri, transform_to_request, transform_to_response);
+
+    const auto motor_ctor = [](const StepperCreateCfg& cfg) {
+		return new TestStepperMotor(
+			[](const StepperMotor::Direction& direction) {
+				const auto dir_to_str_map = std::map<StepperMotor::Direction, std::string> {
+					{StepperMotor::Direction::CCW, "<-CCW"},
+					{StepperMotor::Direction::CW, "CW->"},
+				};
+				std::cout << dir_to_str_map.at(direction);
+				std::cout.flush();
+			}
+		);
+	};
+	const auto delay_gtor = [](const std::size_t& timeout_ms) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms));
+	};
+    auto manager = StepperMotorManager<StepperCreateCfg>(motor_ctor, delay_gtor);
 
     auto host = Host<Request, Response>(
-        IpcServerFactory<Request, Response>(),
-        ipc_config,
-        ManagerFactory<Request, Response, StepperCreateCfg>(),
-        manager_config,
+        &ipc_server,
+        &manager,
         [](const std::exception& e) {
-            auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
-            response.set_message(std::string(e.what()));
-            return response;
+            return Response(Response::ResultCode::EXCEPTION);
         }
     );
 
@@ -60,12 +66,12 @@ int main(void) {
     return 0;
 }
 
-static inline StepperMotorId retrieve_motor_id(const Json::Value& root) {
+static inline std::string retrieve_motor_id(const Json::Value& root) {
     const auto value_ptr = root.find("motor_id");
     if (!value_ptr || !(value_ptr->isString())) {
         throw std::invalid_argument("motor_id not found or has invalid format");
     }
-    return static_cast<StepperMotorId>(value_ptr->asString());
+    return static_cast<std::string>(value_ptr->asString());
 }
 
 inline static typename StepperMotorRequest<StepperCreateCfg>::Type retrieve_request_type(const web::http::http_request& http_request) {
@@ -85,9 +91,9 @@ inline static typename StepperMotorRequest<StepperCreateCfg>::Type retrieve_requ
 
 inline static typename StepperMotorRequest<StepperCreateCfg>::Steps retrieve_steps(const Json::Value& steps_cfg) {
     using ReqSteps = typename StepperMotorRequest<StepperCreateCfg>::Steps;
-    const auto type_map = std::map<std::string, StepperMotorDirection> {
-        {"CW",  StepperMotorDirection::CW},
-        {"CCW", StepperMotorDirection::CCW},
+    const auto type_map = std::map<std::string, StepperMotor::Direction> {
+        {"CW",  StepperMotor::Direction::CW},
+        {"CCW", StepperMotor::Direction::CCW},
     };
     const auto direction_ptr = steps_cfg.find("direction");
     if (!direction_ptr || !(direction_ptr->isString())) {
@@ -112,7 +118,7 @@ inline static typename StepperMotorRequest<StepperCreateCfg>::Steps retrieve_ste
     };
 }
 
-inline StepperMotorRequest<StepperCreateCfg> transform_to_request(const web::http::http_request& http_request) {
+inline Option<StepperMotorRequest<StepperCreateCfg>> transform_to_request(const web::http::http_request& http_request) {
     const auto request_task = http_request.extract_vector();
     if (pplx::task_status::completed != request_task.wait()) {
         throw std::runtime_error("failed to extract request data");
@@ -139,7 +145,7 @@ inline StepperMotorRequest<StepperCreateCfg> transform_to_request(const web::htt
     if (steps_cfg_ptr && steps_cfg_ptr->isObject()) {
         request.set_steps(retrieve_steps(*steps_cfg_ptr));
     }
-    return request;
+    return Option<StepperMotorRequest<StepperCreateCfg>>(new StepperMotorRequest<StepperCreateCfg>(request));
 }
 
 inline web::http::http_response transform_to_response(const StepperMotorResponse& response) {
