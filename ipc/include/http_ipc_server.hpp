@@ -60,7 +60,7 @@ namespace ipc {
 			[this, handler, &mux, &cond](web::http::http_request http_request) {
 				auto lock = std::unique_lock(mux);
 				try {
-					const auto request = m_http2request_transformer(http_request);
+					const auto request = m_http2request_transformer(http_request).get();
 					const auto response = handler(request);
 					const auto http_response = m_response2http_transformer(response);
 					http_request.reply(http_response).wait();

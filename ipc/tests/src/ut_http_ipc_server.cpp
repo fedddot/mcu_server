@@ -1,5 +1,4 @@
 #include <condition_variable>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -10,6 +9,7 @@
 #include "cpprest/http_msg.h"
 
 #include "http_ipc_server.hpp"
+#include "ipc_option.hpp"
 
 using namespace ipc;
 
@@ -23,7 +23,7 @@ TEST(ut_http_ipc_server, ctor_dtor_sanity) {
     const auto uri = std::string("http://127.0.0.1:5000");
     auto to_request_transformer = [](const web::http::http_request& request) {
         const auto data = request.extract_vector().get();
-        return TestRequest(data.begin(), data.end());
+        return Option<TestRequest>(new TestRequest(data.begin(), data.end()));
     };
     auto to_response_transformer = [](const TestResponse& response) {
         auto http_response = web::http::http_response(web::http::status_codes::OK);
@@ -46,24 +46,12 @@ TEST(ut_http_ipc_server, ctor_dtor_sanity) {
     instance_ptr = nullptr;
 }
 
-class TestHandler: public IpcRequestHandler<TestRequest, TestResponse> {
-public:
-    TestHandler(const std::function<TestResponse(const TestRequest&)>& action): m_action(action) {
-
-    }
-    TestResponse handle(const TestRequest& request) const override {
-        return m_action(request);
-    }
-private:
-    std::function<TestResponse(const TestRequest&)> m_action;
-};
-
 TEST(ut_http_ipc_server, write_read_sanity) {
     // GIVEN
     const auto uri = std::string("http://127.0.0.1:5000");
     auto to_request_transformer = [](const web::http::http_request& request) {
         const auto data = request.extract_vector().get();
-        return TestRequest(data.begin(), data.end());
+        return Option<TestRequest>(new TestRequest(data.begin(), data.end()));
     };
     auto to_response_transformer = [](const TestResponse& response) {
         auto http_response = web::http::http_response(web::http::status_codes::OK);
@@ -88,20 +76,16 @@ TEST(ut_http_ipc_server, write_read_sanity) {
         to_request_transformer,
         to_response_transformer
     );
-    auto handler = TestHandler(
-        [](const TestRequest& request) {
-            std::cout << "received request: " << request << std::endl;
-            return 0;
-        }
-    );
+    auto handler = [](const TestRequest& request) {
+        std::cout << "received request: " << request << std::endl;
+        return TestResponse(0);
+    };
   
     // THEN
     auto serving_thread = std::thread(
-        [](TestServer *server, IpcRequestHandler<TestRequest, TestResponse> *handler) {
-            server->serve(handler);
-        },
-        &instance,
-        &handler
+        [&instance, &handler](void) {
+            instance.serve(handler);
+        }
     );
 
     web::http::client::http_client client(uri);

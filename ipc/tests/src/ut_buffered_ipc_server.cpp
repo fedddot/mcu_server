@@ -1,4 +1,9 @@
+#include <condition_variable>
+#include <mutex>
+#include <stdexcept>
 #include <string>
+#include <thread>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -9,28 +14,25 @@ using namespace ipc;
 
 using TestRequest = std::string;
 using TestResponse = int;
-using RawData = std::string;
 
-using TestServer = BufferedIpcServer<TestRequest, TestResponse, RawData>;
-using TestServerConfig = BufferedIpcServerConfig<TestRequest, TestResponse, RawData>;
+using TestServer = BufferedIpcServer<TestRequest, TestResponse>;
 
 TEST(ut_buffered_ipc_server, ctor_dtor_sanity) {
-    // GIVEN
-    const auto test_cfg = TestServerConfig(
-        [](RawData *) -> Option<TestRequest> {
-            return Option<TestRequest>(nullptr);
-        },
-		[](const TestResponse&) {
-
-        },
-        10UL
-    );
-
     // WHEN
     TestServer *instance_ptr(nullptr);
 
     // THEN
-    ASSERT_NO_THROW(instance_ptr = new TestServer(test_cfg));
+    ASSERT_NO_THROW(
+        instance_ptr = new TestServer(
+            [](std::vector<char> *buffer) -> Option<TestRequest> {
+                throw std::runtime_error("NOT_IMPLEMENTED");
+            },
+			[](const TestResponse& response) {
+                throw std::runtime_error("NOT_IMPLEMENTED");
+            },
+			2UL
+        )
+    );
     ASSERT_NO_THROW(delete instance_ptr);
     instance_ptr = nullptr;
 }
@@ -38,8 +40,21 @@ TEST(ut_buffered_ipc_server, ctor_dtor_sanity) {
 TEST(ut_buffered_ipc_server, feed_read_sanity) {
     // GIVEN
     const auto test_request = TestRequest("test_request");
-    const auto test_cfg = TestServerConfig(
-        [&test_request](RawData *buffer)-> Option<TestRequest> {
+    const auto test_response = TestResponse(12);
+    auto mux = std::mutex();
+    auto cond = std::condition_variable();
+    auto handler = [test_request, test_response, &mux, &cond](const TestRequest& request) {
+        auto lock = std::unique_lock(mux);
+        if (test_request != request) {
+            throw std::runtime_error("request assertion failed");
+        }
+        cond.notify_one();
+        return test_response;
+    };
+
+    // WHEN
+    auto instance = TestServer(
+        [test_request](std::vector<char> *buffer) -> Option<TestRequest> {
             if (test_request.size() > buffer->size()) {
                 return Option<TestRequest>(nullptr);
             }
@@ -49,30 +64,29 @@ TEST(ut_buffered_ipc_server, feed_read_sanity) {
             buffer->erase(request_start, request_end);
             return Option<TestRequest>(new TestRequest(request));
         },
-		[](const TestResponse&) {
-
+        [test_response](const TestResponse& response) {
+            if (test_response != response) {
+                throw std::runtime_error("response assertion failed");
+            }
         },
-        10UL
+        2UL
     );
 
-    // WHEN
-    TestServer instance(test_cfg);
-    Option<TestRequest> result(nullptr);
-
     // THEN
-    const auto last_request_char_iter = test_request.begin() + test_request.size() - 1;
-    auto char_iter = test_request.begin();
-    while (last_request_char_iter != char_iter) {
-        ASSERT_NO_THROW(instance.feed(*char_iter));
-        ASSERT_NO_THROW(result = instance.read());
-        ASSERT_FALSE(result.some());
-        ++char_iter;
+    auto serving_thread = std::thread(
+        [&instance, &handler](void) {
+            ASSERT_NO_THROW(instance.serve(handler));
+        }
+    );
+    auto iter = test_request.begin();
+    while (test_request.end() != iter) {
+        ASSERT_NO_THROW(instance.feed(*iter));
+        ++iter;
     }
-    ASSERT_NO_THROW(instance.feed(*char_iter));
-    ASSERT_NO_THROW(result = instance.read());
-    ASSERT_TRUE(result.some());
-    ASSERT_EQ(test_request, result.get());
 
-    ASSERT_NO_THROW(result = instance.read());
-    ASSERT_FALSE(result.some());
+    auto lock = std::unique_lock(mux);
+    cond.wait(lock);
+    ASSERT_NO_THROW(instance.stop());
+    serving_thread.join();
+
 }
