@@ -5,7 +5,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "stepper_motor_types.hpp"
+#include "stepper_motor.hpp"
 
 namespace manager {
 	template <typename Tcreate_cfg>
@@ -18,18 +18,18 @@ namespace manager {
 			STEPS
 		};
 		struct Steps {
-			StepperMotorDirection direction;
+			StepperMotor::Direction direction;
 			std::size_t steps_number;
 			std::size_t step_duration;
 		};
 
-		StepperMotorRequest(const Type& type, const StepperMotorId& motor_id);
+		StepperMotorRequest(const Type& type, const std::string& motor_id);
 		StepperMotorRequest(const StepperMotorRequest& other);
 		StepperMotorRequest& operator=(const StepperMotorRequest& other);
 		virtual ~StepperMotorRequest() noexcept = default;
 		
 		Type type() const;
-		StepperMotorId motor_id() const;
+		std::string motor_id() const;
 		
 		void set_steps(const Steps& steps);
 		bool has_steps() const;
@@ -40,13 +40,13 @@ namespace manager {
 		Tcreate_cfg create_config() const;
 	private:
 		Type m_type;
-		StepperMotorId m_motor_id;
+		std::string m_motor_id;
 		std::unique_ptr<Steps> m_steps;
 		std::unique_ptr<Tcreate_cfg> m_create_cfg;
 	};
 
 	template <typename Tcreate_cfg>	
-	inline StepperMotorRequest<Tcreate_cfg>::StepperMotorRequest(const Type& type, const StepperMotorId& motor_id): m_type(type), m_motor_id(motor_id) {
+	inline StepperMotorRequest<Tcreate_cfg>::StepperMotorRequest(const Type& type, const std::string& motor_id): m_type(type), m_motor_id(motor_id) {
 
 	}
 
@@ -79,7 +79,7 @@ namespace manager {
 	}
 
 	template <typename Tcreate_cfg>
-	inline StepperMotorId StepperMotorRequest<Tcreate_cfg>::motor_id() const {
+	inline std::string StepperMotorRequest<Tcreate_cfg>::motor_id() const {
 		return m_motor_id;
 	}
 

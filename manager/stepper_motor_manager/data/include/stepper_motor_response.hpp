@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "stepper_motor_types.hpp"
+#include "stepper_motor.hpp"
 
 namespace manager {
 	class StepperMotorResponse {
@@ -26,15 +26,15 @@ namespace manager {
 		ResultCode code() const;
 
 		bool has_state() const;
-		StepperMotorState state() const;
-		void set_state(const StepperMotorState& state);
+		StepperMotor::State state() const;
+		void set_state(const StepperMotor::State& state);
 
 		bool has_message() const;
 		std::string message() const;
 		void set_message(const std::string& message);
 	private:
 		ResultCode m_code;
-		std::unique_ptr<StepperMotorState> m_state;
+		std::unique_ptr<StepperMotor::State> m_state;
 		std::unique_ptr<std::string> m_message;
 	};
 
@@ -44,7 +44,7 @@ namespace manager {
 
 	inline StepperMotorResponse::StepperMotorResponse(const StepperMotorResponse& other): m_code(other.m_code) {
 		if (other.m_state) {
-			m_state = std::make_unique<StepperMotorState>(*(other.m_state));
+			m_state = std::make_unique<StepperMotor::State>(*(other.m_state));
 		}
 		if (other.m_message) {
 			m_message = std::make_unique<std::string>(*(other.m_message));
@@ -54,7 +54,7 @@ namespace manager {
 	inline StepperMotorResponse& StepperMotorResponse::operator=(const StepperMotorResponse& other) {
 		m_code = other.m_code;
 		if (other.m_state) {
-			m_state = std::make_unique<StepperMotorState>(*(other.m_state));
+			m_state = std::make_unique<StepperMotor::State>(*(other.m_state));
 		}
 		if (other.m_message) {
 			m_message = std::make_unique<std::string>(*(other.m_message));
@@ -70,15 +70,15 @@ namespace manager {
 		return nullptr != m_state;
 	}
 
-	inline StepperMotorState StepperMotorResponse::state() const {
+	inline StepperMotor::State StepperMotorResponse::state() const {
 		if (!m_state) {
 			throw std::runtime_error("state has not been set");
 		}
 		return *m_state;
 	}
 
-	inline void StepperMotorResponse::set_state(const StepperMotorState& state) {
-		m_state = std::make_unique<StepperMotorState>(state);
+	inline void StepperMotorResponse::set_state(const StepperMotor::State& state) {
+		m_state = std::make_unique<StepperMotor::State>(state);
 	}
 
 	inline bool StepperMotorResponse::has_message() const {
