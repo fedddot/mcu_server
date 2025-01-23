@@ -1,9 +1,7 @@
 #ifndef	HOST_HPP
 #define	HOST_HPP
 
-#include <exception>
 #include <functional>
-#include <memory>
 #include <stdexcept>
 
 #include "ipc_server.hpp"
@@ -19,64 +17,42 @@ namespace host {
 			manager::Manager<Request, Response> *manager,
 			const FailureReporter& failure_reporter
 		);
+		Host(const Host&) = delete;
+		Host& operator=(const Host&) = delete;
 		virtual ~Host() noexcept = default;
+		
 		void run();
+		void stop();
 	private:
-		FailureReporter m_failure_reporter;
-		bool m_is_running;
-
-		using IpcServer = ipc::IpcServer<Request, Response>;
-		using Manager = manager::Manager<Request, Response>;
-
-		std::unique_ptr<IpcServer> m_ipc_server;
-		std::unique_ptr<Manager> m_manager;
+		ipc::IpcServer<Request, Response> *m_ipc_server;
+		manager::Manager<Request, Response> *m_manager;
+		const FailureReporter m_failure_reporter;
+		const FailureReporter m_m_failure_reporter;
 	};
 
 	template <typename Request, typename Response>
 	inline Host<Request, Response>::Host(
-		const IpcFactory& ipc_factory,
-		const ipc::IpcConfig& ipc_config,
-		const ManagerFactory& manager_factory,
-		const manager::ManagerConfig& manager_config,
+		ipc::IpcServer<Request, Response> *ipc_server,
+		manager::Manager<Request, Response> *manager,
 		const FailureReporter& failure_reporter
-	): m_failure_reporter(failure_reporter), m_is_running(false) {
-		if (!ipc_factory || !manager_factory || !failure_reporter) {
-			throw std::invalid_argument("invalid host args");
-		}
-		m_ipc_server = std::unique_ptr<IpcServer>(ipc_factory(ipc_config));
-		m_manager = std::unique_ptr<Manager>(manager_factory(manager_config));
-	}
-
-	template <typename Request, typename Response>
-	inline void Host<Request, Response>::run_once() {
-		try {
-			const auto request_option = m_ipc_server->read();
-			if (!request_option.some()) {
-				return;
-			}
-			const auto response = m_manager->run(request_option.get());
-			m_ipc_server->write(response);
-		} catch (const std::exception& e) {
-			m_ipc_server->write(m_failure_reporter(e));
+	): m_ipc_server(ipc_server), m_manager(manager), m_failure_reporter(failure_reporter) {
+		if (!m_ipc_server || !m_manager || !m_failure_reporter) {
+			throw std::invalid_argument("invalid host args received");
 		}
 	}
 
 	template <typename Request, typename Response>
 	inline void Host<Request, Response>::run() {
-		m_is_running = true;
-		while (m_is_running) {
-			run_once();
-		}
-	}
-
-	template <typename Request, typename Response>
-	inline bool Host<Request, Response>::is_running() const {
-		return m_is_running;
+		m_ipc_server->serve(
+			[this](const Request& request) {
+				return m_manager->run(request);
+			}
+		);
 	}
 
 	template <typename Request, typename Response>
 	inline void Host<Request, Response>::stop() {
-		m_is_running = false;
+		m_ipc_server->stop();
 	}
 }
 

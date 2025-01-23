@@ -8,8 +8,9 @@ target_link_libraries(
 	host_tests
 	PRIVATE
     host
-    ipc_config
-    test_ipc_server
+	http_ipc_server
     test_manager
+	
 	gtest
+	cpprest
 )
