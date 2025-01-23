@@ -9,18 +9,13 @@
 #include "json/writer.h"
 
 #include "cpprest/http_msg.h"
+#include "ipc_option.hpp"
 #include "pplx/pplxtasks.h"
 
 #include "host.hpp"
 #include "http_ipc_server.hpp"
-#include "ipc_server_factory.hpp"
-#include "manager_factory.hpp"
-#include "stepper_motor_manager_config.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
-#include "stepper_motor_types.hpp"
-#include "test_stepper_motor_creator.hpp"
-#include "test_stepper_motor_delay_generator.hpp"
 
 using namespace manager;
 using namespace host;
@@ -30,18 +25,12 @@ using StepperCreateCfg = std::string;
 using Request = StepperMotorRequest<StepperCreateCfg>;
 using Response = StepperMotorResponse;
 
-static Request transform_to_request(const web::http::http_request& http_request);
+static Option<Request> transform_to_request(const web::http::http_request& http_request);
 static web::http::http_response transform_to_response(const Response& response);
 
 int main(void) {
-    auto ipc_config = HttpIpcServerConfig<Request, Response>();
-    ipc_config.uri = "http://127.0.0.1:5555";
-    ipc_config.polling_timeout_s = 1;
-    ipc_config.response_timeout_s = 60;
-    ipc_config.to_request = transform_to_request;
-    ipc_config.to_response = transform_to_response;
-    
-    const auto manager_config = StepperMotorManagerConfig<StepperCreateCfg>(
+    const auto uri = std::string("http://127.0.0.1:5000");
+    auto manager = StepperMotorManager<StepperCreateCfg>(
         manager_tests::TestStepperMotorCreator<StepperCreateCfg>(
             [](const StepperMotorDirection& dir) {
                 auto dir_str = std::string("CW");

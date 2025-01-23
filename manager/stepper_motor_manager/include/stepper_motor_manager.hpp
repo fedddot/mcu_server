@@ -104,13 +104,13 @@ namespace manager {
 				return StepperMotorResponse(StepperMotorResponse::ResultCode::NOT_FOUND);
 			}
 			auto remaining_steps = steps.steps_number;
-			iter->second->enable();
+			iter->second->set_state(StepperMotor::State::ENABLED);
 			while (remaining_steps) {
 				iter->second->step(steps.direction);
 				m_delay_generator(steps.step_duration);
 				--remaining_steps;
 			}
-			iter->second->disable();
+			iter->second->set_state(StepperMotor::State::DISABLED);
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
 		} catch (const std::exception& e) {
 			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);

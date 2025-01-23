@@ -4,14 +4,9 @@ target_link_libraries(
     PRIVATE
     host
     http_ipc_server
-    ipc_server_factory
     manager_factory
-    stepper_motor_manager_config
     stepper_motor_request
     stepper_motor_response
-    stepper_motor_types
-    test_stepper_motor_creator
-    test_stepper_motor_delay_generator
     
     jsoncpp_static
     cpprest

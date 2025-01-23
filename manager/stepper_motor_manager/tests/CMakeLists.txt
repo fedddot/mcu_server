@@ -14,5 +14,6 @@ target_link_libraries(
     stepper_motor_manager
     stepper_motor_request
     stepper_motor_response
+	test_stepper_motor
 	gtest
 )
