@@ -10,7 +10,6 @@
 #include "cpprest/http_msg.h"
 
 #include "http_ipc_server.hpp"
-#include "ipc_request_handler.hpp"
 
 using namespace ipc;
 

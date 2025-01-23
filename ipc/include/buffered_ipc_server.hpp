@@ -15,6 +15,8 @@ namespace ipc {
 	public:
 		using RequestReader = std::function<Option<Request>(std::vector<char> *)>;
 		using ResponseWriter = std::function<void(const Response&)>;
+		using Handler = typename IpcServer<Request, Response>::Handler;
+
 		BufferedIpcServer(
 			const RequestReader& request_reader,
 			const ResponseWriter& response_writer,
@@ -23,7 +25,7 @@ namespace ipc {
 		BufferedIpcServer(const BufferedIpcServer&) = delete;
 		BufferedIpcServer& operator=(const BufferedIpcServer&) = delete;
 
-		void serve(IpcRequestHandler<Request, Response> *request_handler) override;
+		void serve(const Handler& handler) override;
 		void stop() override;
 
 		void feed(const char ch);
@@ -45,8 +47,8 @@ namespace ipc {
 	}
 
 	template <typename Request, typename Response>
-	void BufferedIpcServer<Request, Response>::serve(IpcRequestHandler<Request, Response> *request_handler) {
-		if (!request_handler) {
+	void BufferedIpcServer<Request, Response>::serve(const Handler& handler) {
+		if (!handler) {
 			throw std::invalid_argument("invalid request handler received");
 		}
 		m_is_running = true;
@@ -55,7 +57,7 @@ namespace ipc {
 			if (!request.some()) {
 				continue;
 			}
-			const auto response = request_handler->handle(request.get());
+			const auto response = handler(request.get());
 			m_response_writer(response);
 		}
 	}

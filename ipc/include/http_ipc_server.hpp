@@ -12,15 +12,16 @@
 #include "cpprest/http_msg.h"
 #include "cpprest/http_listener.h"
 
+#include "ipc_option.hpp"
 #include "ipc_server.hpp"
-#include "ipc_request_handler.hpp"
 
 namespace ipc {
 	template <typename Request, typename Response>
 	class HttpIpcServer: public IpcServer<Request, Response> {
 	public:
-		using HttpToRequestTransformer = std::function<Request(const web::http::http_request&)>;
+		using HttpToRequestTransformer = std::function<Option<Request>(const web::http::http_request&)>;
 		using ResponseToHttpTransformer = std::function<web::http::http_response(const Response&)>;
+		using Handler = typename IpcServer<Request, Response>::Handler;
 
 		HttpIpcServer(
 			const std::string& uri,
@@ -30,7 +31,7 @@ namespace ipc {
 		HttpIpcServer(const HttpIpcServer&) = delete;
 		HttpIpcServer& operator=(const HttpIpcServer&) = delete;
 
-		void serve(IpcRequestHandler<Request, Response> *request_handler) override;
+		void serve(const Handler& handler) override;
 		void stop() override;
 	private:
 		std::string m_uri;
@@ -50,17 +51,17 @@ namespace ipc {
 	}
 
 	template <typename Request, typename Response>
-	inline void HttpIpcServer<Request, Response>::serve(IpcRequestHandler<Request, Response> *request_handler) {
+	inline void HttpIpcServer<Request, Response>::serve(const Handler& handler) {
 		auto mux = std::mutex();
 		auto cond = std::condition_variable();
 		
 		auto listener = web::http::experimental::listener::http_listener(m_uri);
 		listener.support(
-			[this, request_handler, &mux, &cond](web::http::http_request http_request) {
+			[this, handler, &mux, &cond](web::http::http_request http_request) {
 				auto lock = std::unique_lock(mux);
 				try {
 					const auto request = m_http2request_transformer(http_request);
-					const auto response = request_handler->handle(request);
+					const auto response = handler(request);
 					const auto http_response = m_response2http_transformer(response);
 					http_request.reply(http_response).wait();
 				} catch (const std::exception& e) {

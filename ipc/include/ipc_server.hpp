@@ -1,14 +1,15 @@
 #ifndef	IPC_SERVER_HPP
 #define	IPC_SERVER_HPP
 
-#include "ipc_request_handler.hpp"
+#include <functional>
 
 namespace ipc {
 	template <typename Request, typename Response>
 	class IpcServer {
 	public:
+		using Handler = std::function<Response(const Request&)>;
 		virtual ~IpcServer() noexcept = default;
-		virtual void serve(IpcRequestHandler<Request, Response> *request_handler) = 0;
+		virtual void serve(const Handler& handler) = 0;
 		virtual void stop() = 0;
 	};
 }
