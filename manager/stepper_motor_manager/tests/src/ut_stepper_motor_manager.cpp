@@ -3,9 +3,9 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <thread>
 
 #include "gtest/gtest.h"
-#include <thread>
 
 #include "stepper_motor_manager.hpp"
 #include "stepper_motor_request.hpp"
