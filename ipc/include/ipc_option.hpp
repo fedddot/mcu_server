@@ -13,7 +13,7 @@ namespace ipc {
 		Option& operator=(const Option& other);
 		virtual ~Option() noexcept = default;
 		bool some() const;
-		T get() const;
+		const T& get() const;
 	private:
 		std::unique_ptr<T> m_instance;
 	};
@@ -45,11 +45,11 @@ namespace ipc {
 	}
 
 	template <typename T>
-	inline T Option<T>::get() const {
+	inline const T& Option<T>::get() const {
 		if (!m_instance) {
 			throw std::runtime_error("attempt to get an uninitialized option");
 		}
-		return *m_instance;
+		return std::ref(*m_instance);
 	}
 
 }
