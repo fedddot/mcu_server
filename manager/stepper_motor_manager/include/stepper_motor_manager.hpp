@@ -7,12 +7,12 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 #include "manager.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
-#include "stepper_motor_types.hpp"
 
 namespace manager {
 	template <typename StepperCreateConfig>
@@ -30,7 +30,7 @@ namespace manager {
 		const StepperMotorCreator m_stepper_ctor;
 		const DelayGenerator m_delay_generator;
 
-		std::map<StepperMotorId, std::unique_ptr<StepperMotor>> m_motors;
+		std::map<std::string, std::unique_ptr<StepperMotor>> m_motors;
 
 		StepperMotorResponse serve_create(const StepperMotorRequest<StepperCreateConfig>& request);
 		StepperMotorResponse serve_delete(const StepperMotorRequest<StepperCreateConfig>& request);

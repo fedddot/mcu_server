@@ -5,14 +5,13 @@
 #include <stdexcept>
 
 #include "stepper_motor.hpp"
-#include "stepper_motor_types.hpp"
 
 namespace manager_tests {
 	class TestStepperMotor: public manager::StepperMotor {
 	public:
-        using StepAction = std::function<void(const manager::StepperMotorDirection&)>;
+        using StepAction = std::function<void(const Direction&)>;
 
-        TestStepperMotor(const StepAction& action): m_action(action), m_is_enabled(false) {
+        TestStepperMotor(const StepAction& action): m_action(action), m_state(State::DISABLED) {
             if (!m_action) {
                 throw std::invalid_argument("invalid action received");
             }
@@ -20,21 +19,20 @@ namespace manager_tests {
         TestStepperMotor(const TestStepperMotor&) = delete;
         TestStepperMotor& operator=(const TestStepperMotor&) = delete;
 		
-        void enable() override {
-            m_is_enabled = true;
+        void set_state(const State& state) override {
+            m_state = state;
         }
-		void disable() override {
-            m_is_enabled = false;
+
+		State state() const override {
+            return m_state;
         }
-		bool enabled() const override {
-            return m_is_enabled;
-        }
-		void step(const manager::StepperMotorDirection& direction) override {
+
+		void step(const Direction& direction) override {
             m_action(direction);
         }
     private:
         const StepAction m_action;
-        bool m_is_enabled;
+        State m_state;
 	};
 }
 
