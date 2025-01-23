@@ -3,7 +3,6 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_buffered_ipc_server.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_http_ipc_server.cpp
-	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_ipc_server_factory.cpp
 )
 
 target_link_libraries(
