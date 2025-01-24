@@ -18,9 +18,11 @@ RUN rm -rf /var/lib/apt/lists/* && localedef -i en_US -c -f UTF-8 -A /usr/share/
 ENV LANG=en_US.utf8
 ENV LC_ALL=en_US.utf8
 
+ARG TARGETPLATFORM=x86_64
+
 WORKDIR /usr/app/external/cmake
 ARG CMAKE_VERSION=3.31.4
-ARG CMAKE_PLATFORM=linux-x86_64
+ARG CMAKE_PLATFORM=linux-${TARGETPLATFORM}
 RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh
 RUN chmod +x cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh
 RUN echo "y" | sh cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh --prefix=/usr
