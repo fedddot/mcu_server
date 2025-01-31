@@ -8,9 +8,10 @@ RUN apt-get install -y git
 RUN apt-get install -y wget
 RUN apt-get install -y libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev
 RUN apt-get install -y libwebsocketpp-dev
-RUN apt-get install -y python3
+RUN apt-get install -y python3 python3-pip && pip3 install protobuf grpcio-tools
 RUN apt-get install -y libcpprest-dev
 RUN apt-get install -y protobuf-compiler
+
 RUN apt-get install -y lsb-release gnupg software-properties-common
 RUN apt-get install -y locales
 
@@ -42,6 +43,10 @@ ENV GOOGLE_TEST_ARCHIVE_PATH=/usr/app/external/googletest/v1.15.2.tar.gz
 WORKDIR /usr/app/external/jsoncpp
 RUN wget https://github.com/open-source-parsers/jsoncpp/archive/refs/tags/1.9.6.tar.gz
 ENV JSONCPP_ARCHIVE_PATH=/usr/app/external/jsoncpp/1.9.6.tar.gz
+
+WORKDIR /usr/app/external
+RUN git clone --branch=0.4.9 https://github.com/nanopb/nanopb.git nanopb
+ENV NANOPB_SRC_PATH=${EXTERNAL_PATH}/nanopb
 
 # Sources root dir should be mounted to this location when running the container
 WORKDIR /usr/app/src
