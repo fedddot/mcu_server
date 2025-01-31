@@ -46,7 +46,7 @@ ENV JSONCPP_ARCHIVE_PATH=/usr/app/external/jsoncpp/1.9.6.tar.gz
 
 WORKDIR /usr/app/external
 RUN git clone --branch=0.4.9 https://github.com/nanopb/nanopb.git nanopb
-ENV NANOPB_SRC_PATH=${EXTERNAL_PATH}/nanopb
+ENV NANOPB_SRC_PATH=/usr/app/external/nanopb
 
 # Sources root dir should be mounted to this location when running the container
 WORKDIR /usr/app/src
