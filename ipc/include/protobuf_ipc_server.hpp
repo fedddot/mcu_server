@@ -18,7 +18,7 @@ namespace ipc {
 	class ProtobufIpcServer: public IpcServer<Request, Response> {
 	public:
 		using RequestStreamReader = std::function<Option<Request>(pb_istream_t *)>;
-		using ResponseStreamWriter = std::function<void(pb_ostream_t *, const Response&)>;
+		using ResponseStreamWriter = std::function<void(const Response&)>;
 		using Handler = typename IpcServer<Request, Response>::Handler;
 
 		ProtobufIpcServer(
@@ -68,7 +68,7 @@ namespace ipc {
 		}
 		const auto request_iter = m_requests_queue.begin();
 		const auto response = handler(*request_iter);
-		m_response_stream_writer(&m_buffer, response);
+		m_response_stream_writer(response);
 		m_requests_queue.erase(request_iter);
 	}
 	
@@ -80,10 +80,14 @@ namespace ipc {
 	template <typename Request, typename Response, std::size_t N>
 	inline void ProtobufIpcServer<Request, Response, N>::feed(const pb_byte_t ch) {
 		m_buffer.push_back(ch);
-		auto read_stream = pb_istream_from_buffer(m_buffer.data(), m_buffer.data_size());
+		auto read_stream = pb_istream_from_buffer(m_buffer.raw_data(), m_buffer.data_size());
 		const auto bytes_to_read_before = read_stream.bytes_left;
 		const auto proto_request_opt = m_request_stream_reader(&read_stream);
-		auto bytes_consumed = bytes_to_read_before - read_stream.bytes_left;
+		const auto bytes_to_read_after = read_stream.bytes_left;
+		if (bytes_to_read_after > bytes_to_read_before) {
+			throw std::runtime_error("read buffer somehow got bigger after reading operation");
+		}
+		auto bytes_consumed = bytes_to_read_before - bytes_to_read_after;
 		while (bytes_consumed) {
 			m_buffer.pop_front();
 			--bytes_consumed;
@@ -91,8 +95,7 @@ namespace ipc {
 		if (!proto_request_opt.some()) {
 			return;
 		}
-		const auto request = m_request_stream_reader(proto_request_opt.get());
-		m_requests_queue.push_back(request);
+		m_requests_queue.push_back(proto_request_opt.get());
 	}
 }
 
