@@ -40,15 +40,17 @@ target_sources(pb_decode INTERFACE $ENV{NANOPB_SRC_PATH}/pb_decode.c)
 target_include_directories(pb_decode INTERFACE $ENV{NANOPB_SRC_PATH})
 
 add_library(protobuf_ipc_server INTERFACE)
-target_include_directories(protobuf_ipc_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_include_directories(
+    protobuf_ipc_server
+    INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/include
+    $ENV{NANOPB_SRC_PATH}
+)
 target_link_libraries(
     protobuf_ipc_server
     INTERFACE
     ipc_option
     ipc_server
-    pb_common
-    pb_encode
-    pb_decode
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
