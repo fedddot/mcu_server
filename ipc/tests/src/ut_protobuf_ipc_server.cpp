@@ -19,6 +19,7 @@ using namespace ipc;
 
 struct TestRequest {
     std::string str_field;
+    int int_field;
 };
 
 struct TestResponse {
@@ -58,11 +59,19 @@ TEST(ut_protobuf_ipc_server, feed_sanity) {
     const auto test_int = 179;
     auto test_request = test_service_TestRequest {};
     test_request.str_field.arg = const_cast<char *>(test_str.c_str());
+    test_request.str_field.funcs.encode = encode_string;
     test_request.int_field = test_int;
+    auto test_handler = [test_str, test_int](const TestRequest& request) -> TestResponse {
+        if ((test_str != request.str_field) || (test_int != request.int_field)) {
+            throw std::runtime_error("ASSERTION FAILED");
+        }
+        return TestResponse { .code = TestResponse::ResultCode::OK };
+    };
 
     // WHEN
-    std::size_t test_request_size(1024);
-    // ASSERT_TRUE(pb_get_encoded_size(&test_request_size, test_service_TestRequest_fields, &test_request));
+    std::size_t test_request_size(0);
+    ASSERT_TRUE(pb_get_encoded_size(&test_request_size, test_service_TestRequest_fields, &test_request));
+    test_request_size++;
     auto buff = std::unique_ptr<pb_byte_t[]>(new pb_byte_t[test_request_size]);
     auto buff_stream = pb_ostream_from_buffer(buff.get(), test_request_size);
     ASSERT_TRUE(pb_encode_delimited(&buff_stream, test_service_TestRequest_fields, &test_request));
@@ -78,6 +87,7 @@ TEST(ut_protobuf_ipc_server, feed_sanity) {
         ASSERT_NO_THROW(instance.feed((buff.get())[i]));
         ++i;
     }
+    ASSERT_NO_THROW(instance.serve_once(test_handler));
 }
 
 inline bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg) {
@@ -118,10 +128,11 @@ inline Option<TestRequest> read_request_from_pb_stream(pb_istream_t *input_strea
     return Option<TestRequest>(
         new TestRequest {
             .str_field = str_field,
+            .int_field = proto_request.int_field,
         }
     );
 }
 
 inline void write_test_response(const TestResponse& response) {
-    throw;
+    ASSERT_EQ(TestResponse::ResultCode::OK, response.code);
 }

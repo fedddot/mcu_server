@@ -4,7 +4,7 @@ set(GENERATED_PROTO_PATH ${CMAKE_BINARY_DIR}/proto_generated)
 add_custom_command(
 	OUTPUT ${GENERATED_PROTO_PATH}/test_service.pb.h ${GENERATED_PROTO_PATH}/test_service.pb.c
 	COMMAND mkdir -p ${GENERATED_PROTO_PATH} && $ENV{NANOPB_SRC_PATH}/generator/protoc -I ${TEST_PROTO_PATH} --nanopb_out=${GENERATED_PROTO_PATH} ${TEST_PROTO_NAME}
-	DEPENDS ${TEST_PROTO_PATH}/${TEST_PROTO_NAME}
+	DEPENDS ${TEST_PROTO_PATH}/${TEST_PROTO_NAME} ${TEST_PROTO_PATH}/test_service.options
 )
 
 add_custom_target(
