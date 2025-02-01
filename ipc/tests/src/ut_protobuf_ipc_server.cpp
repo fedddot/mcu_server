@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <cstring>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -17,9 +18,8 @@
 using namespace ipc;
 
 struct TestRequest {
-    std::string motor_id;
+    std::string str_field;
 };
-using PbTestRequest = test_service_StepperMotorRequest;
 
 struct TestResponse {
     enum class ResultCode: int {
@@ -33,7 +33,6 @@ static bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * 
 static bool decode_string(pb_istream_t *stream, const pb_field_t *field, void **arg);
 static Option<TestRequest> read_request_from_pb_stream(pb_istream_t *input_stream);
 static void write_test_response(const TestResponse& response);
-static 
 
 static const std::size_t test_buff_size(10UL);
 using TestIpcServer = ProtobufIpcServer<TestRequest, TestResponse, test_buff_size>;
@@ -55,28 +54,28 @@ TEST(ut_protobuf_ipc_server, ctor_dtor_sanity) {
 
 TEST(ut_protobuf_ipc_server, feed_sanity) {
     // GIVEN
-    char buff[1024] = {'\0'};
-    auto response_stream_writer = [](const TestResponse&) {
-        throw std::runtime_error("NOT IMPLEMENTED");
-    };
-    const auto test_motor_id = std::string("motor");
-    auto test_request = test_service_StepperMotorRequest {};
-    test_request.motor_id.arg = const_cast<char *>(test_motor_id.c_str());
-    test_request.motor_id.funcs.encode = encode_string;
+    const auto test_str = std::string("str");
+    const auto test_int = 179;
+    auto test_request = test_service_TestRequest {};
+    test_request.str_field.arg = const_cast<char *>(test_str.c_str());
+    test_request.int_field = test_int;
 
     // WHEN
+    std::size_t test_request_size(1024);
+    // ASSERT_TRUE(pb_get_encoded_size(&test_request_size, test_service_TestRequest_fields, &test_request));
+    auto buff = std::unique_ptr<pb_byte_t[]>(new pb_byte_t[test_request_size]);
+    auto buff_stream = pb_ostream_from_buffer(buff.get(), test_request_size);
+    ASSERT_TRUE(pb_encode_delimited(&buff_stream, test_service_TestRequest_fields, &test_request));
+
     TestIpcServer instance(
         read_request_from_pb_stream,
         write_test_response
     );
-    pb_byte_t bufff[1024] = {'\0'};
-    auto buff_stream = pb_ostream_from_buffer(bufff, 1024);
-    ASSERT_TRUE(pb_encode_delimited(&buff_stream, test_service_StepperMotorRequest_fields, &test_request));
 
     // THEN
     int i = 0;
-    while ('\0' != bufff[i]) {
-        ASSERT_NO_THROW(instance.feed(bufff[i]));
+    while ('\0' != (buff.get())[i]) {
+        ASSERT_NO_THROW(instance.feed((buff.get())[i]));
         ++i;
     }
 }
@@ -102,23 +101,23 @@ inline bool decode_string(pb_istream_t *stream, const pb_field_t *field, void **
         }
         string_field.push_back(buff);
     }
-    *arg = new char[string_field.size() + 1UL];
     string_field.copy((char *)*arg, string_field.size());
     return true;
 }
 
 inline Option<TestRequest> read_request_from_pb_stream(pb_istream_t *input_stream) {
-    auto proto_request = test_service_StepperMotorRequest {};
-    proto_request.motor_id.funcs.decode = decode_string;
-    if (!pb_decode_delimited(input_stream, test_service_StepperMotorRequest_fields, &proto_request)) {
+    enum: int { MAX_STR_LEN = 0xFF };
+    char read_buff[MAX_STR_LEN] = { '\0' };
+    auto proto_request = test_service_TestRequest {};
+    proto_request.str_field.funcs.decode = decode_string;
+    proto_request.str_field.arg = read_buff;
+    if (!pb_decode_delimited(input_stream, test_service_TestRequest_fields, &proto_request)) {
         return Option<TestRequest>(nullptr);
     }
-    const auto motor_id = std::string((const char *)proto_request.motor_id.arg);
-    delete [] (char *)proto_request.motor_id.arg;
-    proto_request.motor_id.arg = nullptr;
+    const auto str_field = std::string((const char *)proto_request.str_field.arg);
     return Option<TestRequest>(
         new TestRequest {
-            .motor_id = motor_id,
+            .str_field = str_field,
         }
     );
 }
