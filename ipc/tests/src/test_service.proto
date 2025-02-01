@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package test_service;
+
+service TestService {
+	rpc Run(TestRequest) returns (TestResponse);
+  }
+
+message TestRequest {
+	string str_field = 1;
+	int32 int_field = 2;
+}
+
+message TestResponse {
+	ResultCode code = 1;
+}
+
+enum ResultCode {
+	SUCCESS	= 0;
+	FAIL 	= 1;
+}

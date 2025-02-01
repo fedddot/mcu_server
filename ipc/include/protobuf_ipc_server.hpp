@@ -83,6 +83,9 @@ namespace ipc {
 		auto read_stream = pb_istream_from_buffer(m_buffer.raw_data(), m_buffer.data_size());
 		const auto bytes_to_read_before = read_stream.bytes_left;
 		const auto proto_request_opt = m_request_stream_reader(&read_stream);
+		if (!proto_request_opt.some()) {
+			return;
+		}
 		const auto bytes_to_read_after = read_stream.bytes_left;
 		if (bytes_to_read_after > bytes_to_read_before) {
 			throw std::runtime_error("read buffer somehow got bigger after reading operation");
@@ -91,9 +94,6 @@ namespace ipc {
 		while (bytes_consumed) {
 			m_buffer.pop_front();
 			--bytes_consumed;
-		}
-		if (!proto_request_opt.some()) {
-			return;
 		}
 		m_requests_queue.push_back(proto_request_opt.get());
 	}
