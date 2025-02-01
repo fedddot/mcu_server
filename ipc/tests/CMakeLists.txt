@@ -23,7 +23,8 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_buffered_ipc_server.cpp
 	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_http_ipc_server.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/ut_protobuf_ipc_server.cpp
+	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_protobuf_ipc_server.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_ring_buffer.cpp
 )
 
 target_link_libraries(
@@ -36,6 +37,7 @@ target_link_libraries(
 	protobuf_ipc_server
 	pb_common
 	pb_encode
+	ring_buffer
 	
 	cpprest
 	gtest
