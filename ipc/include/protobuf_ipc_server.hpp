@@ -1,6 +1,7 @@
-#ifndef	BUFFERED_IPC_SERVER_HPP
-#define	BUFFERED_IPC_SERVER_HPP
+#ifndef	PROTOBUF_IPC_SERVER_HPP
+#define	PROTOBUF_IPC_SERVER_HPP
 
+#include <cstddef>
 #include <functional>
 #include <stdexcept>
 #include <vector>
@@ -9,9 +10,11 @@
 
 #include "ipc_option.hpp"
 #include "ipc_server.hpp"
+#include "pb_decode.h"
+#include "ring_buffer.hpp"
 
 namespace ipc {
-	template <typename Request, typename Response>
+	template <typename Request, typename Response, std::size_t N>
 	class ProtobufIpcServer: public IpcServer<Request, Response> {
 	public:
 		using RequestStreamReader = std::function<Option<Request>(pb_istream_t *)>;
@@ -28,30 +31,27 @@ namespace ipc {
 		void serve(const Handler& handler) override;
 		void stop() override;
 
+		void serve_once(const Handler& handler);
 		void feed(const pb_byte_t byte);
 	private:
 		const RequestStreamReader m_request_stream_reader;
 		const ResponseStreamWriter m_response_stream_writer;
 		
 		bool m_is_running;
-		std::vector<pb_byte_t> m_buffer;
+		RingBuffer<pb_byte_t, N> m_buffer;
+
 		std::vector<Request> m_requests_queue;
-
-		enum: int {RESIZE_FACTOR = 10UL};
-
-		void serve_once(const Handler& handler);
 	};
 
-	template <typename Request, typename Response>
-	inline ProtobufIpcServer<Request, Response>::ProtobufIpcServer(
+	template <typename Request, typename Response, std::size_t N>
+	inline ProtobufIpcServer<Request, Response, N>::ProtobufIpcServer(
 		const RequestStreamReader& request_stream_reader,
 		const ResponseStreamWriter& response_stream_writer
 	): m_request_stream_reader(request_stream_reader), m_response_stream_writer(response_stream_writer), m_is_running(false) {
-		m_buffer.reserve(RESIZE_FACTOR);
 	}
 
-	template <typename Request, typename Response>
-	void ProtobufIpcServer<Request, Response>::serve(const Handler& handler) {
+	template <typename Request, typename Response, std::size_t N>
+	inline void ProtobufIpcServer<Request, Response, N>::serve(const Handler& handler) {
 		if (!handler) {
 			throw std::invalid_argument("invalid request handler received");
 		}
@@ -61,8 +61,8 @@ namespace ipc {
 		}
 	}
 
-	template <typename Request, typename Response>
-	void ProtobufIpcServer<Request, Response>::serve_once(const Handler& handler) {
+	template <typename Request, typename Response, std::size_t N>
+	inline void ProtobufIpcServer<Request, Response, N>::serve_once(const Handler& handler) {
 		if (m_requests_queue.empty()) {
 			return;
 		}
@@ -72,18 +72,22 @@ namespace ipc {
 		m_requests_queue.erase(request_iter);
 	}
 	
-	template <typename Request, typename Response>
-	void ProtobufIpcServer<Request, Response>::stop() {
+	template <typename Request, typename Response, std::size_t N>
+	inline void ProtobufIpcServer<Request, Response, N>::stop() {
 		m_is_running = false;
 	}
 
-	template <typename Request, typename Response>
-	void ProtobufIpcServer<Request, Response>::feed(const pb_byte_t ch) {
-		if (m_buffer.size() == m_buffer.capacity()) {
-			m_buffer.reserve(m_buffer.size() + RESIZE_FACTOR);
-		}
+	template <typename Request, typename Response, std::size_t N>
+	inline void ProtobufIpcServer<Request, Response, N>::feed(const pb_byte_t ch) {
 		m_buffer.push_back(ch);
-		const auto proto_request_opt = m_request_stream_reader(&m_buffer);
+		auto read_stream = pb_istream_from_buffer(m_buffer.data(), m_buffer.data_size());
+		const auto bytes_to_read_before = read_stream.bytes_left;
+		const auto proto_request_opt = m_request_stream_reader(&read_stream);
+		auto bytes_consumed = bytes_to_read_before - read_stream.bytes_left;
+		while (bytes_consumed) {
+			m_buffer.pop_front();
+			--bytes_consumed;
+		}
 		if (!proto_request_opt.some()) {
 			return;
 		}
@@ -92,4 +96,4 @@ namespace ipc {
 	}
 }
 
-#endif // BUFFERED_IPC_SERVER_HPP
+#endif // PROTOBUF_IPC_SERVER_HPP
