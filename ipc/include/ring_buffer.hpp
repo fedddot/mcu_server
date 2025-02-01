@@ -21,6 +21,8 @@ namespace ipc {
 	private:
 		std::array<T, N> m_buffer;
 		std::size_t m_read_index, m_write_index;
+
+		static std::size_t next_index(const std::size_t& current_index);
 	};
 
 	template <typename T, std::size_t N>
@@ -46,6 +48,14 @@ namespace ipc {
 	template <typename T, std::size_t N>
 	const T *RingBuffer<T, N>::raw_data() const {
 		return m_buffer.data();
+	}
+
+	template <typename T, std::size_t N>
+	std::size_t RingBuffer<T, N>::next_index(const std::size_t& current_index) {
+		if (current_index + 1UL >= N) {
+			return 0;
+		}
+		return current_index + 1UL;
 	}
 }
 
