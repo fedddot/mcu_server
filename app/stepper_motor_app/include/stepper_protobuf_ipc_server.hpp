@@ -1,32 +1,36 @@
-#ifndef	PROTOBUF_IPC_SERVER_HPP
-#define	PROTOBUF_IPC_SERVER_HPP
+#ifndef	STEPPER_PROTOBUF_IPC_SERVER_HPP
+#define	STEPPER_PROTOBUF_IPC_SERVER_HPP
 
 #include <cstddef>
+#include <cstring>
 #include <functional>
-#include <stdexcept>
+#include <map>
+#include <memory>
 #include <vector>
 
 #include "pb.h"
+#include "pb_encode.h"
+#include "stepper_service.pb.h"
 
 #include "ipc_option.hpp"
 #include "ipc_server.hpp"
-#include "pb_decode.h"
-#include "ring_buffer.hpp"
+
+#include "protobuf_ipc_server.hpp"
+#include "stepper_motor_request.hpp"
+#include "stepper_motor_response.hpp"
 
 namespace ipc {
-	template <typename Request, typename Response, std::size_t N>
-	class ProtobufIpcServer: public IpcServer<Request, Response> {
+	template <typename Tcreate_cfg, std::size_t N>
+	class StepperProtobufIpcServer: public IpcServer<manager::StepperMotorRequest<Tcreate_cfg>, manager::StepperMotorResponse> {
 	public:
-		using RequestStreamReader = std::function<Option<Request>(pb_istream_t *)>;
-		using ResponseStreamWriter = std::function<void(const Response&)>;
-		using Handler = typename IpcServer<Request, Response>::Handler;
+		using ByteWriter = std::function<void(const std::vector<char>&)>;
+		using Handler = typename IpcServer<manager::StepperMotorRequest<Tcreate_cfg>, manager::StepperMotorResponse>::Handler;
 
-		ProtobufIpcServer(
-			const RequestStreamReader& request_stream_reader,
-			const ResponseStreamWriter& response_stream_writer
+		StepperProtobufIpcServer(
+			const ByteWriter& byte_writer
 		);
-		ProtobufIpcServer(const ProtobufIpcServer&) = delete;
-		ProtobufIpcServer& operator=(const ProtobufIpcServer&) = delete;
+		StepperProtobufIpcServer(const StepperProtobufIpcServer&) = delete;
+		StepperProtobufIpcServer& operator=(const StepperProtobufIpcServer&) = delete;
 
 		void serve(const Handler& handler) override;
 		void stop() override;
@@ -34,69 +38,109 @@ namespace ipc {
 		void serve_once(const Handler& handler);
 		void feed(const pb_byte_t byte);
 	private:
-		const RequestStreamReader m_request_stream_reader;
-		const ResponseStreamWriter m_response_stream_writer;
-		
-		bool m_is_running;
-		RingBuffer<pb_byte_t, N> m_buffer;
+		using Request = manager::StepperMotorRequest<Tcreate_cfg>;
+		using Response = manager::StepperMotorResponse;
 
-		std::vector<Request> m_requests_queue;
+		ByteWriter m_byte_writer;
+		std::unique_ptr<ProtobufIpcServer<Request, Response, N>> m_pb_server;
+
+		Option<Request> read_request(pb_istream_t *input_stream);
+		void write_response(const Response& response); 
+		
+		static bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
+		static bool decode_string(pb_istream_t *stream, const pb_field_t *field, void **arg);
 	};
 
-	template <typename Request, typename Response, std::size_t N>
-	inline ProtobufIpcServer<Request, Response, N>::ProtobufIpcServer(
-		const RequestStreamReader& request_stream_reader,
-		const ResponseStreamWriter& response_stream_writer
-	): m_request_stream_reader(request_stream_reader), m_response_stream_writer(response_stream_writer), m_is_running(false) {
+	template <typename Tcreate_cfg, std::size_t N>
+	inline StepperProtobufIpcServer<Tcreate_cfg, N>::StepperProtobufIpcServer(
+		const ByteWriter& byte_writer
+	): m_byte_writer(byte_writer), m_pb_server(nullptr) {
+		m_pb_server = std::make_unique<ProtobufIpcServer<Request, Response, N>>(
+			[this](pb_istream_t *input_stream) {
+				return read_request(input_stream);
+			},
+			[this](const Response& response) {
+				write_response(response);
+			}
+		);
 	}
 
-	template <typename Request, typename Response, std::size_t N>
-	inline void ProtobufIpcServer<Request, Response, N>::serve(const Handler& handler) {
-		if (!handler) {
-			throw std::invalid_argument("invalid request handler received");
-		}
-		m_is_running = true;
-		while (m_is_running) {
-			serve_once(handler);
-		}
+	template <typename Tcreate_cfg, std::size_t N>
+	inline void StepperProtobufIpcServer<Tcreate_cfg, N>::serve(const Handler& handler) {
+		m_pb_server->serve(handler);
 	}
 
-	template <typename Request, typename Response, std::size_t N>
-	inline void ProtobufIpcServer<Request, Response, N>::serve_once(const Handler& handler) {
-		if (m_requests_queue.empty()) {
-			return;
-		}
-		const auto request_iter = m_requests_queue.begin();
-		const auto response = handler(*request_iter);
-		m_response_stream_writer(response);
-		m_requests_queue.erase(request_iter);
+	template <typename Tcreate_cfg, std::size_t N>
+	inline void StepperProtobufIpcServer<Tcreate_cfg, N>::serve_once(const Handler& handler) {
+		m_pb_server->serve_once(handler);
 	}
 	
-	template <typename Request, typename Response, std::size_t N>
-	inline void ProtobufIpcServer<Request, Response, N>::stop() {
-		m_is_running = false;
+	template <typename Tcreate_cfg, std::size_t N>
+	inline void StepperProtobufIpcServer<Tcreate_cfg, N>::stop() {
+		m_pb_server->stop();
 	}
 
-	template <typename Request, typename Response, std::size_t N>
-	inline void ProtobufIpcServer<Request, Response, N>::feed(const pb_byte_t ch) {
-		m_buffer.push_back(ch);
-		auto read_stream = pb_istream_from_buffer(m_buffer.raw_data(), m_buffer.data_size());
-		const auto bytes_to_read_before = read_stream.bytes_left;
-		const auto proto_request_opt = m_request_stream_reader(&read_stream);
-		if (!proto_request_opt.some()) {
-			return;
+	template <typename Tcreate_cfg, std::size_t N>
+	inline void StepperProtobufIpcServer<Tcreate_cfg, N>::feed(const pb_byte_t ch) {
+		m_pb_server->feed(ch);
+	}
+
+	template <typename Tcreate_cfg, std::size_t N>
+	inline Option<typename StepperProtobufIpcServer<Tcreate_cfg, N>::Request> StepperProtobufIpcServer<Tcreate_cfg, N>::read_request(pb_istream_t *input_stream) {
+		const auto operation_mapping = std::map<stepper_service_Operation, typename Request::Type> {
+			{stepper_service_Operation_CREATE,  Request::Type::CREATE_STEPPER},
+			{stepper_service_Operation_READ,    Request::Type::READ_STEPPER},
+			{stepper_service_Operation_UPDATE,  Request::Type::STEPS},
+			{stepper_service_Operation_DELETE,  Request::Type::DELETE_STEPPER},
+		};
+		enum: int { MAX_STR_LEN = 0xFF };
+		char read_buff[MAX_STR_LEN] = { '\0' };
+		auto proto_request = stepper_service_StepperRequest {};
+		proto_request.motor_id.funcs.decode = decode_string;
+		proto_request.motor_id.arg = read_buff;
+		if (!pb_decode_delimited(input_stream, stepper_service_StepperRequest_fields, &proto_request)) {
+			return Option<Request>(nullptr);
 		}
-		const auto bytes_to_read_after = read_stream.bytes_left;
-		if (bytes_to_read_after > bytes_to_read_before) {
-			throw std::runtime_error("read buffer somehow got bigger after reading operation");
+		const auto motor_id = std::string((const char *)proto_request.motor_id.arg);
+		return Option<Request>(
+			new Request(
+				operation_mapping.at(proto_request.operation),
+				motor_id
+			)
+		);
+	}
+
+	template <typename Tcreate_cfg, std::size_t N>
+	inline void StepperProtobufIpcServer<Tcreate_cfg, N>::write_response(const StepperProtobufIpcServer<Tcreate_cfg, N>::Response& response) {
+
+	}
+
+	template <typename Tcreate_cfg, std::size_t N>
+	inline bool StepperProtobufIpcServer<Tcreate_cfg, N>::encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg) {
+		const auto string_casted = static_cast<const char *>(*arg);
+		const auto string_size = std::strlen(string_casted);
+		if (!pb_encode_tag_for_field(stream, field)) {
+			return false;
 		}
-		auto bytes_consumed = bytes_to_read_before - bytes_to_read_after;
-		while (bytes_consumed) {
-			m_buffer.pop_front();
-			--bytes_consumed;
+		return pb_encode_string(stream, static_cast<const pb_byte_t *>(*arg), string_size);
+	}
+
+	template <typename Tcreate_cfg, std::size_t N>
+	inline bool StepperProtobufIpcServer<Tcreate_cfg, N>::decode_string(pb_istream_t *stream, const pb_field_t *field, void **arg) {
+		auto string_field = std::string("");
+		while (stream->bytes_left) {
+			pb_byte_t buff = '\0';
+			if (!pb_read(stream, &buff, 1UL)) {
+				return false;
+			}
+			if ('\0' == buff) {
+				break;
+			}
+			string_field.push_back(buff);
 		}
-		m_requests_queue.push_back(proto_request_opt.get());
+		string_field.copy((char *)*arg, string_field.size());
+		return true;
 	}
 }
 
-#endif // PROTOBUF_IPC_SERVER_HPP
+#endif // STEPPER_PROTOBUF_IPC_SERVER_HPP

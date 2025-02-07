@@ -18,9 +18,19 @@ target_include_directories(stepper_service PUBLIC ${GENERATED_PROTO_PATH} $ENV{N
 add_dependencies(stepper_service generate_stepper_service)
 
 add_library(stepper_protobuf_ipc_server INTERFACE)
-target_sources(stepper_protobuf_ipc_server INTERFACE ${GENERATED_PROTO_PATH}/stepper_protobuf_ipc_server.cpp)
-target_include_directories(stepper_protobuf_ipc_server INTERFACE ${GENERATED_PROTO_PATH} $ENV{NANOPB_SRC_PATH})
+target_include_directories(stepper_protobuf_ipc_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include $ENV{NANOPB_SRC_PATH})
 target_link_libraries(
+    stepper_protobuf_ipc_server
+    INTERFACE
+    ipc_server
+    protobuf_ipc_server
+    stepper_motor_request
+    stepper_motor_response
+    stepper_service
+    pb_decode
+    pb_encode
+    pb_common
+)
 
 add_executable(test_stepper_motor_server ${CMAKE_CURRENT_LIST_DIR}/src/test_stepper_motor_server.cpp)
 target_link_libraries(
