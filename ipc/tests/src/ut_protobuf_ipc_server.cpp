@@ -33,7 +33,7 @@ struct TestResponse {
 static bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
 static bool decode_string(pb_istream_t *stream, const pb_field_t *field, void **arg);
 static Option<TestRequest> read_request_from_pb_stream(pb_istream_t *input_stream);
-static void write_test_response(const TestResponse& response);
+static void write_test_response(pb_ostream_t *output_stream, const TestResponse& response);
 
 static const std::size_t test_buff_size(10UL);
 using TestIpcServer = ProtobufIpcServer<TestRequest, TestResponse, test_buff_size>;
@@ -133,6 +133,6 @@ inline Option<TestRequest> read_request_from_pb_stream(pb_istream_t *input_strea
     );
 }
 
-inline void write_test_response(const TestResponse& response) {
+inline void write_test_response(pb_ostream_t *output_stream, const TestResponse& response) {
     ASSERT_EQ(TestResponse::ResultCode::OK, response.code);
 }

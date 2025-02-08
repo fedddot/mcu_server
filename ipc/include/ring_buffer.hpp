@@ -17,7 +17,6 @@ namespace ipc {
 		void push_back(const T& element);
 		T pop_front();
 		std::size_t data_size() const;
-		const T *raw_data() const;
 	private:
 		std::array<T, N> m_buffer;
 		std::size_t m_read_index, m_write_index, m_size;
@@ -55,11 +54,6 @@ namespace ipc {
 	template <typename T, std::size_t N>
 	inline std::size_t RingBuffer<T, N>::data_size() const {
 		return m_size;
-	}
-
-	template <typename T, std::size_t N>
-	const T *RingBuffer<T, N>::raw_data() const {
-		return m_buffer.data();
 	}
 
 	template <typename T, std::size_t N>
