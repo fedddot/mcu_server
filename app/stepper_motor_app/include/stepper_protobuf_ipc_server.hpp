@@ -6,9 +6,12 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "pb.h"
+#include "pb_decode.h"
 #include "pb_encode.h"
 #include "stepper_service.pb.h"
 
@@ -49,6 +52,8 @@ namespace ipc {
 		
 		static bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
 		static bool decode_string(pb_istream_t *stream, const pb_field_t *field, void **arg);
+		static stepper_service_ResultCode cast_result_code(const Response::ResultCode& code);
+		static typename Request::Type cast_operation_code(const stepper_service_Operation& operation);
 	};
 
 	template <typename Tcreate_cfg, std::size_t N>
@@ -87,12 +92,6 @@ namespace ipc {
 
 	template <typename Tcreate_cfg, std::size_t N>
 	inline Option<typename StepperProtobufIpcServer<Tcreate_cfg, N>::Request> StepperProtobufIpcServer<Tcreate_cfg, N>::read_request(pb_istream_t *input_stream) {
-		const auto operation_mapping = std::map<stepper_service_Operation, typename Request::Type> {
-			{stepper_service_Operation_CREATE,  Request::Type::CREATE_STEPPER},
-			{stepper_service_Operation_READ,    Request::Type::READ_STEPPER},
-			{stepper_service_Operation_UPDATE,  Request::Type::STEPS},
-			{stepper_service_Operation_DELETE,  Request::Type::DELETE_STEPPER},
-		};
 		enum: int { MAX_STR_LEN = 0xFF };
 		char read_buff[MAX_STR_LEN] = { '\0' };
 		auto proto_request = stepper_service_StepperRequest {};
@@ -104,7 +103,7 @@ namespace ipc {
 		const auto motor_id = std::string((const char *)proto_request.motor_id.arg);
 		return Option<Request>(
 			new Request(
-				operation_mapping.at(proto_request.operation),
+				cast_operation_code(proto_request.operation),
 				motor_id
 			)
 		);
@@ -112,7 +111,27 @@ namespace ipc {
 
 	template <typename Tcreate_cfg, std::size_t N>
 	inline void StepperProtobufIpcServer<Tcreate_cfg, N>::write_response(const StepperProtobufIpcServer<Tcreate_cfg, N>::Response& response) {
+		auto grpc_response = stepper_service_StepperResponse {};
+		grpc_response.code = cast_result_code(response.code());
+		auto message = std::string("");
+		if (response.has_message()) {
+			message = response.message();
+		}
+		grpc_response.message.arg = const_cast<char *>(message.c_str());
+		grpc_response.message.funcs.encode = encode_string;
 
+		auto grpc_response_size = std::size_t(0UL);
+		if (!pb_get_encoded_size(&grpc_response_size, stepper_service_StepperResponse_fields, &grpc_response)) {
+			throw std::runtime_error("failed to evaluate response size");
+		}
+		grpc_response_size++;
+		auto buff = std::unique_ptr<pb_byte_t[]>(new pb_byte_t[grpc_response_size]);
+		auto buff_stream = pb_ostream_from_buffer(buff.get(), grpc_response_size);
+		if (!pb_encode_delimited(&buff_stream, stepper_service_StepperResponse_fields, &grpc_response)) {
+			throw std::runtime_error("failed to encode response");
+		}
+		const auto raw_data = std::vector<char>((const char *)(buff.get()), (const char *)(buff.get() + grpc_response_size));
+		m_byte_writer(raw_data);
 	}
 
 	template <typename Tcreate_cfg, std::size_t N>
@@ -140,6 +159,37 @@ namespace ipc {
 		}
 		string_field.copy((char *)*arg, string_field.size());
 		return true;
+	}
+
+	template <typename Tcreate_cfg, std::size_t N>
+	inline stepper_service_ResultCode StepperProtobufIpcServer<Tcreate_cfg, N>::cast_result_code(const Response::ResultCode& code) {
+		const auto result_code_mapping = std::map<typename Response::ResultCode, stepper_service_ResultCode> {
+			{Response::ResultCode::OK,			stepper_service_ResultCode_OK},
+			{Response::ResultCode::BAD_REQUEST,	stepper_service_ResultCode_BAD_REQUEST},
+			{Response::ResultCode::NOT_FOUND,	stepper_service_ResultCode_NOT_FOUND},
+			{Response::ResultCode::EXCEPTION,	stepper_service_ResultCode_EXCEPTION},
+			{Response::ResultCode::UNSUPPORTED,	stepper_service_ResultCode_UNSUPPORTED},
+		};
+		const auto iter = result_code_mapping.find(code);
+		if (result_code_mapping.end() == iter) {
+			throw std::invalid_argument("failed to cast result code: unsupported code");
+		}
+		return iter->second;
+	}
+	
+	template <typename Tcreate_cfg, std::size_t N>
+	inline typename StepperProtobufIpcServer<Tcreate_cfg, N>::Request::Type StepperProtobufIpcServer<Tcreate_cfg, N>::cast_operation_code(const stepper_service_Operation& operation) {
+		const auto operation_mapping = std::map<stepper_service_Operation, typename Request::Type> {
+			{stepper_service_Operation_CREATE,  Request::Type::CREATE_STEPPER},
+			{stepper_service_Operation_READ,    Request::Type::READ_STEPPER},
+			{stepper_service_Operation_UPDATE,  Request::Type::STEPS},
+			{stepper_service_Operation_DELETE,  Request::Type::DELETE_STEPPER},
+		};
+		const auto iter = operation_mapping.find(operation);
+		if (operation_mapping.end() == iter) {
+			throw std::invalid_argument("failed to cast operation code: unsupported code");
+		}
+		return iter->second;
 	}
 }
 
