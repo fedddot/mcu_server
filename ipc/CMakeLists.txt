@@ -42,6 +42,10 @@ target_include_directories(pb_decode INTERFACE $ENV{NANOPB_SRC_PATH})
 add_library(ring_buffer INTERFACE)
 target_include_directories(ring_buffer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(protobuf_input_stream_builder INTERFACE)
+target_include_directories(protobuf_input_stream_builder INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(protobuf_input_stream_builder INTERFACE pb_decode)
+
 add_library(protobuf_ipc_server INTERFACE)
 target_include_directories(
     protobuf_ipc_server
