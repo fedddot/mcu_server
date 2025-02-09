@@ -10,8 +10,7 @@
 
 #include "ipc_option.hpp"
 #include "ipc_server.hpp"
-#include "pb_decode.h"
-#include "ring_buffer.hpp"
+#include "protobuf_input_stream_builder.hpp"
 
 namespace ipc {
 	template <typename Request, typename Response, std::size_t N>
@@ -38,19 +37,15 @@ namespace ipc {
 		const ResponseStreamWriter m_response_stream_writer;
 		
 		bool m_is_running;
-		RingBuffer<pb_byte_t, N> m_buffer;
-
+		std::vector<pb_byte_t> m_buffer;
 		std::vector<Request> m_requests_queue;
-
-		static bool write_to_pb_buffer(pb_ostream_t *stream, const pb_byte_t *buf, size_t count);
-		static bool read_from_pb_buffer(pb_istream_t *stream, pb_byte_t *buf, size_t count);
 	};
 
 	template <typename Request, typename Response, std::size_t N>
 	inline ProtobufIpcServer<Request, Response, N>::ProtobufIpcServer(
 		const RequestStreamReader& request_stream_reader,
 		const ResponseStreamWriter& response_stream_writer
-	): m_request_stream_reader(request_stream_reader), m_response_stream_writer(response_stream_writer), m_is_running(false) {
+	): m_request_stream_reader(request_stream_reader), m_response_stream_writer(response_stream_writer), m_is_running(false), m_buffer(N) {
 	}
 
 	template <typename Request, typename Response, std::size_t N>
@@ -84,12 +79,8 @@ namespace ipc {
 	template <typename Request, typename Response, std::size_t N>
 	inline void ProtobufIpcServer<Request, Response, N>::feed(const pb_byte_t ch) {
 		m_buffer.push_back(ch);
-		auto read_stream = pb_istream_t {
-			.callback = read_from_pb_buffer,
-			.state = &m_buffer,
-			.bytes_left = m_buffer.data_size(),
-			.errmsg = nullptr,
-		};
+		ProtobufInputStreamBuilder read_stream_builder(&m_buffer);
+		auto read_stream = read_stream_builder.build();
 		const auto bytes_to_read_before = read_stream.bytes_left;
 		const auto proto_request_opt = m_request_stream_reader(&read_stream);
 		if (!proto_request_opt.some()) {
@@ -100,48 +91,8 @@ namespace ipc {
 			throw std::runtime_error("read buffer somehow got bigger after reading operation");
 		}
 		auto bytes_consumed = bytes_to_read_before - bytes_to_read_after;
-		while (bytes_consumed) {
-			m_buffer.pop_front();
-			--bytes_consumed;
-		}
+		m_buffer.erase(m_buffer.begin(), m_buffer.begin() + bytes_consumed);
 		m_requests_queue.push_back(proto_request_opt.get());
-	}
-
-	template <typename Request, typename Response, std::size_t N>
-	inline bool ProtobufIpcServer<Request, Response, N>::write_to_pb_buffer(pb_ostream_t *stream, const pb_byte_t *buf, size_t count) {
-		if (!stream || !buf) {
-			return false;
-		}
-		auto buff_ptr = static_cast<RingBuffer<pb_byte_t, N> *>(stream->state);
-		const auto avaible_capacity = stream->max_size - stream->bytes_written;
-		if (count > avaible_capacity) {
-			static const auto no_enough_space_msg = "no enough space in receiving buffer";
-			stream->errmsg = no_enough_space_msg;
-			return false;
-		}
-		for (auto i = 0; i < count; ++i) {
-			buff_ptr->push_back(buf[i]);
-			++(stream->bytes_written);
-		}
-		return true;
-	}
-
-	template <typename Request, typename Response, std::size_t N>
-	inline bool ProtobufIpcServer<Request, Response, N>::read_from_pb_buffer(pb_istream_t *stream, pb_byte_t *buf, size_t count) {
-		if (!stream || !buf) {
-			return false;
-		}
-		auto buff_ptr = static_cast<RingBuffer<pb_byte_t, N> *>(stream->state);
-		if (count > stream->bytes_left) {
-			static const auto no_enough_data_msg = "no enough data in receiving buffer";
-			stream->errmsg = no_enough_data_msg;
-			return false;
-		}
-		for (auto i = 0; i < count; ++i) {
-			buf[i] = buff_ptr->pop_front();
-			--(stream->bytes_left);
-		}
-		return true;
 	}
 }
 
