@@ -33,7 +33,7 @@ struct TestResponse {
 static bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
 static bool decode_string(pb_istream_t *stream, const pb_field_t *field, void **arg);
 static Option<TestRequest> read_request_from_pb_stream(pb_istream_t *input_stream);
-static void write_test_response(pb_ostream_t *output_stream, const TestResponse& response);
+static void write_test_response(const TestResponse& response);
 
 static const std::size_t test_buff_size(10UL);
 using TestIpcServer = ProtobufIpcServer<TestRequest, TestResponse, test_buff_size>;
@@ -61,7 +61,9 @@ TEST(ut_protobuf_ipc_server, feed_sanity) {
     test_request.str_field.arg = const_cast<char *>(test_str.c_str());
     test_request.str_field.funcs.encode = encode_string;
     test_request.int_field = test_int;
-    auto test_handler = [test_str, test_int](const TestRequest& request) -> TestResponse {
+    auto handler_called = false;
+    auto test_handler = [test_str, test_int, &handler_called](const TestRequest& request) -> TestResponse {
+        handler_called = true;
         if ((test_str != request.str_field) || (test_int != request.int_field)) {
             throw std::runtime_error("ASSERTION FAILED");
         }
@@ -88,6 +90,7 @@ TEST(ut_protobuf_ipc_server, feed_sanity) {
         ++i;
     }
     ASSERT_NO_THROW(instance.serve_once(test_handler));
+    ASSERT_TRUE(handler_called);
 }
 
 inline bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg) {
@@ -133,6 +136,6 @@ inline Option<TestRequest> read_request_from_pb_stream(pb_istream_t *input_strea
     );
 }
 
-inline void write_test_response(pb_ostream_t *output_stream, const TestResponse& response) {
+inline void write_test_response(const TestResponse& response) {
     ASSERT_EQ(TestResponse::ResultCode::OK, response.code);
 }

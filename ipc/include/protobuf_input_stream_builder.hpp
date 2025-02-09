@@ -55,8 +55,9 @@ namespace ipc {
 			stream->errmsg = invalid_format_msg;
 			return false;
 		}
-		for (auto i = start_position; i < end_position; ++i) {
-			buf[i] = stream_ptr->m_buffer->at(i);
+		for (auto i = 0; i < count; ++i) {
+			const auto ch = stream_ptr->m_buffer->at(i + start_position);
+			buf[i] = ch;
 		}
 		stream_ptr->m_pos = end_position;
 		return true;

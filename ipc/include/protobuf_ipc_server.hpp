@@ -17,7 +17,7 @@ namespace ipc {
 	class ProtobufIpcServer: public IpcServer<Request, Response> {
 	public:
 		using RequestStreamReader = std::function<Option<Request>(pb_istream_t *)>;
-		using ResponseStreamWriter = std::function<void(pb_ostream_t *, const Response&)>;
+		using ResponseStreamWriter = std::function<void(const Response&)>;
 		using Handler = typename IpcServer<Request, Response>::Handler;
 
 		ProtobufIpcServer(
@@ -45,7 +45,7 @@ namespace ipc {
 	inline ProtobufIpcServer<Request, Response, N>::ProtobufIpcServer(
 		const RequestStreamReader& request_stream_reader,
 		const ResponseStreamWriter& response_stream_writer
-	): m_request_stream_reader(request_stream_reader), m_response_stream_writer(response_stream_writer), m_is_running(false), m_buffer(N) {
+	): m_request_stream_reader(request_stream_reader), m_response_stream_writer(response_stream_writer), m_is_running(false) {
 	}
 
 	template <typename Request, typename Response, std::size_t N>
@@ -66,8 +66,7 @@ namespace ipc {
 		}
 		const auto request_iter = m_requests_queue.begin();
 		const auto response = handler(*request_iter);
-		// m_response_stream_writer(response);
-		throw std::runtime_error("NOT IMPLEMENTED");
+		m_response_stream_writer(response);
 		m_requests_queue.erase(request_iter);
 	}
 	
