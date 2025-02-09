@@ -20,6 +20,7 @@ uts = [
     "host_tests",
     "ipc_tests",
     "stepper_motor_manager_tests",
+    "stepper_motor_app_tests",
 ]
 
 def find_executable(name, path):
