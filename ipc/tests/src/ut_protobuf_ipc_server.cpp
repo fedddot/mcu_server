@@ -36,7 +36,7 @@ static Option<TestRequest> read_request_from_pb_stream(pb_istream_t *input_strea
 static void write_test_response(const TestResponse& response);
 
 static const std::size_t test_buff_size(10UL);
-using TestIpcServer = ProtobufIpcServer<TestRequest, TestResponse, test_buff_size>;
+using TestIpcServer = ProtobufIpcServer<TestRequest, TestResponse>;
 
 TEST(ut_protobuf_ipc_server, ctor_dtor_sanity) {
     // WHEN
@@ -46,7 +46,8 @@ TEST(ut_protobuf_ipc_server, ctor_dtor_sanity) {
     ASSERT_NO_THROW(
         instance_ptr = new TestIpcServer(
             read_request_from_pb_stream,
-            write_test_response
+            write_test_response,
+            test_buff_size
         )
     );
     ASSERT_NO_THROW(delete instance_ptr);
@@ -80,7 +81,8 @@ TEST(ut_protobuf_ipc_server, feed_sanity) {
 
     TestIpcServer instance(
         read_request_from_pb_stream,
-        write_test_response
+        write_test_response,
+        test_buff_size
     );
 
     // THEN

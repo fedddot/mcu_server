@@ -13,7 +13,7 @@
 #include "protobuf_input_stream_builder.hpp"
 
 namespace ipc {
-	template <typename Request, typename Response, std::size_t N>
+	template <typename Request, typename Response>
 	class ProtobufIpcServer: public IpcServer<Request, Response> {
 	public:
 		using RequestStreamReader = std::function<Option<Request>(pb_istream_t *)>;
@@ -22,7 +22,8 @@ namespace ipc {
 
 		ProtobufIpcServer(
 			const RequestStreamReader& request_stream_reader,
-			const ResponseStreamWriter& response_stream_writer
+			const ResponseStreamWriter& response_stream_writer,
+			const std::size_t& capacity
 		);
 		ProtobufIpcServer(const ProtobufIpcServer&) = delete;
 		ProtobufIpcServer& operator=(const ProtobufIpcServer&) = delete;
@@ -35,21 +36,24 @@ namespace ipc {
 	private:
 		const RequestStreamReader m_request_stream_reader;
 		const ResponseStreamWriter m_response_stream_writer;
+		const std::size_t& m_capacity;
 		
 		bool m_is_running;
 		std::vector<pb_byte_t> m_buffer;
 		std::vector<Request> m_requests_queue;
 	};
 
-	template <typename Request, typename Response, std::size_t N>
-	inline ProtobufIpcServer<Request, Response, N>::ProtobufIpcServer(
+	template <typename Request, typename Response>
+	inline ProtobufIpcServer<Request, Response>::ProtobufIpcServer(
 		const RequestStreamReader& request_stream_reader,
-		const ResponseStreamWriter& response_stream_writer
-	): m_request_stream_reader(request_stream_reader), m_response_stream_writer(response_stream_writer), m_is_running(false) {
+		const ResponseStreamWriter& response_stream_writer,
+		const std::size_t& capacity
+	): m_request_stream_reader(request_stream_reader), m_response_stream_writer(response_stream_writer), m_capacity(capacity), m_is_running(false) {
+		m_buffer.reserve(m_capacity);
 	}
 
-	template <typename Request, typename Response, std::size_t N>
-	inline void ProtobufIpcServer<Request, Response, N>::serve(const Handler& handler) {
+	template <typename Request, typename Response>
+	inline void ProtobufIpcServer<Request, Response>::serve(const Handler& handler) {
 		if (!handler) {
 			throw std::invalid_argument("invalid request handler received");
 		}
@@ -59,8 +63,8 @@ namespace ipc {
 		}
 	}
 
-	template <typename Request, typename Response, std::size_t N>
-	inline void ProtobufIpcServer<Request, Response, N>::serve_once(const Handler& handler) {
+	template <typename Request, typename Response>
+	inline void ProtobufIpcServer<Request, Response>::serve_once(const Handler& handler) {
 		if (m_requests_queue.empty()) {
 			return;
 		}
@@ -70,13 +74,16 @@ namespace ipc {
 		m_requests_queue.erase(request_iter);
 	}
 	
-	template <typename Request, typename Response, std::size_t N>
-	inline void ProtobufIpcServer<Request, Response, N>::stop() {
+	template <typename Request, typename Response>
+	inline void ProtobufIpcServer<Request, Response>::stop() {
 		m_is_running = false;
 	}
 
-	template <typename Request, typename Response, std::size_t N>
-	inline void ProtobufIpcServer<Request, Response, N>::feed(const pb_byte_t ch) {
+	template <typename Request, typename Response>
+	inline void ProtobufIpcServer<Request, Response>::feed(const pb_byte_t ch) {
+		if (m_buffer.size() == m_capacity) {
+			throw std::runtime_error("buffer capacity has exceeded");
+		}
 		m_buffer.push_back(ch);
 		ProtobufInputStreamBuilder read_stream_builder(&m_buffer);
 		auto read_stream = read_stream_builder.build();
