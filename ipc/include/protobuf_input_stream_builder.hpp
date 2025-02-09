@@ -16,7 +16,7 @@ namespace ipc {
 		ProtobufInputStreamBuilder& operator=(const ProtobufInputStreamBuilder&) = delete;
 		virtual ~ProtobufInputStreamBuilder() noexcept = default;
 		
-		pb_istream_t build() const;
+		pb_istream_t build();
 	private:
 		const std::vector<pb_byte_t> *m_buffer;
 		std::size_t m_pos;
@@ -29,11 +29,12 @@ namespace ipc {
 		}
 	}
 	
-	inline pb_istream_t ProtobufInputStreamBuilder::build() const {
+	inline pb_istream_t ProtobufInputStreamBuilder::build() {
+		m_pos = 0UL;
 		return pb_istream_s {
 			.callback = read_from_pb_buffer,
-			.state = const_cast<ProtobufInputStreamBuilder *>(this),
-			.bytes_left = m_buffer->size() - m_pos,
+			.state = this,
+			.bytes_left = m_buffer->size(),
 			.errmsg = nullptr,
 		};
 	}
