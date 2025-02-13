@@ -1,20 +1,32 @@
-#ifndef	IPC_SERVER_HPP
-#define	IPC_SERVER_HPP
+#ifndef	CUSTOM_IPC_SERVER_HPP
+#define	CUSTOM_IPC_SERVER_HPP
 
-#include <functional>
+#include <stdexcept>
+
+#include "ipc_server.hpp"
 
 namespace ipc {
-	/// @brief Synchronous IPC server
+	/// @brief Customizable synchronous IPC server aggregating an external FIFO buffer
 	template <typename Request, typename Response>
-	class IpcServer {
+	class CustomIpcServer: IpcServer<Request, Response> {
 	public:
-		using RequestCallback = std::function<Response(const Request&)>;
-		virtual ~IpcServer() noexcept = default;
-
-		/// @brief Runs only one blocking service iteration - if there is an IPC message to serve, received callback will be invoke and its response will be returned to the client, otherwise anything happens
-		/// @param request_callback - a callback being invoked if an IPC message received
-		virtual void serve_once(const RequestCallback& request_callback) = 0;
+		using RequestCallback = typename IpcServer<Request, Response>::RequestCallback;
+		CustomIpcServer();
+		CustomIpcServer(const CustomIpcServer&) = delete;
+		CustomIpcServer& operator=(const CustomIpcServer&) = delete;
+		
+		void serve_once(const RequestCallback& request_callback) override;
 	};
+
+	template <typename Request, typename Response>
+	inline CustomIpcServer<Request, Response>::CustomIpcServer() {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	template <typename Request, typename Response>
+	inline void CustomIpcServer<Request, Response>::serve_once(const RequestCallback& request_callback) {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
 }
 
-#endif // IPC_SERVER_HPP
+#endif // CUSTOM_IPC_SERVER_HPP
