@@ -33,7 +33,7 @@ namespace ipc {
 		CustomIpcServer(const CustomIpcServer&) = delete;
 		CustomIpcServer& operator=(const CustomIpcServer&) = delete;
 		
-		void serve_once(const RequestCallback& request_callback) override;
+		void serve_once(const RequestCallback& request_callback) const override;
 	private:
 		RawDataBuffer *m_raw_data;
 		RequestCapturer m_request_capturer;
@@ -57,7 +57,7 @@ namespace ipc {
 	}
 
 	template <typename Request, typename Response, typename RawDataBuffer>
-	inline void CustomIpcServer<Request, Response, RawDataBuffer>::serve_once(const RequestCallback& request_callback) {
+	inline void CustomIpcServer<Request, Response, RawDataBuffer>::serve_once(const RequestCallback& request_callback) const {
 		if (!m_request_capturer(std::ref(*m_raw_data))) {
 			return;
 		}
