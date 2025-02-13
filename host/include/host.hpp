@@ -21,8 +21,7 @@ namespace host {
 		Host& operator=(const Host&) = delete;
 		virtual ~Host() noexcept = default;
 		
-		void run();
-		void stop();
+		void run_once() const;
 	private:
 		ipc::IpcServer<Request, Response> *m_ipc_server;
 		manager::Manager<Request, Response> *m_manager;
@@ -42,17 +41,12 @@ namespace host {
 	}
 
 	template <typename Request, typename Response>
-	inline void Host<Request, Response>::run() {
-		m_ipc_server->serve(
+	inline void Host<Request, Response>::run_once() const {
+		m_ipc_server->serve_once(
 			[this](const Request& request) {
 				return m_manager->run(request);
 			}
 		);
-	}
-
-	template <typename Request, typename Response>
-	inline void Host<Request, Response>::stop() {
-		m_ipc_server->stop();
 	}
 }
 

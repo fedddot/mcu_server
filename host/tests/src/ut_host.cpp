@@ -6,8 +6,7 @@
 #include "gtest/gtest.h"
 
 #include "host.hpp"
-#include "http_ipc_server.hpp"
-#include "ipc_option.hpp"
+#include "test_ipc_server.hpp"
 #include "test_manager.hpp"
 
 using namespace manager;
@@ -17,19 +16,14 @@ using namespace ipc;
 
 using Request = std::string;
 using Response = int;
-using ManagerCfg = std::string;
 
 using TestHost = Host<Request, Response>;
 
-TEST(ut_host, sanity) {
+TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	auto ipc_server = HttpIpcServer<Request, Response>(
-		"test_addr",
-		[](const web::http::http_request& http_request) -> Option<Request> {
-			throw std::runtime_error("NOT_IMPLEMENTED");
-		},
-		[](const Response& response) -> web::http::http_response {
-			throw std::runtime_error("NOT_IMPLEMENTED");
+	auto ipc_server = TestIpcServer<Request, Response>(
+		[](const Response&) {
+			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
 	auto manager = TestManager<Request, Response>(
