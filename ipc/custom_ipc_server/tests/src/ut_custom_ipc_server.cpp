@@ -8,7 +8,7 @@
 #include "cpprest/http_client.h"
 #include "cpprest/http_msg.h"
 
-#include "http_ipc_server.hpp"
+#include "custom_ipc_server.hpp"
 #include "ipc_option.hpp"
 
 using namespace ipc;
@@ -18,7 +18,7 @@ using TestResponse = int;
 
 using TestServer = HttpIpcServer<TestRequest, TestResponse>;
 
-TEST(ut_http_ipc_server, ctor_dtor_sanity) {
+TEST(ut_custom_ipc_server, ctor_dtor_sanity) {
     // GIVEN
     const auto uri = std::string("http://127.0.0.1:5000");
     auto to_request_transformer = [](const web::http::http_request& request) {
@@ -46,7 +46,7 @@ TEST(ut_http_ipc_server, ctor_dtor_sanity) {
     instance_ptr = nullptr;
 }
 
-TEST(ut_http_ipc_server, write_read_sanity) {
+TEST(ut_custom_ipc_server, write_read_sanity) {
     // GIVEN
     const auto uri = std::string("http://127.0.0.1:5000");
     auto to_request_transformer = [](const web::http::http_request& request) {
