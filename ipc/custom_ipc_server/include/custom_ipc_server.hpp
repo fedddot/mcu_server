@@ -9,7 +9,7 @@
 namespace ipc {
 	/// @brief Customizable synchronous IPC server aggregating an external raw data buffer
 	template <typename Request, typename Response, typename RawDataBuffer>
-	class CustomIpcServer: IpcServer<Request, Response> {
+	class CustomIpcServer: public IpcServer<Request, Response> {
 	public:
 		using RequestCallback = typename IpcServer<Request, Response>::RequestCallback;
 
@@ -58,7 +58,15 @@ namespace ipc {
 
 	template <typename Request, typename Response, typename RawDataBuffer>
 	inline void CustomIpcServer<Request, Response, RawDataBuffer>::serve_once(const RequestCallback& request_callback) {
-		throw std::runtime_error("NOT IMPLEMENTED");
+		if (!m_request_capturer(std::ref(*m_raw_data))) {
+			return;
+		}
+		if (!request_callback) {
+			throw std::invalid_argument("invalid request callback received");
+		}
+		const auto request = m_request_reader(m_raw_data);
+		const auto response = request_callback(request);
+		m_response_writer(response);
 	}
 }
 
