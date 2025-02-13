@@ -4,13 +4,16 @@
 #include <functional>
 
 namespace ipc {
+	/// @brief Synchronous IPC server
 	template <typename Request, typename Response>
 	class IpcServer {
 	public:
-		using Handler = std::function<Response(const Request&)>;
+		using RequestCallback = std::function<Response(const Request&)>;
 		virtual ~IpcServer() noexcept = default;
-		virtual void serve(const Handler& handler) = 0;
-		virtual void stop() = 0;
+
+		/// @brief Runs only one blocking service iteration - if there is an IPC message to serve, received callback will be invoke, otherwise anything happens
+		/// @param request_callback - a callback being invoked if an IPC message received
+		virtual void serve_once(const RequestCallback& request_callback) = 0;
 	};
 }
 
