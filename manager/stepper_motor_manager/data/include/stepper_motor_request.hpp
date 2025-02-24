@@ -2,8 +2,7 @@
 #define	STEPPER_MOTOR_REQUEST_HPP
 
 #include <cstddef>
-#include <memory>
-#include <stdexcept>
+#include <optional>
 
 #include "stepper_motor.hpp"
 
@@ -24,53 +23,28 @@ namespace manager {
 		};
 
 		StepperMotorRequest(const Type& type, const std::string& motor_id);
-		StepperMotorRequest(const StepperMotorRequest& other);
-		StepperMotorRequest& operator=(const StepperMotorRequest& other);
+		StepperMotorRequest(const StepperMotorRequest& other) = default;
+		StepperMotorRequest& operator=(const StepperMotorRequest& other) = default;
 		virtual ~StepperMotorRequest() noexcept = default;
 		
 		Type type() const;
 		std::string motor_id() const;
 		
 		void set_steps(const Steps& steps);
-		bool has_steps() const;
-		Steps steps() const;
+		std::optional<Steps> steps() const;
 
 		void set_create_config(const Tcreate_cfg& create_cfg);
-		bool has_create_config() const;
-		Tcreate_cfg create_config() const;
+		std::optional<Tcreate_cfg> create_config() const;
 	private:
 		Type m_type;
 		std::string m_motor_id;
-		std::unique_ptr<Steps> m_steps;
-		std::unique_ptr<Tcreate_cfg> m_create_cfg;
+		std::optional<Steps> m_steps;
+		std::optional<Tcreate_cfg> m_create_cfg;
 	};
 
 	template <typename Tcreate_cfg>	
 	inline StepperMotorRequest<Tcreate_cfg>::StepperMotorRequest(const Type& type, const std::string& motor_id): m_type(type), m_motor_id(motor_id) {
 
-	}
-
-	template <typename Tcreate_cfg>
-	inline StepperMotorRequest<Tcreate_cfg>::StepperMotorRequest(const StepperMotorRequest& other): m_type(other.m_type), m_motor_id(other.m_motor_id) {
-		if (other.m_steps != nullptr) {
-			m_steps = std::make_unique<Steps>(*(other.m_steps));
-		}
-		if (other.m_create_cfg != nullptr) {
-			m_create_cfg = std::make_unique<Tcreate_cfg>(*(other.m_create_cfg));
-		}
-	}
-
-	template <typename Tcreate_cfg>
-	inline StepperMotorRequest<Tcreate_cfg>& StepperMotorRequest<Tcreate_cfg>::operator=(const StepperMotorRequest& other) {
-		m_type = other.m_type;
-		m_motor_id = other.m_motor_id;
-		if (other.m_steps != nullptr) {
-			m_steps = std::make_unique<Steps>(*(other.m_steps));
-		}
-		if (other.m_create_cfg != nullptr) {
-			m_create_cfg = std::make_unique<Tcreate_cfg>(*(other.m_create_cfg));
-		}
-		return *this;
 	}
 
 	template <typename Tcreate_cfg>
@@ -85,38 +59,22 @@ namespace manager {
 
 	template <typename Tcreate_cfg>
 	inline void StepperMotorRequest<Tcreate_cfg>::set_steps(const Steps& steps) {
-		m_steps = std::make_unique<Steps>(steps);
+		m_steps = steps;
 	}
 
 	template <typename Tcreate_cfg>
-	inline bool StepperMotorRequest<Tcreate_cfg>::has_steps() const {
-		return m_steps != nullptr;
-	}
-
-	template <typename Tcreate_cfg>
-	inline typename StepperMotorRequest<Tcreate_cfg>::Steps StepperMotorRequest<Tcreate_cfg>::steps() const {
-		if (!m_steps) {
-			throw std::runtime_error("the motor steps has not been set yet");
-		}
-		return *m_steps;
+	inline std::optional<typename StepperMotorRequest<Tcreate_cfg>::Steps> StepperMotorRequest<Tcreate_cfg>::steps() const {
+		return m_steps;
 	}
 
 	template <typename Tcreate_cfg>
 	inline void StepperMotorRequest<Tcreate_cfg>::set_create_config(const Tcreate_cfg& create_cfg) {
-		m_create_cfg = std::make_unique<Tcreate_cfg>(create_cfg);
+		m_create_cfg = create_cfg;
 	}
 
 	template <typename Tcreate_cfg>
-	inline bool StepperMotorRequest<Tcreate_cfg>::has_create_config() const {
-		return m_create_cfg != nullptr;
-	}
-
-	template <typename Tcreate_cfg>
-	inline Tcreate_cfg StepperMotorRequest<Tcreate_cfg>::create_config() const {
-		if (!m_create_cfg) {
-			throw std::runtime_error("the motor steps has not been set yet");
-		}
-		return *m_create_cfg;
+	inline std::optional<Tcreate_cfg> StepperMotorRequest<Tcreate_cfg>::create_config() const {
+		return m_create_cfg;
 	}
 }
 
