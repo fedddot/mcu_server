@@ -3,7 +3,8 @@ target_include_directories(host INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     host
     INTERFACE
-    ipc_server
+    response_writer
+    request_reader
     manager
 )
 

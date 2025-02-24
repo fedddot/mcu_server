@@ -4,7 +4,8 @@
 #include <functional>
 #include <stdexcept>
 
-#include "ipc_server.hpp"
+#include "request_reader.hpp"
+#include "response_writer.hpp"
 #include "manager.hpp"
 
 namespace host {
@@ -13,7 +14,8 @@ namespace host {
 	public:
 		using FailureReporter = std::function<Response(const std::exception&)>;
 		Host(
-			ipc::IpcServer<Request, Response> *ipc_server,
+			ipc::RequestReader<Request> *request_reader,
+			ipc::ResponseWriter<Response> *response_writer,
 			manager::Manager<Request, Response> *manager,
 			const FailureReporter& failure_reporter
 		);
@@ -21,9 +23,10 @@ namespace host {
 		Host& operator=(const Host&) = delete;
 		virtual ~Host() noexcept = default;
 		
-		void run_once() const;
+		void run_once();
 	private:
-		ipc::IpcServer<Request, Response> *m_ipc_server;
+		ipc::RequestReader<Request> *m_request_reader;
+		ipc::ResponseWriter<Response> *m_response_writer;
 		manager::Manager<Request, Response> *m_manager;
 		const FailureReporter m_failure_reporter;
 		const FailureReporter m_m_failure_reporter;
@@ -31,22 +34,24 @@ namespace host {
 
 	template <typename Request, typename Response>
 	inline Host<Request, Response>::Host(
-		ipc::IpcServer<Request, Response> *ipc_server,
+		ipc::RequestReader<Request> *request_reader,
+		ipc::ResponseWriter<Response> *response_writer,
 		manager::Manager<Request, Response> *manager,
 		const FailureReporter& failure_reporter
-	): m_ipc_server(ipc_server), m_manager(manager), m_failure_reporter(failure_reporter) {
-		if (!m_ipc_server || !m_manager || !m_failure_reporter) {
+	): m_request_reader(request_reader), m_response_writer(response_writer), m_manager(manager), m_failure_reporter(failure_reporter) {
+		if (!m_request_reader || !m_response_writer || !m_manager || !m_failure_reporter) {
 			throw std::invalid_argument("invalid host args received");
 		}
 	}
 
 	template <typename Request, typename Response>
-	inline void Host<Request, Response>::run_once() const {
-		m_ipc_server->serve_once(
-			[this](const Request& request) {
-				return m_manager->run(request);
-			}
-		);
+	inline void Host<Request, Response>::run_once() {
+		const auto request = m_request_reader->read();
+		if (!request) {
+			return;
+		}
+		const auto response = m_manager->run(*request);
+		m_response_writer->write(response);
 	}
 }
 
