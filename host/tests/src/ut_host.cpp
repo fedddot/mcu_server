@@ -1,12 +1,14 @@
 #include <exception>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
 
 #include "host.hpp"
-#include "test_ipc_server.hpp"
+#include "test_request_reader.hpp"
+#include "test_response_writer.hpp"
 #include "test_manager.hpp"
 
 using namespace manager;
@@ -21,8 +23,13 @@ using TestHost = Host<Request, Response>;
 
 TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	auto ipc_server = TestIpcServer<Request, Response>(
-		[](const Response&) {
+	auto request_reader = TestRequestReader<Request>(
+		[]()-> std::optional<Request> {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
+	);
+	auto response_writer = TestResponseWriter<Response>(
+		[](const Response&){
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
@@ -39,7 +46,8 @@ TEST(ut_host, ctor_dtor_sanity) {
 	// THEN:
 	ASSERT_NO_THROW(
 		instance = new TestHost(
-			&ipc_server,
+			&request_reader,
+			&response_writer,
 			&manager,
 			[](const std::exception& e) -> Response {
 				return Response(-1);

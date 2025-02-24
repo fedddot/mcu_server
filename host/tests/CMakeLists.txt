@@ -9,7 +9,8 @@ target_link_libraries(
 	PRIVATE
     host
     test_manager
-	test_ipc_server
+	test_request_reader
+	test_response_writer
 	
 	gtest
 	cpprest

@@ -1,11 +1,12 @@
 #ifndef	TEST_RESPONSE_WRITER_HPP
 #define	TEST_RESPONSE_WRITER_HPP
 
+#include "response_writer.hpp"
 #include <functional>
 
 namespace ipc {
 	template <typename Response>
-	class TestResponseWriter {
+	class TestResponseWriter: public ResponseWriter<Response> {
 	public:
 		using Action = std::function<void(const Response&)>;
 		TestResponseWriter(const Action& action): m_action(action) {
