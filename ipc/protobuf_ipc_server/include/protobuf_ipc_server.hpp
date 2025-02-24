@@ -4,45 +4,40 @@
 #include <functional>
 #include <stdexcept>
 
+#include "pb.h"
+
 #include "ipc_server.hpp"
+#include "custom_ipc_server.hpp"
 
 namespace ipc {
-	/// @brief Customizable synchronous IPC server aggregating an external raw data buffer
-	template <typename Request, typename Response, typename RawDataBuffer>
+	/// @brief Customizable synchronous Protobuf IPC server aggregating an external raw data buffer
+	template <typename Request, typename Response>
 	class ProtobufIpcServer: public IpcServer<Request, Response> {
 	public:
 		using RequestCallback = typename IpcServer<Request, Response>::RequestCallback;
+		using RequestCapturer = typename CustomIpcServer<Request, Response, pb_callback_t>::RequestCapturer;
+		using RequestReader = typename CustomIpcServer<Request, Response, pb_callback_t>::RequestReader;
+		using ResponseWriter = typename CustomIpcServer<Request, Response, pb_callback_t>::ResponseWriter;
 
-		/// @brief Tests receiving data buffer for incoming requests
-		/// @return true if data buffer contains a request data and it can be read from the buffer
-		using RequestCapturer = std::function<bool(const RawDataBuffer&)>;
-		
-		/// @brief Extracts a request from raw data buffer erasing its raw data
-		/// @return extracted request
-		using RequestReader = std::function<Request(RawDataBuffer *)>;
-
-		/// @brief Writes response data into output IPC stream
-		using ResponseWriter = std::function<void(const Response&)>;
-		
 		ProtobufIpcServer(
-			RawDataBuffer *raw_data,
-			const RequestCapturer& request_capturer,
-			const RequestReader& request_reader,
-			const ResponseWriter& response_writer
 		);
 		ProtobufIpcServer(const ProtobufIpcServer&) = delete;
 		ProtobufIpcServer& operator=(const ProtobufIpcServer&) = delete;
 		
 		void serve_once(const RequestCallback& request_callback) const override;
 	private:
-		RawDataBuffer *m_raw_data;
-		RequestCapturer m_request_capturer;
-		RequestReader m_request_reader;
-		ResponseWriter m_response_writer;
+		pb_callback_t *m_buff;
+		CustomIpcServer<Request, Response, pb_istream_t> m_server;
+		
+		bool capture_ipc_msg(const pb_istream_t& buff) const;
+		Request read_ipc_msg(pb_istream_t *buff);
+
+		/// @brief Writes response data into output IPC stream
+		using ResponseWriter = std::function<void(const Response&)>;
 	};
 
-	template <typename Request, typename Response, typename RawDataBuffer>
-	inline ProtobufIpcServer<Request, Response, RawDataBuffer>::ProtobufIpcServer(
+	template <typename Request, typename Response>
+	inline ProtobufIpcServer<Request, Response>::ProtobufIpcServer(
 		RawDataBuffer *raw_data,
 		const RequestCapturer& request_capturer,
 		const RequestReader& request_reader,
@@ -56,8 +51,8 @@ namespace ipc {
 		}
 	}
 
-	template <typename Request, typename Response, typename RawDataBuffer>
-	inline void ProtobufIpcServer<Request, Response, RawDataBuffer>::serve_once(const RequestCallback& request_callback) const {
+	template <typename Request, typename Response>
+	inline void ProtobufIpcServer<Request, Response>::serve_once(const RequestCallback& request_callback) const {
 		if (!m_request_capturer(std::ref(*m_raw_data))) {
 			return;
 		}
