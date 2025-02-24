@@ -1,16 +1,12 @@
-#ifndef	RESPONSE_WRITER_HPP
-#define	RESPONSE_WRITER_HPP
+#ifndef	PB_RESPONSE_WRITER_HPP
+#define	PB_RESPONSE_WRITER_HPP
 
 namespace ipc {
-	/// @brief Synchronous IPC Responses Writer
 	template <typename Response>
-	class ResponseWriter {
+	class ProtobufResponseWriter {
 	public:
-		virtual ~ResponseWriter() noexcept = default;
-
-		/// @brief Writes an IPC response into an IPC stream 
-		virtual void write(const Response& response) const = 0;
+		void write(const Response& response) const override;
 	};
 }
 
-#endif // RESPONSE_WRITER_HPP
+#endif // PB_RESPONSE_WRITER_HPP

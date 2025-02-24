@@ -1,18 +1,14 @@
-#ifndef	REQUEST_READER_HPP
-#define	REQUEST_READER_HPP
+#ifndef	PB_REQUEST_READER_HPP
+#define	PB_REQUEST_READER_HPP
 
 #include <optional>
-namespace ipc {
-	/// @brief Synchronous IPC Requests Reader
-	template <typename Request>
-	class RequestReader {
-	public:
-		virtual ~RequestReader() noexcept = default;
 
-		/// @brief Reads a single request (if exists) from an IPC stream and returns it as an optional value 
-		/// @return if there is an incoming request returns non-empty option, an empty one otherwise
-		virtual std::optional<Request> read() = 0;
+namespace ipc {
+	template <typename Request>
+	class ProtobufRequestReader {
+	public:
+		std::optional<Request> read() override;
 	};
 }
 
-#endif // REQUEST_READER_HPP
+#endif // PB_REQUEST_READER_HPP
