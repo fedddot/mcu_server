@@ -64,10 +64,10 @@ namespace manager {
 	template <typename StepperCreateConfig>
 	StepperMotorResponse StepperMotorManager<StepperCreateConfig>::serve_create(const StepperMotorRequest<StepperCreateConfig>& request) {
 		try {
-			if (!request.has_create_config()) {
+			if (!request.create_config()) {
 				return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST);
 			}
-			m_motors[request.motor_id()] = std::unique_ptr<StepperMotor>(m_stepper_ctor(request.create_config()));
+			m_motors[request.motor_id()] = std::unique_ptr<StepperMotor>(m_stepper_ctor(*request.create_config()));
 			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
 		} catch (const std::exception& e) {
 			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
@@ -95,10 +95,10 @@ namespace manager {
 	template <typename StepperCreateConfig>
 	StepperMotorResponse StepperMotorManager<StepperCreateConfig>::serve_steps(const StepperMotorRequest<StepperCreateConfig>& request) {
 		try {
-			if (!request.has_steps()) {
+			if (!request.steps()) {
 				return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST); 
 			}
-			const auto steps = request.steps();
+			const auto steps = *request.steps();
 			const auto iter = m_motors.find(request.motor_id());
 			if (m_motors.end() == iter) {
 				return StepperMotorResponse(StepperMotorResponse::ResultCode::NOT_FOUND);
