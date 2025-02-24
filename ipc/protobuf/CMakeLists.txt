@@ -1,0 +1,9 @@
+add_library(pb_request_reader INTERFACE)
+target_include_directories(pb_request_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(pb_request_reader INTERFACE request_reader)
+
+add_library(pb_response_writer INTERFACE)
+target_include_directories(pb_response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(pb_response_writer INTERFACE response_writer)
+
+# add_subdirectory(tests EXCLUDE_FROM_ALL)
