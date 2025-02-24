@@ -1,0 +1,7 @@
+add_library(test_request_reader INTERFACE)
+target_include_directories(test_request_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(test_request_reader INTERFACE request_reader)
+
+add_library(test_response_writer INTERFACE)
+target_include_directories(test_response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(test_response_writer INTERFACE response_writer)
