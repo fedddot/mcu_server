@@ -1,9 +1,7 @@
 #ifndef	STEPPER_MOTOR_RESPONSE_HPP
 #define	STEPPER_MOTOR_RESPONSE_HPP
 
-#include <memory>
 #include <optional>
-#include <stdexcept>
 #include <string>
 
 #include "stepper_motor.hpp"
