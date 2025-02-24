@@ -1,6 +1,7 @@
 #ifndef	HOST_HPP
 #define	HOST_HPP
 
+#include <exception>
 #include <functional>
 #include <stdexcept>
 
@@ -46,12 +47,17 @@ namespace host {
 
 	template <typename Request, typename Response>
 	inline void Host<Request, Response>::run_once() {
-		const auto request = m_request_reader->read();
-		if (!request) {
-			return;
+		try {
+			const auto request = m_request_reader->read();
+			if (!request) {
+				return;
+			}
+			const auto response = m_manager->run(*request);
+			m_response_writer->write(response);
+		} catch (const std::exception& e) {
+			const auto response = m_failure_reporter(e);
+			m_response_writer->write(response);
 		}
-		const auto response = m_manager->run(*request);
-		m_response_writer->write(response);
 	}
 }
 
