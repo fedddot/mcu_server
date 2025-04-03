@@ -18,7 +18,7 @@ subprocess.run(["cmake", ".."], cwd=build_path).check_returncode()
 
 uts = [
     "host_tests",
-    "ipc_tests",
+    "protobuf_tests",
     "stepper_motor_manager_tests",
     "stepper_motor_app_tests",
 ]
