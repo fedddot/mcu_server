@@ -1,7 +1,13 @@
-add_library(test_request_reader INTERFACE)
-target_include_directories(test_request_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(test_request_reader INTERFACE request_reader)
+add_executable(
+	protobuf_tests
+	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/ut_pb_request_reader.cpp
+)
 
-add_library(test_response_writer INTERFACE)
-target_include_directories(test_response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(test_response_writer INTERFACE response_writer)
+target_link_libraries(
+	protobuf_tests
+	PRIVATE
+    pb_request_reader
+    pb_request_writer
+	gtest
+)
