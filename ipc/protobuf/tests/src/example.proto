@@ -9,7 +9,6 @@ rpc Run(ExampleRequest) returns (ExampleResponse);
 message ExampleRequest {
 	EnumParam enum_param = 1;
 	string string_param = 2;
-	int32 int_param = 3;
 }
 
 enum EnumParam {
