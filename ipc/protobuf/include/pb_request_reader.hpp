@@ -47,7 +47,7 @@ namespace ipc {
 	template <typename Request>
 	inline std::optional<Request> ProtobufRequestReader<Request>::read() {
 		auto request = m_init_request_ctor();
-		if (!pb_decode_nullterminated(m_input_stream_ptr, m_fields, &request)) {
+		if (!pb_decode_delimited(m_input_stream_ptr, m_fields, &request)) {
 			return std::optional<Request>();
 		}
 		return std::optional<Request>(request);

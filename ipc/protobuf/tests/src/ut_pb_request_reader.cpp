@@ -56,7 +56,8 @@ bool decode(pb_istream_t *stream, const pb_field_t *field, void **arg) {
     /* Print the string, in format comparable with protoc --decode.
      * Format comes from the arg defined in main().
      */
-    std::printf((char*)*arg, buffer);
+	char *buff = (char *)*arg;
+	std::strcpy(buff, (const char *)buffer);
     return true;
 }
 
@@ -75,7 +76,7 @@ TEST(ut_pb_request_reader, read_sanity) {
 		.enum_param = example_EnumParam_TWO,
 		.string_param = test_string
 	};
-	ASSERT_TRUE(pb_encode_nullterminated(&test_output_stream, example_ExampleRequest_fields, &test_request));
+	ASSERT_TRUE(pb_encode_delimited(&test_output_stream, example_ExampleRequest_fields, &test_request));
 
 	auto stream = pb_istream_from_buffer(buff, BUFF_SIZE);
 	pb_byte_t buffer[BUFF_SIZE] = { '\0' };
@@ -98,7 +99,9 @@ TEST(ut_pb_request_reader, read_sanity) {
 	auto result = std::optional<example_ExampleRequest>();
 
 	// THEN
-	result = instance.read();
-	// ASSERT_NO_THROW();
+	ASSERT_NO_THROW(result = instance.read());
 	ASSERT_TRUE(result);
+
+	const auto result_casted = *result;
+	ASSERT_EQ(test_request.enum_param, result_casted.enum_param);
 }
