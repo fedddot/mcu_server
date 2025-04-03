@@ -8,6 +8,6 @@ target_link_libraries(
 	protobuf_tests
 	PRIVATE
     pb_request_reader
-    pb_request_writer
+    pb_response_writer
 	gtest
 )
