@@ -28,6 +28,8 @@ target_link_libraries(
 	PRIVATE
     pb_request_reader
     pb_response_writer
+
+	pb_encode
 	example
 	gtest
 )
