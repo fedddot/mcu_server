@@ -7,6 +7,6 @@ target_link_libraries(sized_package_reader INTERFACE request_reader sized_packag
 
 add_library(sized_package_writer INTERFACE)
 target_include_directories(sized_package_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(sized_package_writer INTERFACE response_writer)
+target_link_libraries(sized_package_writer INTERFACE response_writer sized_package_infra)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
