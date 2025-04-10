@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <exception>
 #include <optional>
 #include <string>
@@ -98,6 +99,11 @@ TEST(ut_host_sized_packages, run_once_sanity) {
 	);
 	ASSERT_NO_THROW(instance.run_once());
 	ASSERT_TRUE(response_data_option);
+	const auto decoded_response = Response(
+		response_data_option->begin() + preamble.size() + sizeof(std::size_t),
+		response_data_option->end()
+	);
+	ASSERT_EQ(expected_response, decoded_response);
 
 	ASSERT_TRUE(buff.empty());
 }

@@ -38,11 +38,7 @@ namespace ipc {
 	}
 
 	inline std::optional<std::vector<char>> SizedPackageReader::read() {
-		const auto buff_size = m_buffer->size();
 		const auto preamble_size = m_preamble.size();
-		if (buff_size < preamble_size + sizeof(std::size_t)) {
-			return std::optional<std::vector<char>>();
-		}
 		if (!validate_preamble(m_buffer, m_preamble)) {
 			return std::optional<std::vector<char>>();
 		}
@@ -52,7 +48,7 @@ namespace ipc {
 				m_buffer->begin() + preamble_size + sizeof(std::size_t)
 			)
 		);
-		if (buff_size < preamble_size + sizeof(std::size_t) + package_size) {
+		if (m_buffer->size() < preamble_size + sizeof(std::size_t) + package_size) {
 			return std::optional<std::vector<char>>();
 		}
 		const auto package_data = std::vector<char>(
@@ -71,10 +67,7 @@ namespace ipc {
 			throw std::invalid_argument("invalid buffer ptr received");
 		}
 		const auto preamble_size = preamble.size();
-		while (true) {
-			if (buffer->size() < preamble_size) {
-				return false;
-			}
+		while (buffer->size() >= preamble_size + sizeof(std::size_t)) {
 			const auto incoming_preamble = std::vector<char>(
 				buffer->begin(),
 				buffer->begin() + preamble_size
@@ -84,6 +77,7 @@ namespace ipc {
 			}
 			buffer->erase(buffer->begin());
 		}
+		return false;
 	}
 }
 
