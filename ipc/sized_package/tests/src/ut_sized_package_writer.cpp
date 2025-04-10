@@ -1,4 +1,4 @@
-#include <optional>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -15,11 +15,10 @@ TEST(ut_sized_package_writer, ctor_dtor_sanity) {
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
 	
 	// WHEN
-	auto buff = std::vector<char>();
-	SizedPackageReader *instance = nullptr;
+	SizedPackageWriter *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new SizedPackageReader(&buff, preamble));
+	ASSERT_NO_THROW(instance = new SizedPackageWriter([](const std::vector<char>&) {}, preamble));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -30,54 +29,39 @@ TEST(ut_sized_package_writer, read_sanity) {
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
 	const auto msg_str = std::string("test_msg");
 	const auto msg = std::vector<char>(msg_str.begin(), msg_str.end());
-	const auto msg_size_encoded = SizedPackageInfra::encode_size(msg.size());
-	const auto junk_before_str = std::string("junk");
-	const auto junk_before = std::vector<char>(msg_str.begin(), msg_str.end());
 	
 	// WHEN
-	auto buff = std::vector<char>();
-
-	auto instance = SizedPackageReader(&buff, preamble);
-	auto result = std::optional<std::vector<char>>();
+	auto instance = SizedPackageWriter(
+		[preamble, msg](const std::vector<char>& raw_data)  {
+			ASSERT_EQ(
+				preamble.size() + sizeof(std::size_t) + msg.size(),
+				raw_data.size()
+			);
+			ASSERT_EQ(
+				preamble,
+				std::vector<char>(
+					raw_data.begin(),
+					raw_data.begin() + preamble.size()
+				)
+			);
+			ASSERT_EQ(
+				SizedPackageInfra::encode_size(msg.size()),
+				std::vector<char>(
+					raw_data.begin() + preamble.size(),
+					raw_data.begin() + preamble.size() + sizeof(std::size_t)
+				)
+			);
+			ASSERT_EQ(
+				msg,
+				std::vector<char>(
+					raw_data.begin() + preamble.size() + sizeof(std::size_t),
+					raw_data.end()
+				)
+			);
+		},
+		preamble
+	);
 
 	// THEN
-	// empty buffer
-	ASSERT_NO_THROW(result = instance.read());
-	ASSERT_FALSE(result);
-	
-	// junk data should be ignored
-	buff.insert(
-		buff.end(),
-		junk_before.begin(),
-		junk_before.end()
-	);
-	ASSERT_NO_THROW(result = instance.read());
-	ASSERT_FALSE(result);
-
-	buff.insert(
-		buff.end(),
-		preamble.begin(),
-		preamble.end()
-	);
-	ASSERT_NO_THROW(result = instance.read());
-	ASSERT_FALSE(result);
-	
-	buff.insert(
-		buff.end(),
-		msg_size_encoded.begin(),
-		msg_size_encoded.end()
-	);
-	ASSERT_NO_THROW(result = instance.read());
-	ASSERT_FALSE(result);
-	
-	buff.insert(
-		buff.end(),
-		msg.begin(),
-		msg.end()
-	);
-	ASSERT_NO_THROW(result = instance.read());
-	ASSERT_TRUE(result);
-	ASSERT_EQ(msg, *result);
-
-	ASSERT_TRUE(buff.empty());
+	ASSERT_NO_THROW(instance.write(msg));
 }
