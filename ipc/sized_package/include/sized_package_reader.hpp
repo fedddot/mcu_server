@@ -1,0 +1,54 @@
+#ifndef	SIZED_PACKAGE_READER_HPP
+#define	SIZED_PACKAGE_READER_HPP
+
+#include <functional>
+#include <optional>
+#include <stdexcept>
+
+#include "request_reader.hpp"
+
+namespace ipc {
+	template <typename Request>
+	class SizedPackageReader: public RequestReader<Request> {
+	public:
+		using InitialRequestCreator = std::function<Request()>;
+		SizedPackageReader(
+			pb_istream_t *input_stream_ptr,
+			const pb_msgdesc_t *fields,
+			const InitialRequestCreator& init_request_ctor
+		);
+		std::optional<Request> read() override;
+	private:
+		pb_istream_t *m_input_stream_ptr;
+		const pb_msgdesc_t *m_fields;
+		const InitialRequestCreator& m_init_request_ctor;
+	};
+
+	template <typename Request>
+	inline SizedPackageReader<Request>::SizedPackageReader(
+		pb_istream_t *input_stream_ptr,
+		const pb_msgdesc_t *fields,
+		const InitialRequestCreator& init_request_ctor
+	): m_input_stream_ptr(input_stream_ptr), m_fields(fields), m_init_request_ctor(init_request_ctor) {
+		if (!input_stream_ptr) {
+			throw std::invalid_argument("invalid input stream ptr received");
+		}
+		if (!fields) {
+			throw std::invalid_argument("invalid fields object ptr received");
+		}
+		if (!init_request_ctor) {
+			throw std::invalid_argument("invalid init request ctor received");
+		}
+	}
+
+	template <typename Request>
+	inline std::optional<Request> SizedPackageReader<Request>::read() {
+		auto request = m_init_request_ctor();
+		if (!pb_decode_delimited(m_input_stream_ptr, m_fields, &request)) {
+			return std::optional<Request>();
+		}
+		return std::optional<Request>(request);
+	}
+}
+
+#endif // SIZED_PACKAGE_READER_HPP

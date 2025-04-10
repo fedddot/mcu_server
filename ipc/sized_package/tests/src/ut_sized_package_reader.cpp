@@ -1,19 +1,15 @@
-#include "gtest/gtest.h"
 #include <cstdio>
 #include <cstring>
-#include <stdexcept>
-#include <vector>
 
-#include "pb.h"
-#include "pb_decode.h"
-#include "pb_encode.h"
-#include "pb_request_reader.hpp"
+#include "gtest/gtest.h"
+
+#include "sized_package_reader.hpp"
 
 #include "example.pb.h"
 
 using namespace ipc;
 
-TEST(ut_pb_request_reader, ctor_dtor_sanity) {
+TEST(ut_sized_package_reader, ctor_dtor_sanity) {
 	// GIVEN
 	enum: int { BUFF_SIZE = 10 };
 	pb_byte_t buff[BUFF_SIZE] = { '\0' };
@@ -61,7 +57,7 @@ bool decode(pb_istream_t *stream, const pb_field_t *field, void **arg) {
     return true;
 }
 
-TEST(ut_pb_request_reader, read_sanity) {
+TEST(ut_sized_package_reader, read_sanity) {
 	// GIVEN
 	enum: int { BUFF_SIZE = 1024 };
 	pb_byte_t buff[BUFF_SIZE] = { '\0' };
