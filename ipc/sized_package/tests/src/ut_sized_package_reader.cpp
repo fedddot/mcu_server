@@ -32,7 +32,7 @@ TEST(ut_sized_package_reader, read_sanity) {
 	const auto msg = std::vector<char>(msg_str.begin(), msg_str.end());
 	const auto msg_size_encoded = SizedPackageInfra::encode_size(msg.size());
 	const auto junk_before_str = std::string("junk");
-	const auto junk_before = std::vector<char>(msg_str.begin(), msg_str.end());
+	const auto junk_before = std::vector<char>(junk_before_str.begin(), junk_before_str.end());
 	
 	// WHEN
 	auto buff = std::vector<char>();
