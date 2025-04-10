@@ -35,7 +35,7 @@ namespace ipc {
 		auto decoded_size = std::size_t(0UL);
 		for (auto i = 0; i < ENCODED_SIZE_BYTES; ++i) {
 			decoded_size <<= BITS_IN_BYTE;
-			decoded_size |= static_cast<std::size_t>(raw_size[i]);
+			decoded_size |= static_cast<std::size_t>(raw_size[ENCODED_SIZE_BYTES - 1 - i]);
 		}
 		return decoded_size;
 	}

@@ -59,6 +59,10 @@ namespace ipc {
 			m_buffer->begin() + preamble_size + sizeof(std::size_t),
 			m_buffer->begin() + preamble_size + sizeof(std::size_t) + package_size
 		);
+		m_buffer->erase(
+			m_buffer->begin(),
+			m_buffer->begin() + preamble_size + sizeof(std::size_t) + package_size
+		);
 		return std::optional<std::vector<char>>(package_data);
 	}
 

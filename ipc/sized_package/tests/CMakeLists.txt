@@ -8,5 +8,6 @@ target_link_libraries(
 	sized_package_tests
 	PRIVATE
     sized_package_reader
+	sized_package_infra
 	gtest
 )
