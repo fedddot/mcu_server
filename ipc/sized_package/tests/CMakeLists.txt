@@ -7,6 +7,6 @@ add_executable(
 target_link_libraries(
 	sized_package_tests
 	PRIVATE
-    sized_package_readers
+    sized_package_reader
 	gtest
 )
