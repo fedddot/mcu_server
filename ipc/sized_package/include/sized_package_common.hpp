@@ -19,6 +19,7 @@ namespace ipc {
 		DefaultPackageSizeParser(const DefaultPackageSizeParser&) = default;
 		DefaultPackageSizeParser& operator=(const DefaultPackageSizeParser&) = default;
 		std::size_t transform(const std::vector<char>& input) const override;
+		std::size_t raw_data_size() const;
 	private:
 		enum: std::size_t {
 			BITS_IN_BYTE = 8UL,
@@ -44,12 +45,17 @@ namespace ipc {
 		return decoded_size;
 	}
 
+	inline std::size_t DefaultPackageSizeParser::raw_data_size() const {
+		return m_raw_data_size;
+	}
+
 	class DefaultPackageSizeSerializer: public DataTransformer<std::size_t, std::vector<char>> {
 	public:
 		DefaultPackageSizeSerializer(const std::size_t& raw_data_size);
 		DefaultPackageSizeSerializer(const DefaultPackageSizeSerializer&) = default;
 		DefaultPackageSizeSerializer& operator=(const DefaultPackageSizeSerializer&) = default;
 		std::vector<char> transform(const std::size_t& input) const override;
+		std::size_t raw_data_size() const;
 	private:
 		enum: std::size_t {
 			BITS_IN_BYTE = 8UL,
@@ -70,6 +76,10 @@ namespace ipc {
 			encoded_size[i] = less_sign_byte;
 		}
 		return encoded_size;
+	}
+
+	inline std::size_t DefaultPackageSizeSerializer::raw_data_size() const {
+		return m_raw_data_size;
 	}
 }
 

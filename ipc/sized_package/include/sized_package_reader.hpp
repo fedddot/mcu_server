@@ -23,9 +23,7 @@ namespace ipc {
 	private:
 		std::vector<char> *m_buffer;
 		const std::vector<char> m_preamble;
-		const std::size_t m_raw_package_data_size_length;
 		const DefaultPackageSizeParser m_size_parser;
-		const DefaultPackageSizeSerializer m_size_serializer;
 		
 		bool validate_preamble(std::vector<char> *buffer, const std::vector<char>& preamble);
 	};
@@ -36,9 +34,7 @@ namespace ipc {
 		const std::size_t& raw_package_data_size_length
 	):
 		m_buffer(buffer), m_preamble(preamble),
-		m_raw_package_data_size_length(raw_package_data_size_length),
-		m_size_parser(raw_package_data_size_length),
-		m_size_serializer(raw_package_data_size_length) {
+		m_size_parser(raw_package_data_size_length) {
 		
 		if (!m_buffer) {
 			throw std::invalid_argument("invalid buffer ptr received");
@@ -50,25 +46,26 @@ namespace ipc {
 
 	inline std::optional<std::vector<char>> SizedPackageReader::read() {
 		const auto preamble_size = m_preamble.size();
+		const auto encoded_size_len = m_size_parser.raw_data_size();
 		if (!validate_preamble(m_buffer, m_preamble)) {
 			return std::optional<std::vector<char>>();
 		}
 		const auto package_size = m_size_parser.transform(
 			std::vector<char>(
 				m_buffer->begin() + preamble_size,
-				m_buffer->begin() + preamble_size + m_raw_package_data_size_length
+				m_buffer->begin() + preamble_size + encoded_size_len
 			)
 		);
-		if (m_buffer->size() < preamble_size + m_raw_package_data_size_length + package_size) {
+		if (m_buffer->size() < preamble_size + encoded_size_len + package_size) {
 			return std::optional<std::vector<char>>();
 		}
 		const auto package_data = std::vector<char>(
-			m_buffer->begin() + preamble_size + m_raw_package_data_size_length,
-			m_buffer->begin() + preamble_size + m_raw_package_data_size_length + package_size
+			m_buffer->begin() + preamble_size + encoded_size_len,
+			m_buffer->begin() + preamble_size + encoded_size_len + package_size
 		);
 		m_buffer->erase(
 			m_buffer->begin(),
-			m_buffer->begin() + preamble_size + m_raw_package_data_size_length + package_size
+			m_buffer->begin() + preamble_size + encoded_size_len + package_size
 		);
 		return std::optional<std::vector<char>>(package_data);
 	}
@@ -78,7 +75,8 @@ namespace ipc {
 			throw std::invalid_argument("invalid buffer ptr received");
 		}
 		const auto preamble_size = preamble.size();
-		while (buffer->size() >= preamble_size + m_raw_package_data_size_length) {
+		const auto encoded_size_len = m_size_parser.raw_data_size();
+		while (buffer->size() >= preamble_size + encoded_size_len) {
 			const auto incoming_preamble = std::vector<char>(
 				buffer->begin(),
 				buffer->begin() + preamble_size
