@@ -16,13 +16,13 @@ namespace ipc {
 			const std::vector<char>& preamble,
 			const std::size_t& raw_package_data_size_length
 		);
-		SizedPackageWriter(const SizedPackageWriter&) = delete;
-		SizedPackageWriter& operator=(const SizedPackageWriter&) = delete;
+		SizedPackageWriter(const SizedPackageWriter&) = default;
+		SizedPackageWriter& operator=(const SizedPackageWriter&) = default;
 		void write(const std::vector<char>& response) const override;
 	private:
-		const RawDataWriter m_raw_data_writer;
-		const std::vector<char> m_preamble;
-		const DefaultPackageSizeSerializer m_size_serializer;
+		RawDataWriter m_raw_data_writer;
+		std::vector<char> m_preamble;
+		DefaultPackageSizeSerializer m_size_serializer;
 	};
 
 	inline SizedPackageWriter::SizedPackageWriter(

@@ -17,13 +17,13 @@ namespace ipc {
 			const std::vector<char>& preamble,
 			const std::size_t& raw_package_data_size_length
 		);
-		SizedPackageReader(const SizedPackageReader&) = delete;
-		SizedPackageReader& operator=(const SizedPackageReader&) = delete;
+		SizedPackageReader(const SizedPackageReader&) = default;
+		SizedPackageReader& operator=(const SizedPackageReader&) = default;
 		std::optional<std::vector<char>> read() override;
 	private:
 		std::vector<char> *m_buffer;
-		const std::vector<char> m_preamble;
-		const DefaultPackageSizeParser m_size_parser;
+		std::vector<char> m_preamble;
+		DefaultPackageSizeParser m_size_parser;
 		
 		bool validate_preamble(std::vector<char> *buffer, const std::vector<char>& preamble);
 	};
