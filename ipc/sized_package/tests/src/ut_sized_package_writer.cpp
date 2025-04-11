@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "sized_package_writer.hpp"
-#include "sized_package_infra.hpp"
+#include "sized_package_common.hpp"
 
 using namespace ipc;
 
@@ -13,12 +13,13 @@ TEST(ut_sized_package_writer, ctor_dtor_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
+	const auto size_field_len = std::size_t(4UL);
 	
 	// WHEN
 	SizedPackageWriter *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new SizedPackageWriter([](const std::vector<char>&) {}, preamble));
+	ASSERT_NO_THROW(instance = new SizedPackageWriter([](const std::vector<char>&) {}, preamble, size_field_len));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -29,12 +30,13 @@ TEST(ut_sized_package_writer, read_sanity) {
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
 	const auto msg_str = std::string("test_msg");
 	const auto msg = std::vector<char>(msg_str.begin(), msg_str.end());
+	const auto size_field_len = std::size_t(4UL);
 	
 	// WHEN
 	auto instance = SizedPackageWriter(
-		[preamble, msg](const std::vector<char>& raw_data)  {
+		[preamble, msg, size_field_len](const std::vector<char>& raw_data)  {
 			ASSERT_EQ(
-				preamble.size() + sizeof(std::size_t) + msg.size(),
+				preamble.size() + size_field_len + msg.size(),
 				raw_data.size()
 			);
 			ASSERT_EQ(
@@ -45,21 +47,22 @@ TEST(ut_sized_package_writer, read_sanity) {
 				)
 			);
 			ASSERT_EQ(
-				SizedPackageInfra::encode_size(msg.size()),
+				DefaultPackageSizeSerializer(size_field_len).transform(msg.size()),
 				std::vector<char>(
 					raw_data.begin() + preamble.size(),
-					raw_data.begin() + preamble.size() + sizeof(std::size_t)
+					raw_data.begin() + preamble.size() + size_field_len
 				)
 			);
 			ASSERT_EQ(
 				msg,
 				std::vector<char>(
-					raw_data.begin() + preamble.size() + sizeof(std::size_t),
+					raw_data.begin() + preamble.size() + size_field_len,
 					raw_data.end()
 				)
 			);
 		},
-		preamble
+		preamble,
+		size_field_len
 	);
 
 	// THEN

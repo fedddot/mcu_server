@@ -1,12 +1,12 @@
-add_library(sized_package_infra INTERFACE)
-target_include_directories(sized_package_infra INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(sized_package_common INTERFACE)
+target_include_directories(sized_package_common INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(sized_package_reader INTERFACE)
 target_include_directories(sized_package_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(sized_package_reader INTERFACE request_reader sized_package_infra)
+target_link_libraries(sized_package_reader INTERFACE request_reader sized_package_common)
 
 add_library(sized_package_writer INTERFACE)
 target_include_directories(sized_package_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(sized_package_writer INTERFACE response_writer sized_package_infra)
+target_link_libraries(sized_package_writer INTERFACE response_writer sized_package_common)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

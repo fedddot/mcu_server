@@ -10,6 +10,6 @@ target_link_libraries(
 	PRIVATE
     sized_package_reader
 	sized_package_writer
-	sized_package_infra
+	sized_package_common
 	gtest
 )

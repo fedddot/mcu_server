@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "response_writer.hpp"
-#include "sized_package_infra.hpp"
+#include "sized_package_common.hpp"
 
 namespace ipc {
 	class SizedPackageWriter: public ResponseWriter<std::vector<char>> {
@@ -13,7 +13,8 @@ namespace ipc {
 		using RawDataWriter = std::function<void(const std::vector<char>&)>;
 		SizedPackageWriter(
 			const RawDataWriter& raw_data_writer,
-			const std::vector<char>& preamble
+			const std::vector<char>& preamble,
+			const std::size_t& raw_package_data_size_length
 		);
 		SizedPackageWriter(const SizedPackageWriter&) = delete;
 		SizedPackageWriter& operator=(const SizedPackageWriter&) = delete;
@@ -21,12 +22,14 @@ namespace ipc {
 	private:
 		const RawDataWriter m_raw_data_writer;
 		const std::vector<char> m_preamble;
+		const DefaultPackageSizeSerializer m_size_serializer;
 	};
 
 	inline SizedPackageWriter::SizedPackageWriter(
 		const RawDataWriter& raw_data_writer,
-		const std::vector<char>& preamble
-	): m_raw_data_writer(raw_data_writer), m_preamble(preamble) {
+		const std::vector<char>& preamble,
+		const std::size_t& raw_package_data_size_length
+	): m_raw_data_writer(raw_data_writer), m_preamble(preamble), m_size_serializer(raw_package_data_size_length) {
 		if (!m_raw_data_writer) {
 			throw std::invalid_argument("invalid raw data writer received");
 		}
@@ -36,7 +39,7 @@ namespace ipc {
 	}
 
 	inline void SizedPackageWriter::write(const std::vector<char>& response) const {
-		const auto encoded_size = SizedPackageInfra::encode_size(response.size());
+		const auto encoded_size = m_size_serializer.transform(response.size());
 		auto raw_data = std::vector<char>();
 		raw_data.insert(
 			raw_data.end(),

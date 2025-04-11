@@ -1,11 +1,12 @@
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "gtest/gtest.h"
 
+#include "sized_package_common.hpp"
 #include "sized_package_reader.hpp"
-#include "sized_package_infra.hpp"
 
 using namespace ipc;
 
@@ -13,13 +14,14 @@ TEST(ut_sized_package_reader, ctor_dtor_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
+	const auto size_field_len = std::size_t(4UL);
 	
 	// WHEN
 	auto buff = std::vector<char>();
 	SizedPackageReader *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new SizedPackageReader(&buff, preamble));
+	ASSERT_NO_THROW(instance = new SizedPackageReader(&buff, preamble, size_field_len));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -30,14 +32,15 @@ TEST(ut_sized_package_reader, read_sanity) {
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
 	const auto msg_str = std::string("test_msg");
 	const auto msg = std::vector<char>(msg_str.begin(), msg_str.end());
-	const auto msg_size_encoded = SizedPackageInfra::encode_size(msg.size());
+	const auto size_field_len = std::size_t(4UL);
+	const auto msg_size_encoded = DefaultPackageSizeSerializer(size_field_len).transform(msg.size());
 	const auto junk_before_str = std::string("junk");
 	const auto junk_before = std::vector<char>(junk_before_str.begin(), junk_before_str.end());
 	
 	// WHEN
 	auto buff = std::vector<char>();
 
-	auto instance = SizedPackageReader(&buff, preamble);
+	auto instance = SizedPackageReader(&buff, preamble, size_field_len);
 	auto result = std::optional<std::vector<char>>();
 
 	// THEN
