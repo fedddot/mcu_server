@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM cmake:bookworm
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -8,9 +8,8 @@ RUN apt-get install -y git
 RUN apt-get install -y wget
 RUN apt-get install -y libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev
 RUN apt-get install -y libwebsocketpp-dev
-RUN apt-get install -y python3 python3-pip && pip3 install protobuf grpcio-tools
+RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y libcpprest-dev
-RUN apt-get install -y protobuf-compiler
 
 RUN apt-get install -y lsb-release gnupg software-properties-common
 RUN apt-get install -y locales
@@ -20,15 +19,6 @@ ENV LANG=en_US.utf8
 ENV LC_ALL=en_US.utf8
 
 ARG TARGETPLATFORM=x86_64
-
-WORKDIR /usr/app/external/cmake
-ARG CMAKE_VERSION=3.31.4
-ARG CMAKE_PLATFORM=linux-${TARGETPLATFORM}
-RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh
-RUN chmod +x cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh
-RUN echo "y" | sh cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}.sh --prefix=/usr
-ENV PATH=${PATH}:/usr/cmake-${CMAKE_VERSION}-${CMAKE_PLATFORM}/bin
-
 
 WORKDIR /usr/app/external/llvm
 RUN wget https://apt.llvm.org/llvm.sh
