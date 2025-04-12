@@ -4,21 +4,26 @@
 #include <functional>
 #include <optional>
 
+#include "clonable_ipc_data_reader.hpp"
 #include "ipc_data_reader.hpp"
 
 namespace ipc {
-	template <typename Request>
-	class TestRequestReader: public IpcDataReader<Request> {
+	template <typename IpcData>
+	class TestIpcDataReader: public ClonableIpcDataReader<IpcData> {
 	public:
-		using Action = std::function<std::optional<Request>(void)>;
-		TestRequestReader(const Action& action): m_action(action) {
+		using Action = std::function<std::optional<IpcData>(void)>;
+		TestIpcDataReader(const Action& action): m_action(action) {
 			
 		}
-		TestRequestReader(const TestRequestReader&) = default;
-		TestRequestReader& operator=(const TestRequestReader&) = default;
+		TestIpcDataReader(const TestIpcDataReader&) = default;
+		TestIpcDataReader& operator=(const TestIpcDataReader&) = default;
 		
-		std::optional<Request> read() override {
+		std::optional<IpcData> read() override {
 			return m_action();
+		}
+
+		IpcDataReader<IpcData> *clone() const {
+			return new TestIpcDataReader(*this);
 		}
 	private:
 		Action m_action;

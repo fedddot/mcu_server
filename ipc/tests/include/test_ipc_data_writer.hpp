@@ -1,22 +1,28 @@
 #ifndef	TEST_RESPONSE_WRITER_HPP
 #define	TEST_RESPONSE_WRITER_HPP
 
-#include "ipc_data_writer.hpp"
 #include <functional>
 
+#include "clonable_ipc_data_writer.hpp"
+#include "ipc_data_writer.hpp"
+
 namespace ipc {
-	template <typename Response>
-	class TestResponseWriter: public IpcDataWriter<Response> {
+	template <typename IpcData>
+	class TestIpcDataWriter: public ClonableIpcDataWriter<IpcData> {
 	public:
-		using Action = std::function<void(const Response&)>;
-		TestResponseWriter(const Action& action): m_action(action) {
+		using Action = std::function<void(const IpcData&)>;
+		TestIpcDataWriter(const Action& action): m_action(action) {
 			
 		}
-		TestResponseWriter(const TestResponseWriter&) = default;
-		TestResponseWriter& operator=(const TestResponseWriter&) = default;
+		TestIpcDataWriter(const TestIpcDataWriter&) = default;
+		TestIpcDataWriter& operator=(const TestIpcDataWriter&) = default;
 
-		void write(const Response& response) const override {
+		void write(const IpcData& response) const override {
 			m_action(response);
+		}
+
+		IpcDataWriter<IpcData> *clone() const {
+			return new TestIpcDataWriter(*this);
 		}
 	private:
 		Action m_action;
