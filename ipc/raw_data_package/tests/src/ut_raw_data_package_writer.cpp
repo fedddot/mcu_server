@@ -16,10 +16,10 @@ TEST(ut_raw_data_package_writer, ctor_dtor_sanity) {
 	const auto size_field_len = std::size_t(4UL);
 	
 	// WHEN
-	SizedPackageWriter *instance = nullptr;
+	RawDataPackageWriter *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new SizedPackageWriter([](const std::vector<char>&) {}, preamble, size_field_len));
+	ASSERT_NO_THROW(instance = new RawDataPackageWriter([](const std::vector<char>&) {}, preamble, size_field_len));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -33,7 +33,7 @@ TEST(ut_raw_data_package_writer, read_sanity) {
 	const auto size_field_len = std::size_t(4UL);
 	
 	// WHEN
-	auto instance = SizedPackageWriter(
+	auto instance = RawDataPackageWriter(
 		[preamble, msg, size_field_len](const std::vector<char>& raw_data)  {
 			ASSERT_EQ(
 				preamble.size() + size_field_len + msg.size(),

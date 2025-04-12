@@ -10,15 +10,15 @@
 #include "raw_data_package_common.hpp"
 
 namespace ipc {
-	class SizedPackageReader: public IpcDataReader<std::vector<char>> {
+	class RawDataPackageReader: public IpcDataReader<std::vector<char>> {
 	public:
-		SizedPackageReader(
+		RawDataPackageReader(
 			std::vector<char> *buffer,
 			const std::vector<char>& preamble,
 			const std::size_t& raw_package_data_size_length
 		);
-		SizedPackageReader(const SizedPackageReader&) = default;
-		SizedPackageReader& operator=(const SizedPackageReader&) = default;
+		RawDataPackageReader(const RawDataPackageReader&) = default;
+		RawDataPackageReader& operator=(const RawDataPackageReader&) = default;
 		std::optional<std::vector<char>> read() override;
 	private:
 		std::vector<char> *m_buffer;
@@ -28,7 +28,7 @@ namespace ipc {
 		bool validate_preamble(std::vector<char> *buffer, const std::vector<char>& preamble);
 	};
 
-	inline SizedPackageReader::SizedPackageReader(
+	inline RawDataPackageReader::RawDataPackageReader(
 		std::vector<char> *buffer,
 		const std::vector<char>& preamble,
 		const std::size_t& raw_package_data_size_length
@@ -44,7 +44,7 @@ namespace ipc {
 		}
 	}
 
-	inline std::optional<std::vector<char>> SizedPackageReader::read() {
+	inline std::optional<std::vector<char>> RawDataPackageReader::read() {
 		const auto preamble_size = m_preamble.size();
 		const auto encoded_size_len = m_size_parser.raw_data_size();
 		if (!validate_preamble(m_buffer, m_preamble)) {
@@ -70,7 +70,7 @@ namespace ipc {
 		return std::optional<std::vector<char>>(package_data);
 	}
 
-	inline bool SizedPackageReader::validate_preamble(std::vector<char> *buffer, const std::vector<char>& preamble) {
+	inline bool RawDataPackageReader::validate_preamble(std::vector<char> *buffer, const std::vector<char>& preamble) {
 		if (!buffer) {
 			throw std::invalid_argument("invalid buffer ptr received");
 		}

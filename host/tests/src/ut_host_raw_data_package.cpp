@@ -36,11 +36,11 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 	auto buff = std::vector<char>();
 	auto response_data_option = std::optional<std::vector<char>>();
 	auto response_data_option_ptr = &response_data_option;
-	auto ipc_data_reader = SizedPackageReader(
+	auto ipc_data_reader = RawDataPackageReader(
 		&buff,
 		preamble
 	);
-	auto ipc_data_writer = SizedPackageWriter(
+	auto ipc_data_writer = RawDataPackageWriter(
 		[response_data_option_ptr](const std::vector<char>& response_raw) {
 			*response_data_option_ptr = response_raw;
 		},

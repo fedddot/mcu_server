@@ -18,10 +18,10 @@ TEST(ut_raw_data_package_reader, ctor_dtor_sanity) {
 	
 	// WHEN
 	auto buff = std::vector<char>();
-	SizedPackageReader *instance = nullptr;
+	RawDataPackageReader *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new SizedPackageReader(&buff, preamble, size_field_len));
+	ASSERT_NO_THROW(instance = new RawDataPackageReader(&buff, preamble, size_field_len));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -40,7 +40,7 @@ TEST(ut_raw_data_package_reader, read_sanity) {
 	// WHEN
 	auto buff = std::vector<char>();
 
-	auto instance = SizedPackageReader(&buff, preamble, size_field_len);
+	auto instance = RawDataPackageReader(&buff, preamble, size_field_len);
 	auto result = std::optional<std::vector<char>>();
 
 	// THEN

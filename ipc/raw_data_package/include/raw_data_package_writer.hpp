@@ -8,16 +8,16 @@
 #include "raw_data_package_common.hpp"
 
 namespace ipc {
-	class SizedPackageWriter: public IpcDataWriter<std::vector<char>> {
+	class RawDataPackageWriter: public IpcDataWriter<std::vector<char>> {
 	public:
 		using RawDataWriter = std::function<void(const std::vector<char>&)>;
-		SizedPackageWriter(
+		RawDataPackageWriter(
 			const RawDataWriter& raw_data_writer,
 			const std::vector<char>& preamble,
 			const std::size_t& raw_package_data_size_length
 		);
-		SizedPackageWriter(const SizedPackageWriter&) = default;
-		SizedPackageWriter& operator=(const SizedPackageWriter&) = default;
+		RawDataPackageWriter(const RawDataPackageWriter&) = default;
+		RawDataPackageWriter& operator=(const RawDataPackageWriter&) = default;
 		void write(const std::vector<char>& response) const override;
 	private:
 		RawDataWriter m_raw_data_writer;
@@ -25,7 +25,7 @@ namespace ipc {
 		DefaultPackageSizeSerializer m_size_serializer;
 	};
 
-	inline SizedPackageWriter::SizedPackageWriter(
+	inline RawDataPackageWriter::RawDataPackageWriter(
 		const RawDataWriter& raw_data_writer,
 		const std::vector<char>& preamble,
 		const std::size_t& raw_package_data_size_length
@@ -38,7 +38,7 @@ namespace ipc {
 		}
 	}
 
-	inline void SizedPackageWriter::write(const std::vector<char>& response) const {
+	inline void RawDataPackageWriter::write(const std::vector<char>& response) const {
 		const auto encoded_size = m_size_serializer.transform(response.size());
 		auto raw_data = std::vector<char>();
 		raw_data.insert(
