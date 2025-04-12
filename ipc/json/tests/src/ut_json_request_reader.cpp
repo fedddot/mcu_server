@@ -5,8 +5,8 @@
 #include "gtest/gtest.h"
 // #include "json/value.h"
 
-#include "json_request_reader.hpp"
-#include "request_reader.hpp"
+#include "json_ipc_data_reader.hpp"
+#include "ipc_data_reader.hpp"
 
 using namespace ipc;
 
@@ -28,7 +28,7 @@ private:
 	std::optional<std::vector<char>> m_data_option;
 };
 
-TEST(ut_json_request_reader, ctor_dtor_sanity) {
+TEST(ut_json_ipc_data_reader, ctor_dtor_sanity) {
 	// GIVEN
 	const auto raw_data_reader = SharedRequestReader<std::vector<char>>(new TestRawReader());
 	
@@ -50,7 +50,7 @@ TEST(ut_json_request_reader, ctor_dtor_sanity) {
 
 static std::vector<char> serialize_request(const TestRequest& request);
 
-TEST(ut_json_request_reader, read_sanity) {
+TEST(ut_json_ipc_data_reader, read_sanity) {
 	// GIVEN
 	const auto request = TestRequest("request");
 	const auto request_json_raw = serialize_request(request);

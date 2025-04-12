@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "request_reader.hpp"
+#include "ipc_data_reader.hpp"
 #include "sized_package_common.hpp"
 
 namespace ipc {

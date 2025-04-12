@@ -5,7 +5,7 @@
 #include <optional>
 #include <stdexcept>
 
-#include "request_reader.hpp"
+#include "ipc_data_reader.hpp"
 
 namespace ipc {
 	template <typename IpcData>

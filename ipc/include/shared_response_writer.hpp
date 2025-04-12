@@ -4,7 +4,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "response_writer.hpp"
+#include "ipc_data_writer.hpp"
 
 namespace ipc {
 	template <typename IpcData>

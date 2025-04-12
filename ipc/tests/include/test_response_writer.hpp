@@ -1,7 +1,7 @@
 #ifndef	TEST_RESPONSE_WRITER_HPP
 #define	TEST_RESPONSE_WRITER_HPP
 
-#include "response_writer.hpp"
+#include "ipc_data_writer.hpp"
 #include <functional>
 
 namespace ipc {

@@ -1,12 +1,12 @@
 #include "gtest/gtest.h"
 
-#include "json_response_writer.hpp"
+#include "json_ipc_data_writer.hpp"
 
 using namespace ipc;
 
 using TestResponse = int;
 
-TEST(ut_json_response_writer, ctor_dtor_sanity) {
+TEST(ut_json_ipc_data_writer, ctor_dtor_sanity) {
 	// GIVEN
 	
 	// WHEN
@@ -18,7 +18,7 @@ TEST(ut_json_response_writer, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-TEST(ut_json_response_writer, write_sanity) {
+TEST(ut_json_ipc_data_writer, write_sanity) {
 	// GIVEN
 	const auto response = TestResponse(4);
 	

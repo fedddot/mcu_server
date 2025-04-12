@@ -1,7 +1,7 @@
 #ifndef	PB_RESPONSE_WRITER_HPP
 #define	PB_RESPONSE_WRITER_HPP
 
-#include "response_writer.hpp"
+#include "ipc_data_writer.hpp"
 
 namespace ipc {
 	template <typename Response>

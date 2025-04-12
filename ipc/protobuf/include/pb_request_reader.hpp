@@ -8,7 +8,7 @@
 #include "pb.h"
 
 #include "pb_decode.h"
-#include "request_reader.hpp"
+#include "ipc_data_reader.hpp"
 
 namespace ipc {
 	template <typename Request>

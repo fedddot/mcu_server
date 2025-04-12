@@ -37,11 +37,11 @@ TEST(ut_host_sized_packages, run_once_sanity) {
 	auto buff = std::vector<char>();
 	auto response_data_option = std::optional<std::vector<char>>();
 	auto response_data_option_ptr = &response_data_option;
-	auto request_reader = SizedPackageReader(
+	auto ipc_data_reader = SizedPackageReader(
 		&buff,
 		preamble
 	);
-	auto response_writer = SizedPackageWriter(
+	auto ipc_data_writer = SizedPackageWriter(
 		[response_data_option_ptr](const std::vector<char>& response_raw) {
 			*response_data_option_ptr = response_raw;
 		},
@@ -53,8 +53,8 @@ TEST(ut_host_sized_packages, run_once_sanity) {
 		}
 	);
 	TestHost instance(
-		&request_reader,
-		&response_writer,
+		&ipc_data_reader,
+		&ipc_data_writer,
 		&manager,
 		[](const std::exception& e) -> Response {
 			const auto e_str = std::string(e.what());

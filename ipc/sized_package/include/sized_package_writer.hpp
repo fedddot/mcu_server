@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-#include "response_writer.hpp"
+#include "ipc_data_writer.hpp"
 #include "sized_package_common.hpp"
 
 namespace ipc {
