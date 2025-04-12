@@ -1,5 +1,5 @@
-#ifndef	SIZED_PACKAGE_READER_HPP
-#define	SIZED_PACKAGE_READER_HPP
+#ifndef	RAW_DATA_PACKAGE_READER_HPP
+#define	RAW_DATA_PACKAGE_READER_HPP
 
 #include <cstddef>
 #include <optional>
@@ -90,4 +90,4 @@ namespace ipc {
 	}
 }
 
-#endif // SIZED_PACKAGE_READER_HPP
+#endif // RAW_DATA_PACKAGE_READER_HPP

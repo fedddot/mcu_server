@@ -28,7 +28,7 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 	const auto expected_response_str = std::string("expected_response");
 	const auto expected_response = std::vector<char>(expected_response_str.begin(), expected_response_str.end());
 	const auto test_request = Request {'a', 'b', 'c'};
-	const auto test_request_size_encoded = SizedPackageInfra::encode_size(test_request.size());
+	// const auto test_request_size_encoded = RawDataPackageInfra::encode_size(test_request.size());
 	const auto junk_before_str = std::string("junk");
 	const auto junk_before = std::vector<char>(junk_before_str.begin(), junk_before_str.end());
 	

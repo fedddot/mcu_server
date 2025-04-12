@@ -1,5 +1,5 @@
-#ifndef	JSON_REQUEST_READER_HPP
-#define	JSON_REQUEST_READER_HPP
+#ifndef	JSON_IPC_DATA_READER_HPP
+#define	JSON_IPC_DATA_READER_HPP
 
 #include <functional>
 #include <optional>
@@ -10,49 +10,52 @@
 #include "json/value.h"
 
 #include "ipc_data_reader.hpp"
+#include "shared_ipc_data_reader.hpp"
 
 namespace ipc {
-	template <typename Request>
-	class JsonIpcDataReader: public IpcDataReader<Request> {
+	template <typename IpcData>
+	class JsonIpcDataReader: public IpcDataReader<IpcData> {
 	public:
-		using RequestParser = std::function<Request(const Json::Value&)>;
+		using RawData = std::vector<char>;
+		using IpcDataParserFromJsonData = std::function<IpcData(const Json::Value&)>;
+		
 		JsonIpcDataReader(
-			const SharedIpcDataReader<std::vector<char>>& raw_data_reader,
-			const RequestParser& request_parser
+			const SharedIpcDataReader<RawData>& raw_data_reader,
+			const IpcDataParserFromJsonData& request_parser
 		);
 		JsonIpcDataReader(const JsonIpcDataReader&) = delete;
 		JsonIpcDataReader& operator=(const JsonIpcDataReader&) = delete;
-		std::optional<Request> read() override;
+		std::optional<IpcData> read() override;
 	private:
-		SharedIpcDataReader<std::vector<char>> m_raw_data_reader;
-		const RequestParser m_request_parser;
+		SharedIpcDataReader<RawData> m_raw_data_reader;
+		const IpcDataParserFromJsonData m_request_parser;
 
-		static Json::Value parse_raw_data(const std::vector<char>& data);
+		static Json::Value parse_raw_data(const RawData& data);
 	};
 
-	template <typename Request>
-	inline JsonIpcDataReader<Request>::JsonIpcDataReader(
-		const SharedIpcDataReader<std::vector<char>>& raw_data_reader,
-		const RequestParser& request_parser
+	template <typename IpcData>
+	inline JsonIpcDataReader<IpcData>::JsonIpcDataReader(
+		const SharedIpcDataReader<RawData>& raw_data_reader,
+		const IpcDataParserFromJsonData& request_parser
 	): m_raw_data_reader(raw_data_reader), m_request_parser(request_parser) {
 		if (!m_request_parser) {
 			throw std::invalid_argument("invalid request parser received");
 		}
 	}
 
-	template <typename Request>
-	inline std::optional<Request> JsonIpcDataReader<Request>::read() {
+	template <typename IpcData>
+	inline std::optional<IpcData> JsonIpcDataReader<IpcData>::read() {
 		const auto raw_data = m_raw_data_reader.read();
 		if (!raw_data) {
-			return std::optional<Request>();
+			return std::optional<IpcData>();
 		}
 		const auto json_data = parse_raw_data(*raw_data);
 		const auto parsed_request = m_request_parser(json_data);
-		return std::optional<Request>(parsed_request);
+		return std::optional<IpcData>(parsed_request);
 	}
 
-	template <typename Request>
-	Json::Value JsonIpcDataReader<Request>::parse_raw_data(const std::vector<char>& data) {
+	template <typename IpcData>
+	Json::Value JsonIpcDataReader<IpcData>::parse_raw_data(const RawData& data) {
 		Json::Value root;
 	    Json::Reader reader;
 		if (!reader.parse(std::string(data.begin(), data.end()), std::ref(root), true)) {
@@ -62,4 +65,4 @@ namespace ipc {
 	}
 }
 
-#endif // JSON_REQUEST_READER_HPP
+#endif // JSON_IPC_DATA_READER_HPP

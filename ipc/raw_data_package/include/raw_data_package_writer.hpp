@@ -1,5 +1,5 @@
-#ifndef	SIZED_PACKAGE_WRITER_HPP
-#define	SIZED_PACKAGE_WRITER_HPP
+#ifndef	RAW_DATA_PACKAGE_WRITER_HPP
+#define	RAW_DATA_PACKAGE_WRITER_HPP
 
 #include <functional>
 #include <vector>
@@ -60,4 +60,4 @@ namespace ipc {
 	}
 }
 
-#endif // SIZED_PACKAGE_WRITER_HPP
+#endif // RAW_DATA_PACKAGE_WRITER_HPP
