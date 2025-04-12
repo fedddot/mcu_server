@@ -22,7 +22,7 @@ namespace ipc {
 			return m_action();
 		}
 
-		IpcDataReader<IpcData> *clone() const {
+		IpcDataReader<IpcData> *clone() const override {
 			return new TestIpcDataReader(*this);
 		}
 	private:
