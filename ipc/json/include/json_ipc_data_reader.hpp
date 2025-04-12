@@ -17,14 +17,14 @@ namespace ipc {
 	public:
 		using RequestParser = std::function<Request(const Json::Value&)>;
 		JsonIpcDataReader(
-			const SharedRequestReader<std::vector<char>>& raw_data_reader,
+			const SharedIpcDataReader<std::vector<char>>& raw_data_reader,
 			const RequestParser& request_parser
 		);
 		JsonIpcDataReader(const JsonIpcDataReader&) = delete;
 		JsonIpcDataReader& operator=(const JsonIpcDataReader&) = delete;
 		std::optional<Request> read() override;
 	private:
-		SharedRequestReader<std::vector<char>> m_raw_data_reader;
+		SharedIpcDataReader<std::vector<char>> m_raw_data_reader;
 		const RequestParser m_request_parser;
 
 		static Json::Value parse_raw_data(const std::vector<char>& data);
@@ -32,7 +32,7 @@ namespace ipc {
 
 	template <typename Request>
 	inline JsonIpcDataReader<Request>::JsonIpcDataReader(
-		const SharedRequestReader<std::vector<char>>& raw_data_reader,
+		const SharedIpcDataReader<std::vector<char>>& raw_data_reader,
 		const RequestParser& request_parser
 	): m_raw_data_reader(raw_data_reader), m_request_parser(request_parser) {
 		if (!m_request_parser) {
