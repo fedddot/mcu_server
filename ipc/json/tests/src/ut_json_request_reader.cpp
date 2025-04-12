@@ -12,7 +12,7 @@ using namespace ipc;
 
 using TestRequest = std::string;
 
-class TestRawReader: public RequestReader<std::vector<char>> {
+class TestRawReader: public IpcDataReader<std::vector<char>> {
 public:
 	TestRawReader() = default;
 	TestRawReader(const TestRawReader&) = default;

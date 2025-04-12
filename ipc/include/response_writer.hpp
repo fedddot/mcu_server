@@ -1,5 +1,5 @@
-#ifndef	RESPONSE_WRITER_HPP
-#define	RESPONSE_WRITER_HPP
+#ifndef	IPC_DATA_WRITER_HPP
+#define	IPC_DATA_WRITER_HPP
 
 namespace ipc {
 	/// @brief Synchronous IPC Responses Writer
@@ -13,4 +13,4 @@ namespace ipc {
 	};
 }
 
-#endif // RESPONSE_WRITER_HPP
+#endif // IPC_DATA_WRITER_HPP

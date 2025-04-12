@@ -12,7 +12,7 @@
 
 namespace ipc {
 	template <typename Request>
-	class ProtobufRequestReader: public RequestReader<Request> {
+	class ProtobufRequestReader: public IpcDataReader<Request> {
 	public:
 		using InitialRequestCreator = std::function<Request()>;
 		ProtobufRequestReader(

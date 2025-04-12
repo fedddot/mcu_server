@@ -15,7 +15,7 @@ namespace host {
 	public:
 		using FailureReporter = std::function<Response(const std::exception&)>;
 		Host(
-			ipc::RequestReader<Request> *request_reader,
+			ipc::IpcDataReader<Request> *request_reader,
 			ipc::ResponseWriter<Response> *response_writer,
 			manager::Manager<Request, Response> *manager,
 			const FailureReporter& failure_reporter
@@ -26,7 +26,7 @@ namespace host {
 		
 		void run_once();
 	private:
-		ipc::RequestReader<Request> *m_request_reader;
+		ipc::IpcDataReader<Request> *m_request_reader;
 		ipc::ResponseWriter<Response> *m_response_writer;
 		manager::Manager<Request, Response> *m_manager;
 		const FailureReporter m_failure_reporter;
@@ -35,7 +35,7 @@ namespace host {
 
 	template <typename Request, typename Response>
 	inline Host<Request, Response>::Host(
-		ipc::RequestReader<Request> *request_reader,
+		ipc::IpcDataReader<Request> *request_reader,
 		ipc::ResponseWriter<Response> *response_writer,
 		manager::Manager<Request, Response> *manager,
 		const FailureReporter& failure_reporter

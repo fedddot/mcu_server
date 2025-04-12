@@ -8,7 +8,7 @@
 
 namespace ipc {
 	template <typename Request>
-	class TestRequestReader: public RequestReader<Request> {
+	class TestRequestReader: public IpcDataReader<Request> {
 	public:
 		using Action = std::function<std::optional<Request>(void)>;
 		TestRequestReader(const Action& action): m_action(action) {

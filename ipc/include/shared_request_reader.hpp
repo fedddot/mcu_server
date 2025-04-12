@@ -9,19 +9,19 @@
 
 namespace ipc {
 	template <typename Request>
-	class SharedRequestReader: public RequestReader<Request> {
+	class SharedRequestReader: public IpcDataReader<Request> {
 	public:
-		SharedRequestReader(RequestReader<Request> *instance_ptr);
+		SharedRequestReader(IpcDataReader<Request> *instance_ptr);
 		SharedRequestReader(const SharedRequestReader&) = default;
 		SharedRequestReader& operator=(const SharedRequestReader&) = default;
 
 		std::optional<Request> read() override;
 	private:
-		std::shared_ptr<RequestReader<Request>> m_instance_ptr;
+		std::shared_ptr<IpcDataReader<Request>> m_instance_ptr;
 	};
 
 	template <typename Request>
-	inline SharedRequestReader<Request>::SharedRequestReader(RequestReader<Request> *instance_ptr): m_instance_ptr(instance_ptr) {
+	inline SharedRequestReader<Request>::SharedRequestReader(IpcDataReader<Request> *instance_ptr): m_instance_ptr(instance_ptr) {
 		if (!m_instance_ptr) {
 			throw std::invalid_argument("invalid instance ptr received");
 		}

@@ -10,7 +10,7 @@
 #include "sized_package_common.hpp"
 
 namespace ipc {
-	class SizedPackageReader: public RequestReader<std::vector<char>> {
+	class SizedPackageReader: public IpcDataReader<std::vector<char>> {
 	public:
 		SizedPackageReader(
 			std::vector<char> *buffer,

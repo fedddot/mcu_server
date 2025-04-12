@@ -13,7 +13,7 @@
 
 namespace ipc {
 	template <typename Request>
-	class JsonRequestReader: public RequestReader<Request> {
+	class JsonRequestReader: public IpcDataReader<Request> {
 	public:
 		using RequestParser = std::function<Request(const Json::Value&)>;
 		JsonRequestReader(
