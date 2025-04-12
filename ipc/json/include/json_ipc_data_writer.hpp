@@ -1,12 +1,12 @@
 #ifndef	JSON_RESPONSE_WRITER_HPP
 #define	JSON_RESPONSE_WRITER_HPP
 
-#include "json/writer.h"
 #include <functional>
 #include <stdexcept>
 #include <vector>
 
 #include "json/value.h"
+#include "json/writer.h"
 
 #include "ipc_data_writer.hpp"
 #include "clonable_ipc_data_writer.hpp"
