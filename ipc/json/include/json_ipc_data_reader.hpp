@@ -24,8 +24,8 @@ namespace ipc {
 			const ClonableIpcDataReader<RawData>& raw_data_reader,
 			const IpcDataParserFromJsonData& ipc_data_parser
 		);
-		JsonIpcDataReader(const JsonIpcDataReader&) = delete;
-		JsonIpcDataReader& operator=(const JsonIpcDataReader&) = delete;
+		JsonIpcDataReader(const JsonIpcDataReader&) = default;
+		JsonIpcDataReader& operator=(const JsonIpcDataReader&) = default;
 		std::optional<IpcData> read() override;
 		IpcDataReader<IpcData> *clone() const override;
 	private:
