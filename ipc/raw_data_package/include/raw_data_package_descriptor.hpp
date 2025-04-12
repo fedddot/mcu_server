@@ -1,5 +1,5 @@
-#ifndef	RAW_DATA_PACKAGE_COMMON_HPP
-#define	RAW_DATA_PACKAGE_COMMON_HPP
+#ifndef	RAW_DATA_PACKAGE_DESCRIPTOR_HPP
+#define	RAW_DATA_PACKAGE_DESCRIPTOR_HPP
 
 #include <cstddef>
 #include <stdexcept>
@@ -83,4 +83,4 @@ namespace ipc {
 	}
 }
 
-#endif // RAW_DATA_PACKAGE_COMMON_HPP
+#endif // RAW_DATA_PACKAGE_DESCRIPTOR_HPP

@@ -6,20 +6,22 @@
 #include <stdexcept>
 #include <vector>
 
+#include "clonable_ipc_data_reader.hpp"
 #include "ipc_data_reader.hpp"
-#include "raw_data_package_common.hpp"
+#include "raw_data_package_descriptor.hpp"
 
 namespace ipc {
-	class RawDataPackageReader: public IpcDataReader<std::vector<char>> {
+	class RawDataPackageReader: public ClonableIpcDataReader<std::vector<char>> {
 	public:
 		RawDataPackageReader(
 			std::vector<char> *buffer,
 			const std::vector<char>& preamble,
-			const std::size_t& raw_package_data_size_length
+			const std::size_t& encoded_package_size_len
 		);
 		RawDataPackageReader(const RawDataPackageReader&) = default;
 		RawDataPackageReader& operator=(const RawDataPackageReader&) = default;
 		std::optional<std::vector<char>> read() override;
+		IpcDataReader<std::vector<char>> *clone() const override;
 	private:
 		std::vector<char> *m_buffer;
 		std::vector<char> m_preamble;
@@ -31,10 +33,10 @@ namespace ipc {
 	inline RawDataPackageReader::RawDataPackageReader(
 		std::vector<char> *buffer,
 		const std::vector<char>& preamble,
-		const std::size_t& raw_package_data_size_length
+		const std::size_t& encoded_package_size_len
 	):
 		m_buffer(buffer), m_preamble(preamble),
-		m_size_parser(raw_package_data_size_length) {
+		m_size_parser(encoded_package_size_len) {
 		
 		if (!m_buffer) {
 			throw std::invalid_argument("invalid buffer ptr received");

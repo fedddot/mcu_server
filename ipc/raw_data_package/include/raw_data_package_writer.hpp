@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "ipc_data_writer.hpp"
-#include "raw_data_package_common.hpp"
+#include "raw_data_package_descriptor.hpp"
 
 namespace ipc {
 	class RawDataPackageWriter: public IpcDataWriter<std::vector<char>> {
@@ -14,7 +14,7 @@ namespace ipc {
 		RawDataPackageWriter(
 			const RawDataWriter& raw_data_writer,
 			const std::vector<char>& preamble,
-			const std::size_t& raw_package_data_size_length
+			const std::size_t& encoded_package_size_len
 		);
 		RawDataPackageWriter(const RawDataPackageWriter&) = default;
 		RawDataPackageWriter& operator=(const RawDataPackageWriter&) = default;
@@ -28,8 +28,8 @@ namespace ipc {
 	inline RawDataPackageWriter::RawDataPackageWriter(
 		const RawDataWriter& raw_data_writer,
 		const std::vector<char>& preamble,
-		const std::size_t& raw_package_data_size_length
-	): m_raw_data_writer(raw_data_writer), m_preamble(preamble), m_size_serializer(raw_package_data_size_length) {
+		const std::size_t& encoded_package_size_len
+	): m_raw_data_writer(raw_data_writer), m_preamble(preamble), m_size_serializer(encoded_package_size_len) {
 		if (!m_raw_data_writer) {
 			throw std::invalid_argument("invalid raw data writer received");
 		}

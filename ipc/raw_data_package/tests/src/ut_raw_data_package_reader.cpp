@@ -5,7 +5,7 @@
 
 #include "gtest/gtest.h"
 
-#include "raw_data_package_common.hpp"
+#include "raw_data_package_descriptor.hpp"
 #include "raw_data_package_reader.hpp"
 
 using namespace ipc;

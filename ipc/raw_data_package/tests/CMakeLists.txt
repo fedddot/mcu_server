@@ -10,6 +10,6 @@ target_link_libraries(
 	PRIVATE
     raw_data_package_reader
 	raw_data_package_writer
-	raw_data_package_common
+	raw_data_package_descriptor
 	gtest
 )
