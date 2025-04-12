@@ -4,28 +4,35 @@
 #include <stdexcept>
 
 #include "ipc_data_writer.hpp"
+#include "clonable_ipc_data_writer.hpp"
 
 namespace ipc {
-	template <typename Response>
-	class JsonIpcDataWriter: public IpcDataWriter<Response> {
+	template <typename IpcData>
+	class JsonIpcDataWriter: public ClonableIpcDataWriter<IpcData> {
 	public:
 		JsonIpcDataWriter(
 		);
-		JsonIpcDataWriter(const JsonIpcDataWriter&) = delete;
-		JsonIpcDataWriter& operator=(const JsonIpcDataWriter&) = delete;
-		void write(const Response& response) const override;
+		JsonIpcDataWriter(const JsonIpcDataWriter&) = default;
+		JsonIpcDataWriter& operator=(const JsonIpcDataWriter&) = default;
+		void write(const IpcData& response) const override;
+		IpcDataWriter<IpcData> *clone() const override;
 	private:
 	};
 
-	template <typename Response>
-	inline JsonIpcDataWriter<Response>::JsonIpcDataWriter(
+	template <typename IpcData>
+	inline JsonIpcDataWriter<IpcData>::JsonIpcDataWriter(
 	) {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 
-	template <typename Response>
-	inline void JsonIpcDataWriter<Response>::write(const Response& response) const {
+	template <typename IpcData>
+	inline void JsonIpcDataWriter<IpcData>::write(const IpcData& response) const {
 		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	template <typename IpcData>
+	inline IpcDataWriter<IpcData> *JsonIpcDataWriter<IpcData>::clone() const {
+		return new JsonIpcDataWriter(*this);
 	}
 }
 
