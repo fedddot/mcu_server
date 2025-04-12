@@ -9,13 +9,19 @@ target_link_libraries(
 	host_tests
 	PRIVATE
     host
-    test_manager
+    json_ipc_data_reader
+    json_ipc_data_writer
+    raw_data_package_descriptor
+    raw_data_package_reader
+    raw_data_package_utils
+    raw_data_package_writer
+    shared_ipc_data_reader
+    shared_ipc_data_writer
 	test_ipc_data_reader
 	test_ipc_data_writer
-	raw_data_package_reader
-	raw_data_package_reader
-	raw_data_package_infra
+    test_manager
 
+	jsoncpp_static
 	gtest
 	cpprest
 )

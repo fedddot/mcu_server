@@ -21,7 +21,7 @@ namespace ipc {
 			m_action(response);
 		}
 
-		IpcDataWriter<IpcData> *clone() const {
+		IpcDataWriter<IpcData> *clone() const override {
 			return new TestIpcDataWriter(*this);
 		}
 	private:

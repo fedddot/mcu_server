@@ -23,17 +23,17 @@ using TestHost = Host<Request, Response>;
 
 TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	auto ipc_data_reader = TestRequestReader<Request>(
+	const auto ipc_data_reader = TestIpcDataReader<Request>(
 		[]()-> std::optional<Request> {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
-	auto ipc_data_writer = TestResponseWriter<Response>(
+	const auto ipc_data_writer = TestIpcDataWriter<Response>(
 		[](const Response&){
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
-	auto manager = TestManager<Request, Response>(
+	const auto manager = TestManager<Request, Response>(
 			[](const Request& request) {
 				std::cout << "received request: " << request;
 				return 0;
@@ -46,9 +46,9 @@ TEST(ut_host, ctor_dtor_sanity) {
 	// THEN:
 	ASSERT_NO_THROW(
 		instance = new TestHost(
-			&ipc_data_reader,
-			&ipc_data_writer,
-			&manager,
+			ipc_data_reader,
+			ipc_data_writer,
+			manager,
 			[](const std::exception& e) -> Response {
 				return Response(-1);
 			}
@@ -57,4 +57,40 @@ TEST(ut_host, ctor_dtor_sanity) {
 	
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
+}
+
+TEST(ut_host, run_once_sanity) {
+	// GIVEN
+	const auto test_request = Request("test_request");
+	const auto expected_response = Response(4);
+	const auto ipc_data_reader = TestIpcDataReader<Request>(
+		[test_request]()-> std::optional<Request> {
+			return std::optional<Request>(test_request);
+		}
+	);
+	const auto ipc_data_writer = TestIpcDataWriter<Response>(
+		[expected_response](const Response& response){
+			ASSERT_EQ(expected_response, response);
+		}
+	);
+	const auto manager = TestManager<Request, Response>(
+		[expected_response](const Request& request) {
+			std::cout << "received request: " << request << std::endl;
+			std::cout << "returning response: " << expected_response << std::endl;
+			return expected_response;
+		}
+	);
+
+	// WHEN:
+	TestHost instance(
+		ipc_data_reader,
+		ipc_data_writer,
+		manager,
+		[](const std::exception& e) -> Response {
+			return Response(-1);
+		}	
+	);
+
+	// THEN:
+	ASSERT_NO_THROW(instance.run_once());
 }

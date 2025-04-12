@@ -3,11 +3,15 @@
 
 #include <exception>
 #include <functional>
+#include <memory>
 #include <stdexcept>
 
 #include "ipc_data_reader.hpp"
+#include "clonable_ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
+#include "clonable_ipc_data_writer.hpp"
 #include "manager.hpp"
+#include "clonable_manager.hpp"
 
 namespace host {
 	template <typename Request, typename Response>
@@ -15,9 +19,9 @@ namespace host {
 	public:
 		using FailureReporter = std::function<Response(const std::exception&)>;
 		Host(
-			ipc::IpcDataReader<Request> *ipc_data_reader,
-			ipc::IpcDataWriter<Response> *ipc_data_writer,
-			manager::Manager<Request, Response> *manager,
+			const ipc::ClonableIpcDataReader<Request>& ipc_data_reader,
+			const ipc::ClonableIpcDataWriter<Response>& ipc_data_writer,
+			const manager::ClonableManager<Request, Response>& manager,
 			const FailureReporter& failure_reporter
 		);
 		Host(const Host&) = delete;
@@ -26,22 +30,21 @@ namespace host {
 		
 		void run_once();
 	private:
-		ipc::IpcDataReader<Request> *m_ipc_data_reader;
-		ipc::IpcDataWriter<Response> *m_ipc_data_writer;
-		manager::Manager<Request, Response> *m_manager;
+		const std::unique_ptr<ipc::IpcDataReader<Request>> m_ipc_data_reader;
+		const std::unique_ptr<ipc::IpcDataWriter<Response>> m_ipc_data_writer;
+		const std::unique_ptr<manager::Manager<Request, Response>> m_manager;
 		const FailureReporter m_failure_reporter;
-		const FailureReporter m_m_failure_reporter;
 	};
 
 	template <typename Request, typename Response>
 	inline Host<Request, Response>::Host(
-		ipc::IpcDataReader<Request> *ipc_data_reader,
-		ipc::IpcDataWriter<Response> *ipc_data_writer,
-		manager::Manager<Request, Response> *manager,
+		const ipc::ClonableIpcDataReader<Request>& ipc_data_reader,
+		const ipc::ClonableIpcDataWriter<Response>& ipc_data_writer,
+		const manager::ClonableManager<Request, Response>& manager,
 		const FailureReporter& failure_reporter
-	): m_ipc_data_reader(ipc_data_reader), m_ipc_data_writer(ipc_data_writer), m_manager(manager), m_failure_reporter(failure_reporter) {
-		if (!m_ipc_data_reader || !m_ipc_data_writer || !m_manager || !m_failure_reporter) {
-			throw std::invalid_argument("invalid host args received");
+	): m_ipc_data_reader(ipc_data_reader.clone()), m_ipc_data_writer(ipc_data_writer.clone()), m_manager(manager.clone()), m_failure_reporter(failure_reporter) {
+		if (!m_failure_reporter) {
+			throw std::invalid_argument("invalid failure reporter received");
 		}
 	}
 
