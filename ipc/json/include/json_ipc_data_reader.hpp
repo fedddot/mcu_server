@@ -18,11 +18,11 @@ namespace ipc {
 	class JsonIpcDataReader: public ClonableIpcDataReader<IpcData> {
 	public:
 		using RawData = std::vector<char>;
-		using IpcDataParserFromJsonData = std::function<IpcData(const Json::Value&)>;
+		using JsonDataToIpcDataTransformer = std::function<IpcData(const Json::Value&)>;
 		
 		JsonIpcDataReader(
 			const ClonableIpcDataReader<RawData>& raw_data_reader,
-			const IpcDataParserFromJsonData& ipc_data_parser
+			const JsonDataToIpcDataTransformer& ipc_data_transformer
 		);
 		JsonIpcDataReader(const JsonIpcDataReader&) = default;
 		JsonIpcDataReader& operator=(const JsonIpcDataReader&) = default;
@@ -30,7 +30,7 @@ namespace ipc {
 		IpcDataReader<IpcData> *clone() const override;
 	private:
 		std::shared_ptr<IpcDataReader<RawData>> m_raw_data_reader;
-		const IpcDataParserFromJsonData m_ipc_data_parser;
+		const JsonDataToIpcDataTransformer m_ipc_data_transformer;
 
 		static Json::Value parse_raw_data(const RawData& data);
 	};
@@ -38,10 +38,10 @@ namespace ipc {
 	template <typename IpcData>
 	inline JsonIpcDataReader<IpcData>::JsonIpcDataReader(
 		const ClonableIpcDataReader<RawData>& raw_data_reader,
-		const IpcDataParserFromJsonData& ipc_data_parser
-	): m_raw_data_reader(raw_data_reader.clone()), m_ipc_data_parser(ipc_data_parser) {
-		if (!m_ipc_data_parser) {
-			throw std::invalid_argument("invalid ipc_data parser received");
+		const JsonDataToIpcDataTransformer& ipc_data_transformer
+	): m_raw_data_reader(raw_data_reader.clone()), m_ipc_data_transformer(ipc_data_transformer) {
+		if (!m_ipc_data_transformer) {
+			throw std::invalid_argument("invalid ipc data transformer received");
 		}
 	}
 
@@ -52,7 +52,7 @@ namespace ipc {
 			return std::optional<IpcData>();
 		}
 		const auto json_data = parse_raw_data(*raw_data);
-		const auto parsed_ipc_data = m_ipc_data_parser(json_data);
+		const auto parsed_ipc_data = m_ipc_data_transformer(json_data);
 		return std::optional<IpcData>(parsed_ipc_data);
 	}
 
