@@ -1,6 +1,7 @@
 #ifndef	JSON_RESPONSE_WRITER_HPP
 #define	JSON_RESPONSE_WRITER_HPP
 
+#include "json/writer.h"
 #include <functional>
 #include <stdexcept>
 #include <vector>
@@ -23,7 +24,7 @@ namespace ipc {
 		);
 		JsonIpcDataWriter(const JsonIpcDataWriter&) = default;
 		JsonIpcDataWriter& operator=(const JsonIpcDataWriter&) = default;
-		void write(const IpcData& response) const override;
+		void write(const IpcData& ipc_data) const override;
 		IpcDataWriter<IpcData> *clone() const override;
 	private:
 		std::shared_ptr<IpcDataWriter<RawData>> m_raw_data_writer;
@@ -41,8 +42,12 @@ namespace ipc {
 	}
 
 	template <typename IpcData>
-	inline void JsonIpcDataWriter<IpcData>::write(const IpcData& response) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
+	inline void JsonIpcDataWriter<IpcData>::write(const IpcData& ipc_data) const {
+		const auto json_val = m_ipc_data_transformer(ipc_data);
+		const auto writer_builder = Json::StreamWriterBuilder();
+		const auto serial_str = Json::writeString(writer_builder, json_val);
+		const auto raw_serial_data = RawData(serial_str.begin(), serial_str.end());
+		m_raw_data_writer->write(raw_serial_data);
 	}
 
 	template <typename IpcData>
