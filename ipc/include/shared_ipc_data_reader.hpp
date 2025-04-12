@@ -6,16 +6,18 @@
 #include <stdexcept>
 
 #include "ipc_data_reader.hpp"
+#include "clonable_ipc_data_reader.hpp"
 
 namespace ipc {
 	template <typename IpcData>
-	class SharedIpcDataReader: public IpcDataReader<IpcData> {
+	class SharedIpcDataReader: public ClonableIpcDataReader<IpcData> {
 	public:
 		SharedIpcDataReader(IpcDataReader<IpcData> *instance_ptr);
 		SharedIpcDataReader(const SharedIpcDataReader&) = default;
 		SharedIpcDataReader& operator=(const SharedIpcDataReader&) = default;
 
 		std::optional<IpcData> read() override;
+		IpcDataReader<IpcData> *clone() const override;
 	private:
 		std::shared_ptr<IpcDataReader<IpcData>> m_instance_ptr;
 	};
@@ -30,6 +32,11 @@ namespace ipc {
 	template <typename IpcData>
 	inline std::optional<IpcData> SharedIpcDataReader<IpcData>::read() {
 		return m_instance_ptr->read();
+	}
+
+	template <typename IpcData>
+	inline IpcDataReader<IpcData> *SharedIpcDataReader<IpcData>::clone() const {
+		return new SharedIpcDataReader(*this);
 	}
 }
 

@@ -7,7 +7,7 @@ target_link_libraries(clonable_ipc_data_reader INTERFACE ipc_data_reader)
 
 add_library(shared_ipc_data_reader INTERFACE)
 target_include_directories(shared_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(shared_ipc_data_reader INTERFACE ipc_data_reader)
+target_link_libraries(shared_ipc_data_reader INTERFACE clonable_ipc_data_reader ipc_data_reader)
 
 add_library(ipc_data_writer INTERFACE)
 target_include_directories(ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
@@ -18,7 +18,7 @@ target_link_libraries(clonable_ipc_data_writer INTERFACE ipc_data_writer)
 
 add_library(shared_ipc_data_writer INTERFACE)
 target_include_directories(shared_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(shared_ipc_data_writer INTERFACE ipc_data_writer)
+target_link_libraries(shared_ipc_data_writer INTERFACE clonable_ipc_data_writer ipc_data_writer)
 
 add_subdirectory(raw_data_package)
 add_subdirectory(json)
