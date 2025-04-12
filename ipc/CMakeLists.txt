@@ -1,8 +1,16 @@
 add_library(request_reader INTERFACE)
 target_include_directories(request_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(shared_request_reader INTERFACE)
+target_include_directories(shared_request_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(shared_request_reader INTERFACE request_reader)
+
 add_library(response_writer INTERFACE)
 target_include_directories(response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
+add_library(shared_response_writer INTERFACE)
+target_include_directories(shared_response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(shared_response_writer INTERFACE response_writer)
 
 add_subdirectory(protobuf)
 add_subdirectory(sized_package)
