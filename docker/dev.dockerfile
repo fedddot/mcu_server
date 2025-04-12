@@ -1,4 +1,4 @@
-FROM cmake:bookworm
+FROM kitware/cmake:build-sunos-sparc64-deps-2025-02-27
 
 ARG DEBIAN_FRONTEND=noninteractive
 
