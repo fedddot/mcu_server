@@ -1,12 +1,12 @@
 #include <cstddef>
 #include <optional>
-#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
 
 #include "raw_data_package_descriptor.hpp"
 #include "raw_data_package_reader.hpp"
+#include "raw_data_package_utils.hpp"
 
 using namespace ipc;
 
@@ -28,9 +28,7 @@ TEST(ut_raw_data_package_reader, ctor_dtor_sanity) {
 		instance = new RawDataPackageReader(
 			&buff,
 			descriptor,
-			[](const RawDataPackageDescriptor&, const RawData&) -> std::size_t {
-				throw std::runtime_error("NOT IMPLEMENTED");
-			}
+			parse_package_size
 		)
 	);
 	ASSERT_NO_THROW(delete instance);
@@ -46,14 +44,18 @@ TEST(ut_raw_data_package_reader, read_sanity) {
 
 	const auto msg_str = std::string("test_msg");
 	const auto msg = RawData(msg_str.begin(), msg_str.end());
-	const auto msg_size_encoded = DefaultPackageSizeSerializer(size_field_len).transform(msg.size());
+	const auto msg_size_encoded = serialize_package_size(descriptor, msg.size());
 	const auto junk_before_str = std::string("junk");
 	const auto junk_before = RawData(junk_before_str.begin(), junk_before_str.end());
 	
 	// WHEN
 	auto buff = RawData();
 
-	auto instance = RawDataPackageReader(&buff, preamble, size_field_len);
+	auto instance = RawDataPackageReader(
+		&buff,
+		descriptor,
+		parse_package_size
+	);
 	auto result = std::optional<RawData>();
 
 	// THEN
