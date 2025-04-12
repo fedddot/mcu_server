@@ -38,7 +38,7 @@ namespace ipc {
 		if (!m_raw_data_writer) {
 			throw std::invalid_argument("invalid raw data writer received");
 		}
-		if (m_size_serializer) {
+		if (!m_size_serializer) {
 			throw std::invalid_argument("invalid size serializer received");
 		}
 	}
