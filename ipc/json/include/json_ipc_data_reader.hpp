@@ -13,15 +13,15 @@
 
 namespace ipc {
 	template <typename Request>
-	class JsonRequestReader: public IpcDataReader<Request> {
+	class JsonIpcDataReader: public IpcDataReader<Request> {
 	public:
 		using RequestParser = std::function<Request(const Json::Value&)>;
-		JsonRequestReader(
+		JsonIpcDataReader(
 			const SharedRequestReader<std::vector<char>>& raw_data_reader,
 			const RequestParser& request_parser
 		);
-		JsonRequestReader(const JsonRequestReader&) = delete;
-		JsonRequestReader& operator=(const JsonRequestReader&) = delete;
+		JsonIpcDataReader(const JsonIpcDataReader&) = delete;
+		JsonIpcDataReader& operator=(const JsonIpcDataReader&) = delete;
 		std::optional<Request> read() override;
 	private:
 		SharedRequestReader<std::vector<char>> m_raw_data_reader;
@@ -31,7 +31,7 @@ namespace ipc {
 	};
 
 	template <typename Request>
-	inline JsonRequestReader<Request>::JsonRequestReader(
+	inline JsonIpcDataReader<Request>::JsonIpcDataReader(
 		const SharedRequestReader<std::vector<char>>& raw_data_reader,
 		const RequestParser& request_parser
 	): m_raw_data_reader(raw_data_reader), m_request_parser(request_parser) {
@@ -41,7 +41,7 @@ namespace ipc {
 	}
 
 	template <typename Request>
-	inline std::optional<Request> JsonRequestReader<Request>::read() {
+	inline std::optional<Request> JsonIpcDataReader<Request>::read() {
 		const auto raw_data = m_raw_data_reader.read();
 		if (!raw_data) {
 			return std::optional<Request>();
@@ -52,7 +52,7 @@ namespace ipc {
 	}
 
 	template <typename Request>
-	Json::Value JsonRequestReader<Request>::parse_raw_data(const std::vector<char>& data) {
+	Json::Value JsonIpcDataReader<Request>::parse_raw_data(const std::vector<char>& data) {
 		Json::Value root;
 	    Json::Reader reader;
 		if (!reader.parse(std::string(data.begin(), data.end()), std::ref(root), true)) {

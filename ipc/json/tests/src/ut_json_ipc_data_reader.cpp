@@ -33,11 +33,11 @@ TEST(ut_json_ipc_data_reader, ctor_dtor_sanity) {
 	const auto raw_data_reader = SharedRequestReader<std::vector<char>>(new TestRawReader());
 	
 	// WHEN
-	JsonRequestReader<TestRequest> *instance = nullptr;
+	JsonIpcDataReader<TestRequest> *instance = nullptr;
 
 	// THEN
 	ASSERT_NO_THROW(
-		instance = new JsonRequestReader<TestRequest>(
+		instance = new JsonIpcDataReader<TestRequest>(
 			raw_data_reader,
 			[](const std::vector<char>&) -> TestRequest {
 				throw std::runtime_error("NOT IMPLEMENTED");
@@ -58,7 +58,7 @@ TEST(ut_json_ipc_data_reader, read_sanity) {
 	// WHEN
 	auto raw_reader = TestRawReader();
 	raw_reader.update_data(request_json_raw);
-	auto instance = JsonRequestReader<TestRequest>(
+	auto instance = JsonIpcDataReader<TestRequest>(
 		SharedRequestReader<std::vector<char>>(new TestRawReader(raw_reader)),
 		[](const std::vector<char>&) -> TestRequest {
 			throw std::runtime_error("NOT IMPLEMENTED");

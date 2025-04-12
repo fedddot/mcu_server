@@ -7,24 +7,24 @@
 
 namespace ipc {
 	template <typename Response>
-	class JsonResponseWriter: public IpcDataWriter<Response> {
+	class JsonIpcDataWriter: public IpcDataWriter<Response> {
 	public:
-		JsonResponseWriter(
+		JsonIpcDataWriter(
 		);
-		JsonResponseWriter(const JsonResponseWriter&) = delete;
-		JsonResponseWriter& operator=(const JsonResponseWriter&) = delete;
+		JsonIpcDataWriter(const JsonIpcDataWriter&) = delete;
+		JsonIpcDataWriter& operator=(const JsonIpcDataWriter&) = delete;
 		void write(const Response& response) const override;
 	private:
 	};
 
 	template <typename Response>
-	inline JsonResponseWriter<Response>::JsonResponseWriter(
+	inline JsonIpcDataWriter<Response>::JsonIpcDataWriter(
 	) {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 
 	template <typename Response>
-	inline void JsonResponseWriter<Response>::write(const Response& response) const {
+	inline void JsonIpcDataWriter<Response>::write(const Response& response) const {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 }
