@@ -1,6 +1,10 @@
 add_library(raw_data_package_descriptor INTERFACE)
 target_include_directories(raw_data_package_descriptor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(raw_data_package_utils INTERFACE)
+target_include_directories(raw_data_package_utils INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(raw_data_package_utils INTERFACE raw_data_package_descriptor)
+
 add_library(raw_data_package_reader INTERFACE)
 target_include_directories(raw_data_package_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(

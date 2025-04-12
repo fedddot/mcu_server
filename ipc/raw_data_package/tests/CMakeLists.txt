@@ -11,5 +11,6 @@ target_link_libraries(
     raw_data_package_reader
 	raw_data_package_writer
 	raw_data_package_descriptor
+	raw_data_package_utils
 	gtest
 )
