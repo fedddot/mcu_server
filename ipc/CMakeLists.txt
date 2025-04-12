@@ -12,7 +12,6 @@ add_library(shared_response_writer INTERFACE)
 target_include_directories(shared_response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(shared_response_writer INTERFACE response_writer)
 
-add_subdirectory(protobuf)
 add_subdirectory(sized_package)
 add_subdirectory(json)
 add_subdirectory(tests EXCLUDE_FROM_ALL)
