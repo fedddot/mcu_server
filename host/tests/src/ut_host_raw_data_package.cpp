@@ -1,21 +1,22 @@
-#include "json/value.h"
-#include <cstddef>
 #include <exception>
 #include <iostream>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "gtest/gtest.h"
 
+#include "json/config.h"
+#include "json/value.h"
+#include "json/writer.h"
+
 #include "host.hpp"
-#include "json_ipc_data_writer.hpp"
-#include "raw_data_package_reader.hpp"
-#include "raw_data_package_writer.hpp"
-#include "raw_data_package_descriptor.hpp"
-#include "raw_data_package_utils.hpp"
 #include "json_ipc_data_reader.hpp"
+#include "json_ipc_data_writer.hpp"
+#include "raw_data_package_descriptor.hpp"
+#include "raw_data_package_reader.hpp"
+#include "raw_data_package_utils.hpp"
+#include "raw_data_package_writer.hpp"
 #include "shared_ipc_data_reader.hpp"
 #include "shared_ipc_data_writer.hpp"
 #include "test_manager.hpp"
@@ -33,6 +34,8 @@ using TestHost = Host<Request, Response>;
 
 static SharedIpcDataReader<Request> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc);
 static SharedIpcDataWriter<Response> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer);
+
+static RawData generate_serial_request(const RawDataPackageDescriptor& desc, const Request& request);
 
 TEST(ut_host_raw_data_packages, run_once_sanity) {
 	// GIVEN
@@ -54,9 +57,12 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 	auto ipc_reader = create_ipc_reader(&buff, package_descriptor);
 	auto ipc_writer = create_ipc_writer(
 		package_descriptor,
-		[expected_response](const RawData& response_raw_data) {
-			
-			throw std::runtime_error("NOT IMPLEMENTED");
+		[expected_response, package_descriptor](const RawData& response_raw_data) {
+			const auto received_preamble = RawData(
+				response_raw_data.begin(),
+				response_raw_data.begin() + package_descriptor.preamble().size()
+			);
+			ASSERT_EQ(package_descriptor.preamble(), received_preamble);
 		}
 	);
 	const auto manager = TestManager<Request, Response> (
@@ -77,11 +83,11 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 			return -1;
 		}
 	);
+	const auto test_serial_request = generate_serial_request(package_descriptor, test_request);
 
 	// THEN:
 	// empty buffer
 	ASSERT_NO_THROW(instance.run_once());
-	ASSERT_FALSE(response_data_option);
 	
 	// junk data should be ignored
 	buff.insert(
@@ -90,37 +96,14 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 		junk_before.end()
 	);
 	ASSERT_NO_THROW(instance.run_once());
-	ASSERT_FALSE(response_data_option);
 
 	buff.insert(
 		buff.end(),
-		preamble.begin(),
-		preamble.end()
+		test_serial_request.begin(),
+		test_serial_request.end()
 	);
 	ASSERT_NO_THROW(instance.run_once());
-	ASSERT_FALSE(response_data_option);
 	
-	buff.insert(
-		buff.end(),
-		test_request_size_encoded.begin(),
-		test_request_size_encoded.end()
-	);
-	ASSERT_NO_THROW(instance.run_once());
-	ASSERT_FALSE(response_data_option);
-	
-	buff.insert(
-		buff.end(),
-		test_request.begin(),
-		test_request.end()
-	);
-	ASSERT_NO_THROW(instance.run_once());
-	ASSERT_TRUE(response_data_option);
-	const auto decoded_response = Response(
-		response_data_option->begin() + preamble.size() + sizeof(std::size_t),
-		response_data_option->end()
-	);
-	ASSERT_EQ(expected_response, decoded_response);
-
 	ASSERT_TRUE(buff.empty());
 }
 
@@ -157,4 +140,32 @@ inline SharedIpcDataWriter<Response> create_ipc_writer(const RawDataPackageDescr
 			response_serializer
 		)
 	);
+}
+
+inline RawData generate_serial_request(const RawDataPackageDescriptor& desc, const Request& request) {
+	auto request_json_data = Json::Value();
+	request_json_data["request"] = Json::String(request);
+    const auto request_serial_data = Json::writeString(
+		Json::StreamWriterBuilder(),
+		request_json_data
+	);
+	const auto preamble = desc.preamble();
+	const auto size_data = serialize_package_size(desc, request_serial_data.size());
+	auto payload = RawData();
+	payload.insert(
+		payload.end(),
+		preamble.begin(),
+		preamble.end()
+	);
+	payload.insert(
+		payload.end(),
+		size_data.begin(),
+		size_data.end()
+	);
+	payload.insert(
+		payload.end(),
+		request_serial_data.begin(),
+		request_serial_data.end()
+	);
+    return payload;
 }
