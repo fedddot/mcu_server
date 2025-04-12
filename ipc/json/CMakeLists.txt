@@ -1,6 +1,12 @@
 add_library(json_ipc_data_reader INTERFACE)
 target_include_directories(json_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(json_ipc_data_reader INTERFACE ipc_data_reader raw_data_package_reader jsoncpp_static)
+target_link_libraries(
+    json_ipc_data_reader
+    INTERFACE
+    ipc_data_reader
+    clonable_ipc_data_reader
+    jsoncpp_static
+)
 
 add_library(json_ipc_data_writer INTERFACE)
 target_include_directories(json_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
