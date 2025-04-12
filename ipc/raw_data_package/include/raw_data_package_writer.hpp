@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "ipc_data_writer.hpp"
-#include "sized_package_common.hpp"
+#include "raw_data_package_common.hpp"
 
 namespace ipc {
 	class SizedPackageWriter: public IpcDataWriter<std::vector<char>> {

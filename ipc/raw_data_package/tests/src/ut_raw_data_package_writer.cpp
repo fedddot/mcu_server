@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "raw_data_package_writer.hpp"
-#include "sized_package_common.hpp"
+#include "raw_data_package_common.hpp"
 
 using namespace ipc;
 

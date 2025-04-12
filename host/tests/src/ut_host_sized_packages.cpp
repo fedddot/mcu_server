@@ -7,7 +7,6 @@
 #include "gtest/gtest.h"
 
 #include "host.hpp"
-#include "sized_package_infra.hpp"
 #include "raw_data_package_reader.hpp"
 #include "raw_data_package_writer.hpp"
 #include "test_manager.hpp"
@@ -22,7 +21,7 @@ using Response = std::vector<char>;
 
 using TestHost = Host<Request, Response>;
 
-TEST(ut_host_sized_packages, run_once_sanity) {
+TEST(ut_host_raw_data_packages, run_once_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());

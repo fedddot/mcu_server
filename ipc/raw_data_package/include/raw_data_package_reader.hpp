@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "ipc_data_reader.hpp"
-#include "sized_package_common.hpp"
+#include "raw_data_package_common.hpp"
 
 namespace ipc {
 	class SizedPackageReader: public IpcDataReader<std::vector<char>> {
