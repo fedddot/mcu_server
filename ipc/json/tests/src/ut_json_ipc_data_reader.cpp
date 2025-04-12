@@ -1,3 +1,5 @@
+#include "json/config.h"
+#include "json/writer.h"
 #include <stdexcept>
 #include <string>
 
@@ -46,25 +48,46 @@ TEST(ut_json_ipc_data_reader, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-// static RawData serialize_request(const TestIpcData& request);
+static RawData serialize_ipc_data(const TestIpcData& ipc_data);
+static TestIpcData parse_ipc_data(const Json::Value& json_data);
 
-// TEST(ut_json_ipc_data_reader, read_sanity) {
-// 	// GIVEN
-// 	const auto request = TestIpcData("request");
-// 	const auto request_json_raw = serialize_request(request);
+TEST(ut_json_ipc_data_reader, read_sanity) {
+	// GIVEN
+	const auto test_ipc_data = TestIpcData("test_ipc_data");
 	
-// 	// WHEN
-// 	auto raw_reader = TestRawReader();
-// 	raw_reader.update_data(request_json_raw);
-// 	auto instance = JsonIpcDataReader<TestIpcData>(
-// 		SharedIpcDataReader<RawData>(new TestRawReader(raw_reader)),
-// 		[](const RawData&) -> TestIpcData {
-// 			throw std::runtime_error("NOT IMPLEMENTED");
-// 		}
-// 	);
-// 	auto result = std::optional<TestIpcData>();
+	// WHEN
+	const auto raw_test_ipc_data = serialize_ipc_data(test_ipc_data);
+	const auto raw_data_reader = TestRawReader(std::optional<RawData>(raw_test_ipc_data));
+	auto instance = JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data);
+	auto read_result = std::optional<TestIpcData>();
 
-// 	// THEN
-// 	ASSERT_NO_THROW(result = instance.read());
-// 	ASSERT_TRUE(result);
-// }
+	// THEN
+	ASSERT_NO_THROW(read_result = instance.read());
+	ASSERT_TRUE(read_result);
+	ASSERT_EQ(test_ipc_data, *read_result);
+}
+
+TEST(ut_json_ipc_data_reader, read_missing_raw_data_negative) {
+	// WHEN
+	const auto raw_data_reader = TestRawReader(std::optional<RawData>());
+	auto instance = JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data);
+	auto read_result = std::optional<TestIpcData>();
+
+	// THEN
+	ASSERT_NO_THROW(read_result = instance.read());
+	ASSERT_FALSE(read_result);
+}
+
+inline RawData serialize_ipc_data(const TestIpcData& ipc_data) {
+	const auto json_val = Json::String(ipc_data);
+	const auto writer_builder = Json::StreamWriterBuilder();
+    const auto serial_str = Json::writeString(writer_builder, json_val);
+    return RawData(serial_str.begin(), serial_str.end());
+}
+
+inline TestIpcData parse_ipc_data(const Json::Value& json_data) {
+	if (!json_data.isString()) {
+		throw std::invalid_argument("json data is expected to be a string");
+	}
+	return TestIpcData(json_data.asString());
+}
