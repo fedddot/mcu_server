@@ -6,7 +6,7 @@
 
 namespace ipc {
 	template <typename Response>
-	class TestResponseWriter: public ResponseWriter<Response> {
+	class TestResponseWriter: public IpcDataWriter<Response> {
 	public:
 		using Action = std::function<void(const Response&)>;
 		TestResponseWriter(const Action& action): m_action(action) {

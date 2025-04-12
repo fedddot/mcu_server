@@ -7,7 +7,7 @@
 
 namespace ipc {
 	template <typename Response>
-	class JsonResponseWriter: public ResponseWriter<Response> {
+	class JsonResponseWriter: public IpcDataWriter<Response> {
 	public:
 		JsonResponseWriter(
 		);

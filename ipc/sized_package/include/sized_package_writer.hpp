@@ -8,7 +8,7 @@
 #include "sized_package_common.hpp"
 
 namespace ipc {
-	class SizedPackageWriter: public ResponseWriter<std::vector<char>> {
+	class SizedPackageWriter: public IpcDataWriter<std::vector<char>> {
 	public:
 		using RawDataWriter = std::function<void(const std::vector<char>&)>;
 		SizedPackageWriter(

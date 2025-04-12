@@ -1,5 +1,5 @@
-#ifndef	SHARED_RESPONSE_WRITER_HPP
-#define	SHARED_RESPONSE_WRITER_HPP
+#ifndef	SHARED_IPC_DATA_WRITER_HPP
+#define	SHARED_IPC_DATA_WRITER_HPP
 
 #include <memory>
 #include <stdexcept>
@@ -7,29 +7,29 @@
 #include "response_writer.hpp"
 
 namespace ipc {
-	template <typename Response>
-	class SharedResponseWriter: public ResponseWriter<Response> {
+	template <typename IpcData>
+	class SharedIpcDataWriter: public IpcDataWriter<IpcData> {
 	public:
-		SharedResponseWriter(ResponseWriter<Response> *instance_ptr);
-		SharedResponseWriter(const SharedResponseWriter&) = default;
-		SharedResponseWriter& operator=(const SharedResponseWriter&) = default;
+		SharedIpcDataWriter(IpcDataWriter<IpcData> *instance_ptr);
+		SharedIpcDataWriter(const SharedIpcDataWriter&) = default;
+		SharedIpcDataWriter& operator=(const SharedIpcDataWriter&) = default;
 
-		void write(const Response& response) const override;
+		void write(const IpcData& data) const override;
 	private:
-		std::shared_ptr<ResponseWriter<Response>> m_instance_ptr;
+		std::shared_ptr<IpcDataWriter<IpcData>> m_instance_ptr;
 	};
 
-	template <typename Response>
-	inline SharedResponseWriter<Response>::SharedResponseWriter(ResponseWriter<Response> *instance_ptr): m_instance_ptr(instance_ptr) {
+	template <typename IpcData>
+	inline SharedIpcDataWriter<IpcData>::SharedIpcDataWriter(IpcDataWriter<IpcData> *instance_ptr): m_instance_ptr(instance_ptr) {
 		if (!m_instance_ptr) {
 			throw std::invalid_argument("invalid instance ptr received");
 		}
 	}
 
-	template <typename Response>
-	inline void SharedResponseWriter<Response>::write(const Response& response) const {
-		m_instance_ptr->write(response);
+	template <typename IpcData>
+	inline void SharedIpcDataWriter<IpcData>::write(const IpcData& data) const {
+		m_instance_ptr->write(data);
 	}
 }
 
-#endif // SHARED_RESPONSE_WRITER_HPP
+#endif // SHARED_IPC_DATA_WRITER_HPP
