@@ -1,9 +1,9 @@
-add_library(json_request_reader INTERFACE)
-target_include_directories(json_request_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(json_request_reader INTERFACE request_reader sized_package_reader jsoncpp_static)
+add_library(json_ipc_data_reader INTERFACE)
+target_include_directories(json_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(json_ipc_data_reader INTERFACE ipc_data_reader sized_package_reader jsoncpp_static)
 
-add_library(json_response_writer INTERFACE)
-target_include_directories(json_response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(json_response_writer INTERFACE response_writer)
+add_library(json_ipc_data_writer INTERFACE)
+target_include_directories(json_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(json_ipc_data_writer INTERFACE ipc_data_writer)
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

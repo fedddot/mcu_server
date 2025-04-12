@@ -10,8 +10,8 @@ target_link_libraries(
 	PRIVATE
     host
     test_manager
-	test_request_reader
-	test_response_writer
+	test_ipc_data_reader
+	test_ipc_data_writer
 	sized_package_reader
 	sized_package_reader
 	sized_package_infra
