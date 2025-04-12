@@ -12,6 +12,6 @@ add_library(shared_ipc_data_writer INTERFACE)
 target_include_directories(shared_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(shared_ipc_data_writer INTERFACE ipc_data_writer)
 
-add_subdirectory(sized_package)
+add_subdirectory(raw_data_package)
 add_subdirectory(json)
 add_subdirectory(tests EXCLUDE_FROM_ALL)
