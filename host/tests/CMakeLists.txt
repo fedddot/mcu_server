@@ -12,8 +12,8 @@ target_link_libraries(
     test_manager
 	test_ipc_data_reader
 	test_ipc_data_writer
-	sized_package_reader
-	sized_package_reader
+	raw_data_package_reader
+	raw_data_package_reader
 	sized_package_infra
 
 	gtest

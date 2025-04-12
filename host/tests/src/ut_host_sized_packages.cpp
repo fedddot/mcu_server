@@ -8,8 +8,8 @@
 
 #include "host.hpp"
 #include "sized_package_infra.hpp"
-#include "sized_package_reader.hpp"
-#include "sized_package_writer.hpp"
+#include "raw_data_package_reader.hpp"
+#include "raw_data_package_writer.hpp"
 #include "test_manager.hpp"
 
 using namespace manager;

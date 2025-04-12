@@ -6,11 +6,11 @@
 #include "gtest/gtest.h"
 
 #include "sized_package_common.hpp"
-#include "sized_package_reader.hpp"
+#include "raw_data_package_reader.hpp"
 
 using namespace ipc;
 
-TEST(ut_sized_package_reader, ctor_dtor_sanity) {
+TEST(ut_raw_data_package_reader, ctor_dtor_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
@@ -26,7 +26,7 @@ TEST(ut_sized_package_reader, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-TEST(ut_sized_package_reader, read_sanity) {
+TEST(ut_raw_data_package_reader, read_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
 	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
