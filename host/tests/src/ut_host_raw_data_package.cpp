@@ -1,14 +1,23 @@
+#include "json/value.h"
 #include <cstddef>
 #include <exception>
+#include <iostream>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "gtest/gtest.h"
 
 #include "host.hpp"
+#include "json_ipc_data_writer.hpp"
 #include "raw_data_package_reader.hpp"
 #include "raw_data_package_writer.hpp"
+#include "raw_data_package_descriptor.hpp"
+#include "raw_data_package_utils.hpp"
+#include "json_ipc_data_reader.hpp"
+#include "shared_ipc_data_reader.hpp"
+#include "shared_ipc_data_writer.hpp"
 #include "test_manager.hpp"
 
 using namespace manager;
@@ -16,48 +25,56 @@ using namespace manager_tests;
 using namespace host;
 using namespace ipc;
 
-using Request = std::vector<char>;
-using Response = std::vector<char>;
+using Request = std::string;
+using Response = int;
+using RawData = typename RawDataPackageDescriptor::RawData;
 
 using TestHost = Host<Request, Response>;
+
+static SharedIpcDataReader<Request> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc);
+static SharedIpcDataWriter<Response> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer);
 
 TEST(ut_host_raw_data_packages, run_once_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
-	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
-	const auto expected_response_str = std::string("expected_response");
-	const auto expected_response = std::vector<char>(expected_response_str.begin(), expected_response_str.end());
-	const auto test_request = Request {'a', 'b', 'c'};
-	// const auto test_request_size_encoded = RawDataPackageInfra::encode_size(test_request.size());
+	const auto preamble = RawData(preamble_str.begin(), preamble_str.end());
+	const auto package_descriptor = RawDataPackageDescriptor(
+		preamble,
+		4UL
+	);
+
+	const auto test_request = Request("test_request");
+	const auto expected_response = Response(4);
 	const auto junk_before_str = std::string("junk");
-	const auto junk_before = std::vector<char>(junk_before_str.begin(), junk_before_str.end());
+	const auto junk_before = RawData(junk_before_str.begin(), junk_before_str.end());
 	
 	// WHEN
-	auto buff = std::vector<char>();
-	auto response_data_option = std::optional<std::vector<char>>();
-	auto response_data_option_ptr = &response_data_option;
-	auto ipc_data_reader = RawDataPackageReader(
-		&buff,
-		preamble
+	auto buff = RawData();
+	
+	auto ipc_reader = create_ipc_reader(&buff, package_descriptor);
+	auto ipc_writer = create_ipc_writer(
+		package_descriptor,
+		[expected_response](const RawData& response_raw_data) {
+			
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
 	);
-	auto ipc_data_writer = RawDataPackageWriter(
-		[response_data_option_ptr](const std::vector<char>& response_raw) {
-			*response_data_option_ptr = response_raw;
-		},
-		preamble
-	);
-	auto manager = TestManager<Request, Response> (
-		[expected_response](const Request& request) {
+	const auto manager = TestManager<Request, Response> (
+		[expected_response, test_request](const Request& request) {
+			std::cout << "test manager received request: " << request << std::endl;
+			std::cout << "test manager is sending response: " << expected_response << std::endl;
+			if (test_request != request) {
+				throw std::runtime_error("received unexpected request");
+			}
 			return expected_response;
 		}
 	);
 	TestHost instance(
-		&ipc_data_reader,
-		&ipc_data_writer,
-		&manager,
-		[](const std::exception& e) -> Response {
-			const auto e_str = std::string(e.what());
-			return Response(e_str.begin(), e_str.end());
+		ipc_reader,
+		ipc_writer,
+		manager,
+		[](const std::exception&) -> Response {
+			return -1;
 		}
 	);
 
@@ -105,4 +122,39 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 	ASSERT_EQ(expected_response, decoded_response);
 
 	ASSERT_TRUE(buff.empty());
+}
+
+inline SharedIpcDataReader<Request> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc) {
+	const auto ipc_data_reader = RawDataPackageReader(
+		buffer,
+		desc,
+		parse_package_size
+	);
+	auto request_retriever = [](const Json::Value& json_data) -> Request {
+		const auto request_data = json_data["request"].asString();
+		return Request(request_data);
+	};
+	return SharedIpcDataReader<Request>(
+		new JsonIpcDataReader<Request>(
+			ipc_data_reader,
+			request_retriever
+		)
+	);
+}
+
+inline SharedIpcDataWriter<Response> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer) {
+	const auto ipc_data_writer = RawDataPackageWriter(
+		desc,
+		serialize_package_size,
+		raw_data_writer
+	);
+	auto response_serializer = [](const Response& resp) -> Json::Value {
+		return Json::Value(resp);
+	};
+	return SharedIpcDataWriter<Response>(
+		new JsonIpcDataWriter<Response>(
+			ipc_data_writer,
+			response_serializer
+		)
+	);
 }
