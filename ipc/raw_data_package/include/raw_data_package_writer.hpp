@@ -65,6 +65,10 @@ namespace ipc {
 		);
 		m_raw_data_writer(raw_data);
 	}
+
+	inline IpcDataWriter<typename RawDataPackageWriter::RawData> *RawDataPackageWriter::clone() const {
+		return new RawDataPackageWriter(*this);
+	}
 }
 
 #endif // RAW_DATA_PACKAGE_WRITER_HPP
