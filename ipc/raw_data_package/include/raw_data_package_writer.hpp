@@ -5,46 +5,53 @@
 #include <vector>
 
 #include "ipc_data_writer.hpp"
-#include "raw_data_package_common.hpp"
+#include "clonable_ipc_data_writer.hpp"
+#include "raw_data_package_descriptor.hpp"
 
 namespace ipc {
-	class RawDataPackageWriter: public IpcDataWriter<std::vector<char>> {
+	class RawDataPackageWriter: public ClonableIpcDataWriter<std::vector<char>> {
 	public:
-		using RawDataWriter = std::function<void(const std::vector<char>&)>;
+		using RawData = typename RawDataPackageDescriptor::RawData;
+		using PackageSizeSerializer = std::function<RawData(const RawDataPackageDescriptor&, const std::size_t&)>;
+		using RawDataWriter = std::function<void(const RawData&)>;
+
 		RawDataPackageWriter(
-			const RawDataWriter& raw_data_writer,
-			const std::vector<char>& preamble,
-			const std::size_t& raw_package_data_size_length
+			const RawDataPackageDescriptor& descriptor,
+			const PackageSizeSerializer& size_serializer,
+			const RawDataWriter& raw_data_writer
 		);
 		RawDataPackageWriter(const RawDataPackageWriter&) = default;
 		RawDataPackageWriter& operator=(const RawDataPackageWriter&) = default;
-		void write(const std::vector<char>& response) const override;
+		void write(const RawData& data) const override;
+		IpcDataWriter<RawData> *clone() const override;
 	private:
+		RawDataPackageDescriptor m_descriptor;
+		PackageSizeSerializer m_size_serializer;
 		RawDataWriter m_raw_data_writer;
-		std::vector<char> m_preamble;
-		DefaultPackageSizeSerializer m_size_serializer;
 	};
 
 	inline RawDataPackageWriter::RawDataPackageWriter(
-		const RawDataWriter& raw_data_writer,
-		const std::vector<char>& preamble,
-		const std::size_t& raw_package_data_size_length
-	): m_raw_data_writer(raw_data_writer), m_preamble(preamble), m_size_serializer(raw_package_data_size_length) {
+		const RawDataPackageDescriptor& descriptor,
+		const PackageSizeSerializer& size_serializer,
+		const RawDataWriter& raw_data_writer
+	): m_descriptor(descriptor), m_size_serializer(size_serializer), m_raw_data_writer(raw_data_writer) {
 		if (!m_raw_data_writer) {
 			throw std::invalid_argument("invalid raw data writer received");
 		}
-		if (m_preamble.empty()) {
-			throw std::invalid_argument("preamble must not be empty");
+		if (!m_size_serializer) {
+			throw std::invalid_argument("invalid size serializer received");
 		}
 	}
 
-	inline void RawDataPackageWriter::write(const std::vector<char>& response) const {
-		const auto encoded_size = m_size_serializer.transform(response.size());
-		auto raw_data = std::vector<char>();
+	inline void RawDataPackageWriter::write(const RawData& data) const {
+		const auto preamble = m_descriptor.preamble();
+		const auto encoded_size = m_size_serializer(m_descriptor, data.size());
+		auto raw_data = RawData();
+
 		raw_data.insert(
 			raw_data.end(),
-			m_preamble.begin(),
-			m_preamble.end()
+			preamble.begin(),
+			preamble.end()
 		);
 		raw_data.insert(
 			raw_data.end(),
@@ -53,10 +60,14 @@ namespace ipc {
 		);
 		raw_data.insert(
 			raw_data.end(),
-			response.begin(),
-			response.end()
+			data.begin(),
+			data.end()
 		);
 		m_raw_data_writer(raw_data);
+	}
+
+	inline IpcDataWriter<typename RawDataPackageWriter::RawData> *RawDataPackageWriter::clone() const {
+		return new RawDataPackageWriter(*this);
 	}
 }
 

@@ -5,21 +5,31 @@
 #include "gtest/gtest.h"
 
 #include "raw_data_package_writer.hpp"
-#include "raw_data_package_common.hpp"
+#include "raw_data_package_descriptor.hpp"
+#include "raw_data_package_utils.hpp"
 
 using namespace ipc;
+
+using RawData = typename RawDataPackageDescriptor::RawData;
 
 TEST(ut_raw_data_package_writer, ctor_dtor_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
-	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
+	const auto preamble = RawData(preamble_str.begin(), preamble_str.end());
 	const auto size_field_len = std::size_t(4UL);
+	const auto descriptor = RawDataPackageDescriptor(preamble, size_field_len);
 	
 	// WHEN
 	RawDataPackageWriter *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new RawDataPackageWriter([](const std::vector<char>&) {}, preamble, size_field_len));
+	ASSERT_NO_THROW(
+		instance = new RawDataPackageWriter(
+			descriptor,
+			serialize_package_size,
+			[](const RawData&) {}
+		)
+	);
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -27,42 +37,44 @@ TEST(ut_raw_data_package_writer, ctor_dtor_sanity) {
 TEST(ut_raw_data_package_writer, read_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
-	const auto preamble = std::vector<char>(preamble_str.begin(), preamble_str.end());
-	const auto msg_str = std::string("test_msg");
-	const auto msg = std::vector<char>(msg_str.begin(), msg_str.end());
+	const auto preamble = RawData(preamble_str.begin(), preamble_str.end());
 	const auto size_field_len = std::size_t(4UL);
+	const auto descriptor = RawDataPackageDescriptor(preamble, size_field_len);
+
+	const auto msg_str = std::string("test_msg");
+	const auto msg = RawData(msg_str.begin(), msg_str.end());
 	
 	// WHEN
 	auto instance = RawDataPackageWriter(
-		[preamble, msg, size_field_len](const std::vector<char>& raw_data)  {
+		descriptor,
+		serialize_package_size,
+		[descriptor, msg](const RawData& raw_data)  {
 			ASSERT_EQ(
-				preamble.size() + size_field_len + msg.size(),
+				descriptor.preamble().size() + descriptor.encoded_size_length() + msg.size(),
 				raw_data.size()
 			);
 			ASSERT_EQ(
-				preamble,
-				std::vector<char>(
+				descriptor.preamble(),
+				RawData(
 					raw_data.begin(),
-					raw_data.begin() + preamble.size()
+					raw_data.begin() + descriptor.preamble().size()
 				)
 			);
 			ASSERT_EQ(
-				DefaultPackageSizeSerializer(size_field_len).transform(msg.size()),
-				std::vector<char>(
-					raw_data.begin() + preamble.size(),
-					raw_data.begin() + preamble.size() + size_field_len
+				serialize_package_size(descriptor, msg.size()),
+				RawData(
+					raw_data.begin() + descriptor.preamble().size(),
+					raw_data.begin() + descriptor.preamble().size() + descriptor.encoded_size_length()
 				)
 			);
 			ASSERT_EQ(
 				msg,
-				std::vector<char>(
-					raw_data.begin() + preamble.size() + size_field_len,
+				RawData(
+					raw_data.begin() + descriptor.preamble().size() + descriptor.encoded_size_length(),
 					raw_data.end()
 				)
 			);
-		},
-		preamble,
-		size_field_len
+		}
 	);
 
 	// THEN

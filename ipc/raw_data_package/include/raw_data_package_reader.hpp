@@ -2,64 +2,67 @@
 #define	RAW_DATA_PACKAGE_READER_HPP
 
 #include <cstddef>
+#include <functional>
 #include <optional>
 #include <stdexcept>
 #include <vector>
 
+#include "clonable_ipc_data_reader.hpp"
 #include "ipc_data_reader.hpp"
-#include "raw_data_package_common.hpp"
+#include "raw_data_package_descriptor.hpp"
 
 namespace ipc {
-	class RawDataPackageReader: public IpcDataReader<std::vector<char>> {
+	class RawDataPackageReader: public ClonableIpcDataReader<std::vector<char>> {
 	public:
+		using RawData = typename RawDataPackageDescriptor::RawData;
+		using PackageSizeParser = std::function<std::size_t(const RawDataPackageDescriptor&, const RawData&)>;
 		RawDataPackageReader(
-			std::vector<char> *buffer,
-			const std::vector<char>& preamble,
-			const std::size_t& raw_package_data_size_length
+			RawData *buffer,
+			const RawDataPackageDescriptor& descriptor,
+			const PackageSizeParser& size_parser
 		);
 		RawDataPackageReader(const RawDataPackageReader&) = default;
 		RawDataPackageReader& operator=(const RawDataPackageReader&) = default;
-		std::optional<std::vector<char>> read() override;
+		std::optional<RawData> read() override;
+		IpcDataReader<RawData> *clone() const override;
 	private:
-		std::vector<char> *m_buffer;
-		std::vector<char> m_preamble;
-		DefaultPackageSizeParser m_size_parser;
+		RawData *m_buffer;
+		RawDataPackageDescriptor m_descriptor;
+		PackageSizeParser m_size_parser;
 		
-		bool validate_preamble(std::vector<char> *buffer, const std::vector<char>& preamble);
+		bool validate_preamble();
 	};
 
 	inline RawDataPackageReader::RawDataPackageReader(
-		std::vector<char> *buffer,
-		const std::vector<char>& preamble,
-		const std::size_t& raw_package_data_size_length
-	):
-		m_buffer(buffer), m_preamble(preamble),
-		m_size_parser(raw_package_data_size_length) {
-		
+		RawData *buffer,
+		const RawDataPackageDescriptor& descriptor,
+		const PackageSizeParser& size_parser
+	): m_buffer(buffer), m_descriptor(descriptor), m_size_parser(size_parser) {
 		if (!m_buffer) {
 			throw std::invalid_argument("invalid buffer ptr received");
 		}
-		if (m_preamble.empty()) {
-			throw std::invalid_argument("preamble must not be empty");
+		if (!m_size_parser) {
+			throw std::invalid_argument("invalid size parser received");
 		}
 	}
 
-	inline std::optional<std::vector<char>> RawDataPackageReader::read() {
-		const auto preamble_size = m_preamble.size();
-		const auto encoded_size_len = m_size_parser.raw_data_size();
-		if (!validate_preamble(m_buffer, m_preamble)) {
-			return std::optional<std::vector<char>>();
+	inline std::optional<typename RawDataPackageReader::RawData> RawDataPackageReader::read() {
+		const auto preamble_size = m_descriptor.preamble().size();
+		const auto encoded_size_len = m_descriptor.encoded_size_length();
+		if (!validate_preamble()) {
+			return std::optional<RawData>();
 		}
-		const auto package_size = m_size_parser.transform(
-			std::vector<char>(
+		const auto package_size = m_size_parser(
+			m_descriptor,
+			RawData(
 				m_buffer->begin() + preamble_size,
 				m_buffer->begin() + preamble_size + encoded_size_len
 			)
 		);
 		if (m_buffer->size() < preamble_size + encoded_size_len + package_size) {
-			return std::optional<std::vector<char>>();
+			return std::optional<RawData>();
 		}
-		const auto package_data = std::vector<char>(
+		const auto package_data = RawData(
 			m_buffer->begin() + preamble_size + encoded_size_len,
 			m_buffer->begin() + preamble_size + encoded_size_len + package_size
 		);
@@ -67,26 +70,27 @@ namespace ipc {
 			m_buffer->begin(),
 			m_buffer->begin() + preamble_size + encoded_size_len + package_size
 		);
-		return std::optional<std::vector<char>>(package_data);
+		return std::optional<RawData>(package_data);
 	}
 
-	inline bool RawDataPackageReader::validate_preamble(std::vector<char> *buffer, const std::vector<char>& preamble) {
-		if (!buffer) {
-			throw std::invalid_argument("invalid buffer ptr received");
-		}
-		const auto preamble_size = preamble.size();
-		const auto encoded_size_len = m_size_parser.raw_data_size();
-		while (buffer->size() >= preamble_size + encoded_size_len) {
-			const auto incoming_preamble = std::vector<char>(
-				buffer->begin(),
-				buffer->begin() + preamble_size
+	inline bool RawDataPackageReader::validate_preamble() {
+		const auto preamble_size = m_descriptor.preamble().size();
+		const auto encoded_size_len = m_descriptor.encoded_size_length();
+		while (m_buffer->size() >= preamble_size + encoded_size_len) {
+			const auto incoming_preamble = RawData(
+				m_buffer->begin(),
+				m_buffer->begin() + preamble_size
 			);
-			if (preamble == incoming_preamble) {
+			if (m_descriptor.preamble() == incoming_preamble) {
 				return true;
 			}
-			buffer->erase(buffer->begin());
+			m_buffer->erase(m_buffer->begin());
 		}
 		return false;
+	}
+
+	inline IpcDataReader<typename RawDataPackageReader::RawData> *RawDataPackageReader::clone() const {
+		return new RawDataPackageReader(*this);
 	}
 }
 
