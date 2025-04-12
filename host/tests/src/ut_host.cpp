@@ -23,17 +23,17 @@ using TestHost = Host<Request, Response>;
 
 TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	auto ipc_data_reader = TestRequestReader<Request>(
+	const auto ipc_data_reader = TestIpcDataReader<Request>(
 		[]()-> std::optional<Request> {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
-	auto ipc_data_writer = TestResponseWriter<Response>(
+	const auto ipc_data_writer = TestIpcDataWriter<Response>(
 		[](const Response&){
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
-	auto manager = TestManager<Request, Response>(
+	const auto manager = TestManager<Request, Response>(
 			[](const Request& request) {
 				std::cout << "received request: " << request;
 				return 0;
@@ -46,9 +46,9 @@ TEST(ut_host, ctor_dtor_sanity) {
 	// THEN:
 	ASSERT_NO_THROW(
 		instance = new TestHost(
-			&ipc_data_reader,
-			&ipc_data_writer,
-			&manager,
+			ipc_data_reader,
+			ipc_data_writer,
+			manager,
 			[](const std::exception& e) -> Response {
 				return Response(-1);
 			}
