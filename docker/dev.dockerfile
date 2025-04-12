@@ -1,9 +1,9 @@
-FROM kitware/cmake:build-sunos-sparc64-deps-2025-02-27
+FROM gcc:bookworm AS builder
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
-RUN apt-get install -y make gcc g++ gdb
+RUN apt-get install -y make gcc g++ gdb cmake
 RUN apt-get install -y git
 RUN apt-get install -y wget
 RUN apt-get install -y libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev
