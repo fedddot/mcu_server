@@ -33,23 +33,21 @@ private:
 	std::optional<RawData> m_data_option;
 };
 
+static RawData serialize_ipc_data(const TestIpcData& ipc_data);
+static TestIpcData parse_ipc_data(const Json::Value& json_data);
+
 TEST(ut_json_ipc_data_reader, ctor_dtor_sanity) {
 	// GIVEN
 	const auto raw_data_reader = TestRawReader(std::optional<RawData>());
-	auto data_parser_from_json = [](const Json::Value& val) -> TestIpcData {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
+	
 	// WHEN
 	JsonIpcDataReader<TestIpcData> *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new JsonIpcDataReader<TestIpcData>(raw_data_reader, data_parser_from_json));
+	ASSERT_NO_THROW(instance = new JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
-
-static RawData serialize_ipc_data(const TestIpcData& ipc_data);
-static TestIpcData parse_ipc_data(const Json::Value& json_data);
 
 TEST(ut_json_ipc_data_reader, read_sanity) {
 	// GIVEN
