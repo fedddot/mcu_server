@@ -20,7 +20,7 @@ namespace manager_tests {
 		Response run(const Request& request) override {
 			return m_action(request);
 		}
-		manager::Manager<Request, Response> *clone() const {
+		manager::Manager<Request, Response> *clone() const override {
 			return new TestManager(*this);
 		}
 	private:
