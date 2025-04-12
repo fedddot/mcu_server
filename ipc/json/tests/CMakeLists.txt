@@ -10,5 +10,7 @@ target_link_libraries(
 	PRIVATE
     json_request_reader
 	json_response_writer
+
+	jsoncpp
 	gtest
 )

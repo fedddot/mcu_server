@@ -1,6 +1,6 @@
 add_library(json_request_reader INTERFACE)
 target_include_directories(json_request_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(json_request_reader INTERFACE request_reader)
+target_link_libraries(json_request_reader INTERFACE request_reader sized_package_reader jsoncpp_static)
 
 add_library(json_response_writer INTERFACE)
 target_include_directories(json_response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
