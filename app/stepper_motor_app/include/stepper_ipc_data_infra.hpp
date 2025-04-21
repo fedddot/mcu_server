@@ -24,6 +24,14 @@ namespace ipc {
 		return json_data;
 	}
 
+	inline Json::Value stepper_request_to_json_value(const manager::StepperMotorRequest& request) {
+		Json::Value json_data;
+		json_data["direction"] = Json::Int(static_cast<int>(request.direction));
+		json_data["steps_number"] = Json::UInt64(request.steps_number);
+		json_data["step_duration_ms"] = Json::UInt64(request.step_duration_ms);
+		return json_data;
+	}
+
 	inline manager::StepperMotorRequest json_value_to_stepper_request(const Json::Value& json_request) {
 		return manager::StepperMotorRequest {
 			.direction = static_cast<manager::StepperMotor::Direction>(json_request["direction"].asInt()),

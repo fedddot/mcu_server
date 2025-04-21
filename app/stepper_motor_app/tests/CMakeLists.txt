@@ -14,5 +14,7 @@ target_link_libraries(
 	stepper_ipc_data_writer
 	test_ipc_data_writer
 
+	stepper_ipc_data_infra
+
 	gtest
 )
