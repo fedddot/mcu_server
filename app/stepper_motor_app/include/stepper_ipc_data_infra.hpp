@@ -24,6 +24,24 @@ namespace ipc {
 		return json_data;
 	}
 
+	inline manager::StepperMotorResponse json_value_to_stepper_response(const Json::Value& json_response) {
+		if (!json_response.isMember("result")) {
+			throw std::runtime_error("Invalid JSON response: missing 'result' field");
+		}
+		const auto result_code = static_cast<manager::StepperMotorResponse::ResultCode>(json_response["result"].asInt());
+		auto response = manager::StepperMotorResponse(result_code);
+
+		if (json_response.isMember("state")) {
+			const auto state = static_cast<manager::StepperMotor::State>(json_response["state"].asInt());
+			response.set_state(state);
+		}
+		if (json_response.isMember("message")) {
+			const auto message = json_response["message"].asString();
+			response.set_message(message);
+		}
+		return response;
+	}
+
 	inline Json::Value stepper_request_to_json_value(const manager::StepperMotorRequest& request) {
 		Json::Value json_data;
 		json_data["direction"] = Json::Int(static_cast<int>(request.direction));

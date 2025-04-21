@@ -1,7 +1,8 @@
-#include "json/reader.h"
-#include "json/value.h"
 #include <stdexcept>
 #include <string>
+
+#include "json/reader.h"
+#include "json/value.h"
 
 #include "gtest/gtest.h"
 
@@ -38,13 +39,16 @@ TEST(ut_stepper_ipc_data_writer, write_sanity) {
 	test_response.set_message("test message");
 
 	const auto raw_data_writer = TestIpcDataWriter<RawData>(
-		[](const RawData& raw_data) {
+		[test_response](const RawData& raw_data) {
 			Json::Value root;
 	    	Json::Reader reader;
 			ASSERT_TRUE(reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(root), true));
-			ASSERT_EQ(root["result"].asInt(), static_cast<int>(StepperMotorResponse::ResultCode::EXCEPTION));
-			ASSERT_EQ(root["state"].asInt(), static_cast<int>(StepperMotor::State::ENABLED));
-			ASSERT_EQ(root["message"].asString(), "test message");
+			const auto received_response = json_value_to_stepper_response(root);
+			ASSERT_EQ(test_response.code(), received_response.code());
+			ASSERT_TRUE(received_response.message().has_value());
+			ASSERT_EQ(test_response.message().value(), received_response.message().value());
+			ASSERT_TRUE(received_response.state().has_value());
+			ASSERT_EQ(test_response.state().value(), received_response.state().value());
 		}
 	);
 	
