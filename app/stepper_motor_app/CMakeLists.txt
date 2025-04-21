@@ -6,6 +6,7 @@ target_link_libraries(
     clonable_ipc_data_reader
     ipc_data_reader
     json_ipc_data_reader
+    stepper_motor
     stepper_motor_request
     
     jsoncpp_static
