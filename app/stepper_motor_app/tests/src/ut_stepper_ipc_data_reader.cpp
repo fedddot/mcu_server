@@ -70,28 +70,3 @@ TEST(ut_stepper_ipc_data_reader, read_sanity) {
 	ASSERT_TRUE(read_result);
 	ASSERT_EQ(test_stepper_request, *read_result);
 }
-
-// TEST(ut_stepper_ipc_data_reader, read_missing_raw_data_negative) {
-// 	// WHEN
-// 	const auto raw_data_reader = TestRawReader(std::optional<RawData>());
-// 	auto instance = JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data);
-// 	auto read_result = std::optional<TestIpcData>();
-
-// 	// THEN
-// 	ASSERT_NO_THROW(read_result = instance.read());
-// 	ASSERT_FALSE(read_result);
-// }
-
-// inline RawData serialize_ipc_data(const TestIpcData& ipc_data) {
-// 	const auto stepper_val = Json::String(ipc_data);
-// 	const auto writer_builder = Json::StreamWriterBuilder();
-//     const auto serial_str = Json::writeString(writer_builder, stepper_val);
-//     return RawData(serial_str.begin(), serial_str.end());
-// }
-
-// inline TestIpcData parse_ipc_data(const Json::Value& stepper_data) {
-// 	if (!stepper_data.isString()) {
-// 		throw std::invalid_argument("stepper data is expected to be a string");
-// 	}
-// 	return TestIpcData(stepper_data.asString());
-// }
