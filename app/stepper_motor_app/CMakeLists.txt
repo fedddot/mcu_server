@@ -17,9 +17,11 @@ target_include_directories(stepper_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
     stepper_ipc_data_writer
     INTERFACE
-    ipc_data_writer
     clonable_ipc_data_writer
+    ipc_data_writer
     json_ipc_data_writer
+    stepper_motor_response
+    
     jsoncpp_static
 )
 
