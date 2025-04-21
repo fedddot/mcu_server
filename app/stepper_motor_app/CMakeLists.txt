@@ -5,8 +5,6 @@ target_link_libraries(
     INTERFACE
     ipc_data_reader
     clonable_ipc_data_reader
-    json_ipc_data_reader
-    raw_data_package_reader
     stepper_motor_request
     
     jsoncpp_static
