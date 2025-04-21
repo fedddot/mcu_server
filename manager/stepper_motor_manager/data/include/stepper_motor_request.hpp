@@ -13,9 +13,9 @@ namespace manager {
 	};
 
 	inline bool operator==(const StepperMotorRequest& lhs, const StepperMotorRequest& rhs) {
-		return lhs.direction == rhs.direction &&
-		       lhs.steps_number == rhs.steps_number &&
-		       lhs.step_duration_ms == rhs.step_duration_ms;
+		return lhs.direction == rhs.direction && 
+			lhs.steps_number == rhs.steps_number &&
+			lhs.step_duration_ms == rhs.step_duration_ms;
 	}
 }
 
