@@ -19,8 +19,6 @@ target_link_libraries(
     json_ipc_data_reader
     stepper_ipc_data_infra
     stepper_motor_request
-    
-    jsoncpp_static
 )
 
 add_library(stepper_ipc_data_writer INTERFACE)
@@ -31,9 +29,8 @@ target_link_libraries(
     clonable_ipc_data_writer
     ipc_data_writer
     json_ipc_data_writer
+    stepper_ipc_data_infra
     stepper_motor_response
-    
-    jsoncpp_static
 )
 
 # add_executable(test_stepper_motor_server ${CMAKE_CURRENT_LIST_DIR}/src/test_stepper_motor_server.cpp)
