@@ -12,8 +12,6 @@
 
 #include "ipc_data_reader.hpp"
 #include "clonable_ipc_data_reader.hpp"
-#include "json_ipc_data_reader.hpp"
-#include "raw_data_package_reader.hpp"
 #include "stepper_motor_request.hpp"
 
 namespace ipc {
@@ -27,7 +25,7 @@ namespace ipc {
 			const JsonDataToIpcDataTransformer& ipc_data_transformer
 		);
 		StepperIpcDataReader(const StepperIpcDataReader&) = default;
-		StepperIpcDataReader& operator=(const StepperIpcDataReader&) = default;
+		StepperIpcDataReader& operator=(const StepperIpcDataReader&) = delete;
 		std::optional<manager::StepperMotorRequest> read() override;
 		IpcDataReader<manager::StepperMotorRequest> *clone() const override;
 	private:
@@ -56,13 +54,12 @@ namespace ipc {
 		return std::optional<manager::StepperMotorRequest>(parsed_ipc_data);
 	}
 
-	template <typename IpcData>
 	inline IpcDataReader<manager::StepperMotorRequest> *StepperIpcDataReader::clone() const {
 		return new StepperIpcDataReader(*this);
 	}
 
-	template <typename IpcData>
-	Json::Value StepperIpcDataReader::parse_raw_data(const RawData& data) {
+	
+	inline Json::Value StepperIpcDataReader::parse_raw_data(const RawData& data) {
 		Json::Value root;
 	    Json::Reader reader;
 		if (!reader.parse(std::string(data.begin(), data.end()), std::ref(root), true)) {
