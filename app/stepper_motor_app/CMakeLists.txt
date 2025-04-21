@@ -3,8 +3,9 @@ target_include_directories(stepper_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
     stepper_ipc_data_reader
     INTERFACE
-    ipc_data_reader
     clonable_ipc_data_reader
+    ipc_data_reader
+    json_ipc_data_reader
     stepper_motor_request
     
     jsoncpp_static

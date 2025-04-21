@@ -30,7 +30,7 @@ namespace ipc {
 		IpcDataReader<IpcData> *clone() const override;
 	private:
 		std::shared_ptr<IpcDataReader<RawData>> m_raw_data_reader;
-		const JsonDataToIpcDataTransformer m_ipc_data_transformer;
+		JsonDataToIpcDataTransformer m_ipc_data_transformer;
 
 		static Json::Value parse_raw_data(const RawData& data);
 	};
