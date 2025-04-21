@@ -1,84 +1,56 @@
+#include "json/reader.h"
+#include "json/value.h"
 #include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
-#include "json/value.h"
-#include "json/config.h"
-#include "json/writer.h"
 
-#include "ipc_data_writer.hpp"
-#include "clonable_ipc_data_writer.hpp"
-#include "json_ipc_data_writer.hpp"
+#include "stepper_ipc_data_writer.hpp"
+#include "stepper_motor_response.hpp"
+#include "test_ipc_data_writer.hpp"
 
 using namespace ipc;
+using namespace manager;
 
-using TestIpcData = std::string;
-using RawData = typename JsonIpcDataWriter<TestIpcData>::RawData;
+using RawData = typename StepperIpcDataWriter::RawData;
 
-static RawData serialize_ipc_data(const TestIpcData& ipc_data);
-static Json::Value transform_ipc_data(const TestIpcData& data);
-
-class TestRawWriter: public ClonableIpcDataWriter<RawData> {
-public:
-	TestRawWriter(const std::function<void(const RawData&)>& test_action): m_test_action(test_action) {
-		if (!m_test_action) {
-			throw std::invalid_argument("invalid action received");
-		}
-	}
-	TestRawWriter(const TestRawWriter&) = default;
-	TestRawWriter& operator=(const TestRawWriter&) = default;
-	
-	void write(const RawData& data) const override {
-		m_test_action(data);
-	}
-	IpcDataWriter<RawData> *clone() const override {
-		return new TestRawWriter(*this);
-	}
-private:
-	std::function<void(const RawData&)> m_test_action;
-};
-
-TEST(ut_json_ipc_data_writer, ctor_dtor_sanity) {
+TEST(ut_stepper_ipc_data_writer, ctor_dtor_sanity) {
 	// GIVEN
-	const auto raw_data_writer = TestRawWriter(
+	const auto raw_data_writer = TestIpcDataWriter<RawData>(
 		[](const RawData&) {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
 
 	// WHEN
-	JsonIpcDataWriter<TestIpcData> *instance = nullptr;
+	StepperIpcDataWriter *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new JsonIpcDataWriter<TestIpcData>(raw_data_writer, transform_ipc_data));
+	ASSERT_NO_THROW(instance = new StepperIpcDataWriter(raw_data_writer));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
 
-TEST(ut_json_ipc_data_writer, write_sanity) {
+TEST(ut_stepper_ipc_data_writer, write_sanity) {
 	// GIVEN
-	const auto test_ipc_data = TestIpcData("test_ipc_data");
-	const auto raw_test_ipc_data = serialize_ipc_data(test_ipc_data);
-	
-	// WHEN
-	const auto raw_data_writer = TestRawWriter(
-		[raw_test_ipc_data](const RawData& data) {
-			ASSERT_EQ(raw_test_ipc_data, data);
+	auto test_response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
+	test_response.set_state(StepperMotor::State::ENABLED);
+	test_response.set_message("test message");
+
+	const auto raw_data_writer = TestIpcDataWriter<RawData>(
+		[](const RawData& raw_data) {
+			Json::Value root;
+	    	Json::Reader reader;
+			ASSERT_TRUE(reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(root), true));
+			ASSERT_EQ(root["result"].asInt(), static_cast<int>(StepperMotorResponse::ResultCode::EXCEPTION));
+			ASSERT_EQ(root["state"].asInt(), static_cast<int>(StepperMotor::State::ENABLED));
+			ASSERT_EQ(root["message"].asString(), "test message");
 		}
 	);
-	auto instance = JsonIpcDataWriter<TestIpcData>(raw_data_writer, transform_ipc_data);
+	
+	// WHEN
+	auto instance = StepperIpcDataWriter(raw_data_writer);
 	
 	// THEN
-	ASSERT_NO_THROW(instance.write(test_ipc_data));
-}
-
-inline RawData serialize_ipc_data(const TestIpcData& ipc_data) {
-	const auto json_val = Json::String(ipc_data);
-	const auto writer_builder = Json::StreamWriterBuilder();
-    const auto serial_str = Json::writeString(writer_builder, json_val);
-    return RawData(serial_str.begin(), serial_str.end());
-}
-
-inline Json::Value transform_ipc_data(const TestIpcData& data) {
-	return Json::String(data);
+	ASSERT_NO_THROW(instance.write(test_response));
 }
