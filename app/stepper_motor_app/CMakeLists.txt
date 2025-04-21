@@ -1,3 +1,14 @@
+add_library(stepper_ipc_data_infra INTERFACE)
+target_include_directories(stepper_ipc_data_infra INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    stepper_ipc_data_infra
+    INTERFACE
+    stepper_motor
+    stepper_motor_request
+    stepper_motor_response
+    jsoncpp_static
+)
+
 add_library(stepper_ipc_data_reader INTERFACE)
 target_include_directories(stepper_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
@@ -6,7 +17,7 @@ target_link_libraries(
     clonable_ipc_data_reader
     ipc_data_reader
     json_ipc_data_reader
-    stepper_motor
+    stepper_ipc_data_infra
     stepper_motor_request
     
     jsoncpp_static
