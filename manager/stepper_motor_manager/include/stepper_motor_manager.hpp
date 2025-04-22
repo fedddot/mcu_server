@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <stdexcept>
-#include <string>
 
 #include "clonable_manager.hpp"
 #include "manager.hpp"
@@ -50,10 +50,11 @@ namespace manager {
 			m_delay_generator(request.step_duration_ms);
 			--steps_to_go;
 		}
+		m_motor->set_state(State::DISABLED);
 		return StepperMotorResponse {
 			StepperMotorResponse::ResultCode::OK,
-			std::optional<State>(),
-			std::optional<std::string>()
+			std::nullopt,
+			std::nullopt
 		};
 	}
 
