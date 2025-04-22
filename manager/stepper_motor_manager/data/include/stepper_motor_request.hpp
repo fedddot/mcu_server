@@ -3,11 +3,11 @@
 
 #include <cstddef>
 
-#include "stepper_motor.hpp"
+#include "stepper_motor_data.hpp"
 
 namespace manager {
 	struct StepperMotorRequest {
-		StepperMotor::Direction direction;
+		Direction direction;
 		std::size_t steps_number;
 		std::size_t step_duration_ms;
 	};

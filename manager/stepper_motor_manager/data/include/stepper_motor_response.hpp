@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 
-#include "stepper_motor.hpp"
+#include "stepper_motor_data.hpp"
 
 namespace manager {
 	struct StepperMotorResponse {
@@ -16,7 +16,7 @@ namespace manager {
 			EXCEPTION
 		};
 		ResultCode code;
-		std::optional<StepperMotor::State> state;
+		std::optional<State> state;
 		std::optional<std::string> message;
 	};
 	
