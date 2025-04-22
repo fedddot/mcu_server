@@ -18,6 +18,7 @@ target_link_libraries(
 	stepper_ipc_data_infra
 
 	stepper_host
+	test_stepper_motor
 
 	gtest
 )
