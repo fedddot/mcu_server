@@ -4,11 +4,10 @@
 #include <optional>
 #include <string>
 
-#include "stepper_motor.hpp"
+#include "stepper_motor_data.hpp"
 
 namespace manager {
-	class StepperMotorResponse {
-	public:
+	struct StepperMotorResponse {
 		enum class ResultCode: int {
 			OK,
 			NOT_FOUND,
@@ -16,47 +15,15 @@ namespace manager {
 			BAD_REQUEST,
 			EXCEPTION
 		};
-		StepperMotorResponse(const ResultCode& code = ResultCode::EXCEPTION);
-		StepperMotorResponse(const StepperMotorResponse&) = default;
-		StepperMotorResponse& operator=(const StepperMotorResponse&) = default;
-
-		virtual ~StepperMotorResponse() noexcept = default;
-
-		ResultCode code() const;
-
-		std::optional<StepperMotor::State> state() const;
-		void set_state(const StepperMotor::State& state);
-
-		std::optional<std::string> message() const;
-		void set_message(const std::string& message);
-	private:
-		ResultCode m_code;
-		std::optional<StepperMotor::State> m_state;
-		std::optional<std::string> m_message;
+		ResultCode code;
+		std::optional<State> state;
+		std::optional<std::string> message;
 	};
-
-	inline StepperMotorResponse::StepperMotorResponse(const ResultCode& code): m_code(code) {
-
-	}
-
-	inline typename StepperMotorResponse::ResultCode StepperMotorResponse::code() const {
-		return m_code;
-	}
-
-	inline std::optional<StepperMotor::State> StepperMotorResponse::state() const {
-		return m_state;
-	}
-
-	inline void StepperMotorResponse::set_state(const StepperMotor::State& state) {
-		m_state = state;
-	}
-
-	inline std::optional<std::string> StepperMotorResponse::message() const {
-		return m_message;
-	}
-
-	inline void StepperMotorResponse::set_message(const std::string& message) {
-		m_message = message;
+	
+	inline bool operator==(const StepperMotorResponse& lhs, const StepperMotorResponse& rhs) {
+		return lhs.code == rhs.code &&
+			lhs.state == rhs.state &&
+			lhs.message == rhs.message;
 	}
 }
 

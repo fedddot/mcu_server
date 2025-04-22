@@ -5,6 +5,7 @@
 
 #include "stepper_ipc_data_infra.hpp"
 #include "stepper_ipc_data_reader.hpp"
+#include "stepper_motor_data.hpp"
 #include "stepper_motor_request.hpp"
 #include "test_ipc_data_reader.hpp"
 
@@ -31,7 +32,7 @@ TEST(ut_stepper_ipc_data_reader, ctor_dtor_sanity) {
 TEST(ut_stepper_ipc_data_reader, read_sanity) {
 	// GIVEN
 	const auto test_stepper_request = StepperMotorRequest {
-		.direction = StepperMotor::Direction::CW,
+		.direction = Direction::CW,
 		.steps_number = 100,
 		.step_duration_ms = 10
 	};

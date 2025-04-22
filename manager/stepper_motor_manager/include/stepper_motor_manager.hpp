@@ -2,131 +2,64 @@
 #define	STEPPER_MOTOR_MANAGER_HPP
 
 #include <cstddef>
-#include <exception>
 #include <functional>
-#include <map>
 #include <memory>
+#include <optional>
 #include <stdexcept>
-#include <string>
 
+#include "clonable_manager.hpp"
 #include "manager.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
 
 namespace manager {
-	template <typename StepperCreateConfig>
-	class StepperMotorManager: public Manager<StepperMotorRequest<StepperCreateConfig>, StepperMotorResponse> {
+	class StepperMotorManager: public ClonableManager<StepperMotorRequest, StepperMotorResponse> {
 	public:
-		using StepperMotorCreator = std::function<StepperMotor *(const StepperCreateConfig&)>;
+		using StepperMotorCreator = std::function<StepperMotor *(void)>;
 		using DelayGenerator = std::function<void(const std::size_t& timeout_ms)>;
 
 		StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator);
 		StepperMotorManager(const StepperMotorManager& other) = delete;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 
-		StepperMotorResponse run(const StepperMotorRequest<StepperCreateConfig>& request) override;
+		StepperMotorResponse run(const StepperMotorRequest& request) override;
+		Manager<StepperMotorRequest, StepperMotorResponse> *clone() const override;
 	private:
 		const StepperMotorCreator m_stepper_ctor;
 		const DelayGenerator m_delay_generator;
 
-		std::map<std::string, std::unique_ptr<StepperMotor>> m_motors;
-
-		StepperMotorResponse serve_create(const StepperMotorRequest<StepperCreateConfig>& request);
-		StepperMotorResponse serve_delete(const StepperMotorRequest<StepperCreateConfig>& request);
-		StepperMotorResponse serve_steps(const StepperMotorRequest<StepperCreateConfig>& request);
-
-		template <typename Tin, typename Tout>
-		static const Tout& cast_dynamically(const Tin& input);
+		std::unique_ptr<StepperMotor> m_motor;
 	};
 
-	template <typename StepperCreateConfig>
-	inline StepperMotorManager<StepperCreateConfig>::StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator): m_stepper_ctor(stepper_ctor), m_delay_generator(delay_generator) {
-		if (!m_stepper_ctor || !m_delay_generator) {
-			throw std::invalid_argument("invalid providers received");
+	inline StepperMotorManager::StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator): m_stepper_ctor(stepper_ctor), m_delay_generator(delay_generator) {
+		if (!m_stepper_ctor) {
+			throw std::runtime_error("invalid stepper_ctor received");
 		}
+		if (!m_delay_generator) {
+			throw std::invalid_argument("invalid delay_generator received");
+		}
+		m_motor = std::unique_ptr<StepperMotor>(m_stepper_ctor());
+	}
+	
+	inline StepperMotorResponse StepperMotorManager::run(const StepperMotorRequest& request) {
+		auto steps_to_go = request.steps_number;
+		m_motor->set_state(State::ENABLED);
+		while (steps_to_go) {
+			m_motor->step(request.direction);
+			m_delay_generator(request.step_duration_ms);
+			--steps_to_go;
+		}
+		m_motor->set_state(State::DISABLED);
+		return StepperMotorResponse {
+			StepperMotorResponse::ResultCode::OK,
+			std::nullopt,
+			std::nullopt
+		};
 	}
 
-	template <typename StepperCreateConfig>
-	inline StepperMotorResponse StepperMotorManager<StepperCreateConfig>::run(const StepperMotorRequest<StepperCreateConfig>& request) {
-		switch (request.type()) {
-		case StepperMotorRequest<StepperCreateConfig>::Type::CREATE_STEPPER:
-			return serve_create(request);
-		case StepperMotorRequest<StepperCreateConfig>::Type::DELETE_STEPPER:
-			return serve_delete(request);
-		case StepperMotorRequest<StepperCreateConfig>::Type::STEPS:
-			return serve_steps(request);
-		default:
-			return StepperMotorResponse(StepperMotorResponse::ResultCode::UNSUPPORTED);
-		}
-	}
-
-	template <typename StepperCreateConfig>
-	StepperMotorResponse StepperMotorManager<StepperCreateConfig>::serve_create(const StepperMotorRequest<StepperCreateConfig>& request) {
-		try {
-			if (!request.create_config()) {
-				return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST);
-			}
-			m_motors[request.motor_id()] = std::unique_ptr<StepperMotor>(m_stepper_ctor(*request.create_config()));
-			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
-		} catch (const std::exception& e) {
-			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
-			response.set_message("an exception caught in StepperMotorManager::serve_create: " + std::string(e.what()));
-			return response;
-		}
-	}
-
-	template <typename StepperCreateConfig>
-	StepperMotorResponse StepperMotorManager<StepperCreateConfig>::serve_delete(const StepperMotorRequest<StepperCreateConfig>& request) {
-		try {
-			const auto iter = m_motors.find(request.motor_id());
-			if (m_motors.end() == iter) {
-				return StepperMotorResponse(StepperMotorResponse::ResultCode::NOT_FOUND);
-			}
-			m_motors.erase(iter);
-			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
-		} catch (const std::exception& e) {
-			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
-			response.set_message("an exception caught in StepperMotorManager::serve_delete: " + std::string(e.what()));
-			return response;
-		}
-	}
-
-	template <typename StepperCreateConfig>
-	StepperMotorResponse StepperMotorManager<StepperCreateConfig>::serve_steps(const StepperMotorRequest<StepperCreateConfig>& request) {
-		try {
-			if (!request.steps()) {
-				return StepperMotorResponse(StepperMotorResponse::ResultCode::BAD_REQUEST); 
-			}
-			const auto steps = *request.steps();
-			const auto iter = m_motors.find(request.motor_id());
-			if (m_motors.end() == iter) {
-				return StepperMotorResponse(StepperMotorResponse::ResultCode::NOT_FOUND);
-			}
-			auto remaining_steps = steps.steps_number;
-			iter->second->set_state(StepperMotor::State::ENABLED);
-			while (remaining_steps) {
-				iter->second->step(steps.direction);
-				m_delay_generator(steps.step_duration);
-				--remaining_steps;
-			}
-			iter->second->set_state(StepperMotor::State::DISABLED);
-			return StepperMotorResponse(StepperMotorResponse::ResultCode::OK);
-		} catch (const std::exception& e) {
-			auto response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
-			response.set_message("an exception caught in StepperMotorManager::serve_steps: " + std::string(e.what()));
-			return response;
-		}
-	}
-
-	template <typename StepperCreateConfig>
-	template <typename Tin, typename Tout>
-	const Tout& StepperMotorManager<StepperCreateConfig>::cast_dynamically(const Tin& input) {
-		try {
-			return dynamic_cast<const Tout&>(input);
-		} catch (...) {
-			throw std::invalid_argument("failed to perform dynamic downcast");
-		}
+	inline Manager<StepperMotorRequest, StepperMotorResponse> *StepperMotorManager::clone() const {
+		return new StepperMotorManager(m_stepper_ctor, m_delay_generator);
 	}
 }
 
