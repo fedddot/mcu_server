@@ -7,13 +7,14 @@
 #include <stdexcept>
 #include <string>
 
+#include "clonable_manager.hpp"
 #include "manager.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
 
 namespace manager {
-	class StepperMotorManager: public Manager<StepperMotorRequest, StepperMotorResponse> {
+	class StepperMotorManager: public ClonableManager<StepperMotorRequest, StepperMotorResponse> {
 	public:
 		using StepperMotorCreator = std::function<StepperMotor *(void)>;
 		using DelayGenerator = std::function<void(const std::size_t& timeout_ms)>;
@@ -23,19 +24,22 @@ namespace manager {
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 
 		StepperMotorResponse run(const StepperMotorRequest& request) override;
+		Manager<StepperMotorRequest, StepperMotorResponse> *clone() const override;
 	private:
+		const StepperMotorCreator m_stepper_ctor;
 		const DelayGenerator m_delay_generator;
 
 		std::unique_ptr<StepperMotor> m_motor;
 	};
 
-	inline StepperMotorManager::StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator): m_motor(stepper_ctor()), m_delay_generator(delay_generator) {
-		if (!m_motor) {
-			throw std::runtime_error("failed to create StepperMotor instance");
+	inline StepperMotorManager::StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator): m_stepper_ctor(stepper_ctor), m_delay_generator(delay_generator) {
+		if (!m_stepper_ctor) {
+			throw std::runtime_error("invalid stepper_ctor received");
 		}
 		if (!m_delay_generator) {
 			throw std::invalid_argument("invalid delay_generator received");
 		}
+		m_motor = std::unique_ptr<StepperMotor>(m_stepper_ctor());
 	}
 	
 	inline StepperMotorResponse StepperMotorManager::run(const StepperMotorRequest& request) {
@@ -51,6 +55,10 @@ namespace manager {
 			std::optional<State>(),
 			std::optional<std::string>()
 		};
+	}
+
+	inline Manager<StepperMotorRequest, StepperMotorResponse> *StepperMotorManager::clone() const {
+		return new StepperMotorManager(m_stepper_ctor, m_delay_generator);
 	}
 }
 
