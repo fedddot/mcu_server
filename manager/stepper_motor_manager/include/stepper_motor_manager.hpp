@@ -20,22 +20,17 @@ namespace manager {
 		using DelayGenerator = std::function<void(const std::size_t& timeout_ms)>;
 
 		StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator);
-		StepperMotorManager(const StepperMotorManager& other) = delete;
+		StepperMotorManager(const StepperMotorManager& other) = default;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 
 		StepperMotorResponse run(const StepperMotorRequest& request) override;
 		Manager<StepperMotorRequest, StepperMotorResponse> *clone() const override;
 	private:
-		const StepperMotorCreator m_stepper_ctor;
 		const DelayGenerator m_delay_generator;
-
-		std::unique_ptr<StepperMotor> m_motor;
+		std::shared_ptr<StepperMotor> m_motor;
 	};
 
-	inline StepperMotorManager::StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator): m_stepper_ctor(stepper_ctor), m_delay_generator(delay_generator) {
-		if (!m_stepper_ctor) {
-			throw std::runtime_error("invalid stepper_ctor received");
-		}
+	inline StepperMotorManager::StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator): m_delay_generator(delay_generator) {
 		if (!m_delay_generator) {
 			throw std::invalid_argument("invalid delay_generator received");
 		}
@@ -61,7 +56,7 @@ namespace manager {
 	}
 
 	inline Manager<StepperMotorRequest, StepperMotorResponse> *StepperMotorManager::clone() const {
-		return new StepperMotorManager(m_stepper_ctor, m_delay_generator);
+		return new StepperMotorManager(*this);
 	}
 }
 
