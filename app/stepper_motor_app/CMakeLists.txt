@@ -41,6 +41,7 @@ target_link_libraries(
     host
     stepper_motor_request
     stepper_motor_response
+    stepper_motor_manager
     stepper_ipc_data_reader
     stepper_ipc_data_writer
 )

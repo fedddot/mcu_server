@@ -6,6 +6,7 @@
 #include "stepper_ipc_data_infra.hpp"
 #include "stepper_ipc_data_reader.hpp"
 #include "stepper_ipc_data_writer.hpp"
+#include "stepper_motor_manager.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
 
@@ -14,7 +15,9 @@ namespace host {
 	public:
 		StepperHost(
 			const ipc::ClonableIpcDataReader<ipc::RawData>& ipc_data_reader,
-			const ipc::ClonableIpcDataWriter<ipc::RawData>& ipc_data_writer
+			const ipc::ClonableIpcDataWriter<ipc::RawData>& ipc_data_writer,
+			const manager::StepperMotorManager::StepperMotorCreator& stepper_motor_creator,
+			const manager::StepperMotorManager::DelayGenerator& delay_generator
 		);
 		StepperHost(const StepperHost&) = delete;
 		StepperHost& operator=(const StepperHost&) = delete;
@@ -24,13 +27,19 @@ namespace host {
 
 	inline StepperHost::StepperHost(
 		const ipc::ClonableIpcDataReader<ipc::RawData>& ipc_data_reader,
-		const ipc::ClonableIpcDataWriter<ipc::RawData>& ipc_data_writer
+		const ipc::ClonableIpcDataWriter<ipc::RawData>& ipc_data_writer,
+		const manager::StepperMotorManager::StepperMotorCreator& stepper_motor_creator,
+		const manager::StepperMotorManager::DelayGenerator& delay_generator
 	): Host(
 		ipc::StepperIpcDataReader(ipc_data_reader),
 		ipc::StepperIpcDataWriter(ipc_data_writer),
-		create_manager(),
+		manager::StepperMotorManager(stepper_motor_creator, delay_generator),
 		[](const std::exception& e) {
-			return manager::StepperMotorResponse(manager::StepperMotorResponse::ResultCode::EXCEPTION);
+			return manager::StepperMotorResponse {
+				manager::StepperMotorResponse::ResultCode::EXCEPTION,
+				std::nullopt,
+				std::string(e.what())
+			};
 		}
 	) {}
 

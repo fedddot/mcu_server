@@ -20,7 +20,7 @@ uts = [
     "host_tests",
     "json_data_tests",
     "raw_data_package_tests",
-    # "stepper_motor_app_tests",
+    "stepper_motor_app_tests",
     "stepper_motor_manager_tests",
     # "test_stepper_motor_server",
 ]

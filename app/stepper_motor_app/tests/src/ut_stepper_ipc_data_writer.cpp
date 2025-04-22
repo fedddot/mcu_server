@@ -33,9 +33,11 @@ TEST(ut_stepper_ipc_data_writer, ctor_dtor_sanity) {
 
 TEST(ut_stepper_ipc_data_writer, write_sanity) {
 	// GIVEN
-	auto test_response = StepperMotorResponse(StepperMotorResponse::ResultCode::EXCEPTION);
-	test_response.set_state(StepperMotor::State::ENABLED);
-	test_response.set_message("test message");
+	auto test_response = StepperMotorResponse {
+		StepperMotorResponse::ResultCode::EXCEPTION,
+		State::ENABLED,
+		"test message"
+	};
 
 	const auto raw_data_writer = TestIpcDataWriter<RawData>(
 		[test_response](const RawData& raw_data) {
@@ -43,11 +45,11 @@ TEST(ut_stepper_ipc_data_writer, write_sanity) {
 	    	Json::Reader reader;
 			ASSERT_TRUE(reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(root), true));
 			const auto received_response = json_value_to_stepper_response(root);
-			ASSERT_EQ(test_response.code(), received_response.code());
-			ASSERT_TRUE(received_response.message().has_value());
-			ASSERT_EQ(test_response.message().value(), received_response.message().value());
-			ASSERT_TRUE(received_response.state().has_value());
-			ASSERT_EQ(test_response.state().value(), received_response.state().value());
+			ASSERT_EQ(test_response.code, received_response.code);
+			ASSERT_TRUE(received_response.message.has_value());
+			ASSERT_EQ(test_response.message.value(), received_response.message.value());
+			ASSERT_TRUE(received_response.state.has_value());
+			ASSERT_EQ(test_response.state.value(), received_response.state.value());
 		}
 	);
 	
