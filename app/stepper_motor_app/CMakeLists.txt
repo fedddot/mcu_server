@@ -3,7 +3,7 @@ target_include_directories(stepper_ipc_data_infra INTERFACE ${CMAKE_CURRENT_LIST
 target_link_libraries(
     stepper_ipc_data_infra
     INTERFACE
-    stepper_motor
+    stepper_motor_data
     stepper_motor_request
     stepper_motor_response
     jsoncpp_static
