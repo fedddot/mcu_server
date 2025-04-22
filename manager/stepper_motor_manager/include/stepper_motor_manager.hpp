@@ -34,12 +34,13 @@ namespace manager {
 		if (!m_delay_generator) {
 			throw std::invalid_argument("invalid delay_generator received");
 		}
+		if (!stepper_ctor) {
+			throw std::invalid_argument("invalid stepper_ctor received");
+		}
+		m_motor = std::shared_ptr<StepperMotor>(stepper_ctor());
 	}
 	
 	inline StepperMotorResponse StepperMotorManager::run(const StepperMotorRequest& request) {
-		if (!m_motor) {
-			m_motor.reset(m_stepper_ctor());
-		}
 		auto steps_to_go = request.steps_number;
 		m_motor->set_state(State::ENABLED);
 		while (steps_to_go) {
