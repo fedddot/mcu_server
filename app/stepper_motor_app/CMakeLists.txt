@@ -39,11 +39,12 @@ target_link_libraries(
     stepper_host
     INTERFACE
     host
-    stepper_motor_request
-    stepper_motor_response
-    stepper_motor_manager
+    stepper_ipc_data_infra
     stepper_ipc_data_reader
     stepper_ipc_data_writer
+    stepper_motor_manager
+    stepper_motor_request
+    stepper_motor_response
 )
 
 # add_executable(test_stepper_motor_server ${CMAKE_CURRENT_LIST_DIR}/src/test_stepper_motor_server.cpp)

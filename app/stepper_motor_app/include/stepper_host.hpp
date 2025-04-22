@@ -1,7 +1,6 @@
 #ifndef	STEPPER_HOST_HPP
 #define	STEPPER_HOST_HPP
 
-#include "custom_manager.hpp"
 #include "host.hpp"
 #include "stepper_ipc_data_infra.hpp"
 #include "stepper_ipc_data_reader.hpp"
@@ -21,8 +20,6 @@ namespace host {
 		);
 		StepperHost(const StepperHost&) = delete;
 		StepperHost& operator=(const StepperHost&) = delete;
-	private:
-		static manager::CustomManager<manager::StepperMotorRequest, manager::StepperMotorResponse> create_manager();
 	};
 
 	inline StepperHost::StepperHost(
@@ -42,10 +39,6 @@ namespace host {
 			};
 		}
 	) {}
-
-	inline manager::CustomManager<manager::StepperMotorRequest, manager::StepperMotorResponse> StepperHost::create_manager() {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	}
 }
 
 #endif // STEPPER_HOST_HPP
