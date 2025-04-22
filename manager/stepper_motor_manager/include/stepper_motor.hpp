@@ -1,17 +1,11 @@
 #ifndef	STEPPER_MOTOR_HPP
 #define	STEPPER_MOTOR_HPP
 
+#include "stepper_motor_data.hpp"
+
 namespace manager {
 	class StepperMotor {
 	public:
-		enum class Direction: int {
-			CW,
-			CCW
-		};
-		enum class State: int {
-			DISABLED,
-			ENABLED
-		};
 		virtual ~StepperMotor() noexcept = default;
 		virtual void set_state(const State& state) = 0;
 		virtual State state() const = 0;
