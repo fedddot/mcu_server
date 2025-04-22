@@ -1,6 +1,7 @@
 #ifndef	STEPPER_IPC_DATA_INFRA_HPP
 #define	STEPPER_IPC_DATA_INFRA_HPP
 
+#include <cstddef>
 #include <vector>
 
 #include "json/value.h"
@@ -49,10 +50,16 @@ namespace ipc {
 	}
 
 	inline manager::StepperMotorRequest json_value_to_stepper_request(const Json::Value& json_request) {
+		auto retrieve_required_field = [](const Json::Value& json, const std::string& field_name) {
+			if (!json.isMember(field_name)) {
+				throw std::runtime_error("missing field: " + std::string(field_name));
+			}
+			return json[field_name];
+		};
 		return manager::StepperMotorRequest {
-			.direction = static_cast<manager::Direction>(json_request["direction"].asInt()),
-			.steps_number = json_request["steps_number"].asUInt64(),
-			.step_duration_ms = json_request["step_duration_ms"].asUInt64()
+			.direction = static_cast<manager::Direction>(retrieve_required_field(json_request, "direction").asInt()),
+			.steps_number = static_cast<std::size_t>(retrieve_required_field(json_request, "steps_number").asUInt()),
+			.step_duration_ms = static_cast<std::size_t>(retrieve_required_field(json_request, "step_duration_ms").asUInt()),
 		};
 	}
 }
