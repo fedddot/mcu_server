@@ -19,6 +19,9 @@ target_link_libraries(
 
 	stepper_host
 	test_stepper_motor
+	stepper_motor_data
+	stepper_motor_request
+	stepper_motor_response
 
 	gtest
 )

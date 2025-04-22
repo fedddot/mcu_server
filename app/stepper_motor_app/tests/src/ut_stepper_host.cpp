@@ -1,8 +1,8 @@
-#include "json/value.h"
 #include <cstddef>
 #include <stdexcept>
 
 #include "gtest/gtest.h"
+#include "json/value.h"
 
 #include "stepper_host.hpp"
 #include "stepper_ipc_data_infra.hpp"
@@ -77,15 +77,15 @@ TEST(ut_stepper_host, run_sanity) {
 			return RawData(serial_request.begin(), serial_request.end());
 		}
 	);
-	auto stepper_motor_creator = []() -> StepperMotor * {
+	auto stepper_motor_creator = [test_request]() -> StepperMotor * {
 		return new manager_tests::TestStepperMotor(
-			[](const Direction&) {
-				throw std::runtime_error("NOT IMPLEMENTED");
+			[test_request](const Direction& direction) {
+				ASSERT_EQ(test_request.direction, direction);
 			}
 		);
 	};
-	auto delay_generator = [](const std::size_t&) {
-		throw std::runtime_error("NOT IMPLEMENTED");
+	auto delay_generator = [test_request](const std::size_t& timeout_ms) {
+		ASSERT_EQ(test_request.step_duration_ms, timeout_ms);
 	};
 
 	// WHEN
