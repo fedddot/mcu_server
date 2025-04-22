@@ -41,19 +41,29 @@ namespace manager {
 	}
 	
 	inline StepperMotorResponse StepperMotorManager::run(const StepperMotorRequest& request) {
-		auto steps_to_go = request.steps_number;
-		m_motor->set_state(State::ENABLED);
-		while (steps_to_go) {
-			m_motor->step(request.direction);
-			m_delay_generator(request.step_duration_ms);
-			--steps_to_go;
+		auto response = StepperMotorResponse();
+		try {
+			m_motor->set_state(State::ENABLED);
+			auto steps_to_go = request.steps_number;
+			while (steps_to_go) {
+				m_motor->step(request.direction);
+				m_delay_generator(request.step_duration_ms);
+				--steps_to_go;
+			}
+			response = StepperMotorResponse {
+				StepperMotorResponse::ResultCode::OK,
+				std::nullopt,
+				std::nullopt
+			};
+		} catch (const std::exception& e) {
+			response = StepperMotorResponse {
+				StepperMotorResponse::ResultCode::EXCEPTION,
+				std::nullopt,
+				std::make_optional<std::string>(e.what())
+			};
 		}
 		m_motor->set_state(State::DISABLED);
-		return StepperMotorResponse {
-			StepperMotorResponse::ResultCode::OK,
-			std::nullopt,
-			std::nullopt
-		};
+		return response;
 	}
 
 	inline Manager<StepperMotorRequest, StepperMotorResponse> *StepperMotorManager::clone() const {

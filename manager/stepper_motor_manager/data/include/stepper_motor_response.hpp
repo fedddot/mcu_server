@@ -15,6 +15,10 @@ namespace manager {
 			BAD_REQUEST,
 			EXCEPTION
 		};
+		StepperMotorResponse() = default;
+		StepperMotorResponse(const StepperMotorResponse&) = default;
+		StepperMotorResponse& operator=(const StepperMotorResponse&) = default;
+
 		ResultCode code;
 		std::optional<State> state;
 		std::optional<std::string> message;
