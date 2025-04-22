@@ -6,14 +6,13 @@
 
 #include "gtest/gtest.h"
 
+#include "stepper_ipc_data_infra.hpp"
 #include "stepper_ipc_data_writer.hpp"
 #include "stepper_motor_response.hpp"
 #include "test_ipc_data_writer.hpp"
 
 using namespace ipc;
 using namespace manager;
-
-using RawData = typename StepperIpcDataWriter::RawData;
 
 TEST(ut_stepper_ipc_data_writer, ctor_dtor_sanity) {
 	// GIVEN

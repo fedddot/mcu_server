@@ -3,6 +3,7 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_stepper_ipc_data_reader.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_stepper_ipc_data_writer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_stepper_host.cpp
 )
 
 target_link_libraries(
@@ -15,6 +16,8 @@ target_link_libraries(
 	test_ipc_data_writer
 
 	stepper_ipc_data_infra
+
+	stepper_host
 
 	gtest
 )
