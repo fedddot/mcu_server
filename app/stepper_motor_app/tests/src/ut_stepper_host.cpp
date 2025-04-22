@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <iostream>
 #include <stdexcept>
 
 #include "gtest/gtest.h"
@@ -63,6 +64,7 @@ TEST(ut_stepper_host, run_sanity) {
 	};
 	const auto raw_data_writer = TestIpcDataWriter<RawData>(
 		[expected_response](const RawData& raw_data) {
+			std::cout << "test raw data writer received the following data to write:" << std::endl << std::string(raw_data.begin(), raw_data.end()) << std::endl;
 			auto json_response = Json::Value();
 			auto reader = Json::Reader();
 			ASSERT_TRUE(reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(json_response)));
@@ -74,6 +76,7 @@ TEST(ut_stepper_host, run_sanity) {
 		[test_request]() -> std::optional<RawData> {
 			const auto json_request = stepper_request_to_json_value(test_request);
 			const auto serial_request = Json::FastWriter().write(json_request);
+			std::cout << "test raw data reader generated the following raw request data:" << std::endl << serial_request << std::endl;
 			return RawData(serial_request.begin(), serial_request.end());
 		}
 	);
