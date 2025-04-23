@@ -18,13 +18,13 @@
 namespace manager {
 	class StepperMotorManager: public ClonableManager<StepperMotorRequest, StepperMotorResponse> {
 	public:
-		using StepperMotorCreator = std::function<StepperMotor *(const std::string&)>;
+		using Steppers = std::map<std::string, std::shared_ptr<StepperMotor>>;
+		using SteppersCreator = std::function<Steppers()>;
 		using DelayGenerator = std::function<void(const std::size_t& timeout_ms)>;
 
 		StepperMotorManager(
-			const StepperMotorCreator& stepper_ctor,
-			const DelayGenerator& delay_generator,
-			const std::vector<std::string>& motor_ids
+			const SteppersCreator& steppers_ctor,
+			const DelayGenerator& delay_generator
 		);
 		StepperMotorManager(const StepperMotorManager& other) = default;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
@@ -33,25 +33,25 @@ namespace manager {
 		Manager<StepperMotorRequest, StepperMotorResponse> *clone() const override;
 	private:
 		const DelayGenerator m_delay_generator;
-		std::map<std::string, std::shared_ptr<StepperMotor>> m_stepper_motors;
+		Steppers m_stepper_motors;
 	};
 
 	inline StepperMotorManager::StepperMotorManager(
-		const StepperMotorCreator& stepper_ctor,
-		const DelayGenerator& delay_generator,
-		const std::vector<std::string>& motor_ids
+		const SteppersCreator& steppers_ctor,
+		const DelayGenerator& delay_generator
 	): m_delay_generator(delay_generator) {
 		if (!m_delay_generator) {
 			throw std::invalid_argument("invalid delay_generator received");
 		}
-		if (!stepper_ctor) {
-			throw std::invalid_argument("invalid stepper_ctor received");
+		if (!steppers_ctor) {
+			throw std::invalid_argument("invalid steppers_ctor received");
 		}
-		for (const auto& motor_id : motor_ids) {
-			if (m_stepper_motors.find(motor_id) != m_stepper_motors.end()) {
-				throw std::invalid_argument("motor " + motor_id + " already exists");
+		m_stepper_motors = steppers_ctor();
+		for (const auto& [motor_id, motor] : m_stepper_motors) {
+			if (!motor) {
+				throw std::invalid_argument("motor " + motor_id + " registered as nullptr");
 			}
-			m_stepper_motors[motor_id] = std::shared_ptr<StepperMotor>(stepper_ctor(motor_id));
+			motor->set_state(State::DISABLED);
 		}
 	}
 	
