@@ -43,6 +43,7 @@ namespace ipc {
 
 	inline Json::Value stepper_request_to_json_value(const manager::StepperMotorRequest& request) {
 		Json::Value json_data;
+		json_data["motor_id"] = Json::String(request.motor_id);
 		json_data["direction"] = Json::Int(static_cast<int>(request.direction));
 		json_data["steps_number"] = Json::UInt64(request.steps_number);
 		json_data["step_duration_ms"] = Json::UInt64(request.step_duration_ms);
@@ -57,6 +58,7 @@ namespace ipc {
 			return json[field_name];
 		};
 		return manager::StepperMotorRequest {
+			.motor_id = retrieve_required_field(json_request, "motor_id").asString(),
 			.direction = static_cast<manager::Direction>(retrieve_required_field(json_request, "direction").asInt()),
 			.steps_number = static_cast<std::size_t>(retrieve_required_field(json_request, "steps_number").asUInt()),
 			.step_duration_ms = static_cast<std::size_t>(retrieve_required_field(json_request, "step_duration_ms").asUInt()),

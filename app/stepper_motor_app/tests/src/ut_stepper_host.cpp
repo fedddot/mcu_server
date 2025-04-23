@@ -8,6 +8,7 @@
 #include "stepper_host.hpp"
 #include "stepper_ipc_data_infra.hpp"
 #include "stepper_motor_data.hpp"
+#include "stepper_motor_manager.hpp"
 #include "stepper_motor_request.hpp"
 #include "stepper_motor_response.hpp"
 #include "test_ipc_data_reader.hpp"
@@ -16,6 +17,7 @@
 
 using namespace ipc;
 using namespace manager;
+using namespace manager_tests;
 using namespace host;
 
 TEST(ut_stepper_host, ctor_dtor_sanity) {
@@ -30,12 +32,17 @@ TEST(ut_stepper_host, ctor_dtor_sanity) {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
-	auto stepper_motor_creator = []() -> StepperMotor * {
-		return new manager_tests::TestStepperMotor(
-			[](const Direction&) {
-				throw std::runtime_error("NOT IMPLEMENTED");
-			}
-		);
+	auto stepper_motor_creator = []() -> StepperMotorManager::Steppers {
+		return StepperMotorManager::Steppers {
+			{
+				"motor_1",
+				std::make_shared<TestStepperMotor>(
+					[](const Direction&) {
+						throw std::runtime_error("NOT IMPLEMENTED");
+					}
+				)
+			},
+		};
 	};
 	auto delay_generator = [](const std::size_t&) {
 		throw std::runtime_error("NOT IMPLEMENTED");
@@ -53,6 +60,7 @@ TEST(ut_stepper_host, ctor_dtor_sanity) {
 TEST(ut_stepper_host, run_sanity) {
 	// GIVEN
 	const auto test_request = StepperMotorRequest {
+		"test_motor_id",
 		Direction::CCW,
 		100,
 		10
@@ -80,12 +88,17 @@ TEST(ut_stepper_host, run_sanity) {
 			return RawData(serial_request.begin(), serial_request.end());
 		}
 	);
-	auto stepper_motor_creator = [test_request]() -> StepperMotor * {
-		return new manager_tests::TestStepperMotor(
-			[test_request](const Direction& direction) {
-				ASSERT_EQ(test_request.direction, direction);
-			}
-		);
+	auto stepper_motor_creator = [test_request]() -> StepperMotorManager::Steppers {
+		return StepperMotorManager::Steppers {
+			{
+				test_request.motor_id,
+				std::make_shared<TestStepperMotor>(
+					[test_request](const Direction& direction) {
+						ASSERT_EQ(test_request.direction, direction);
+					}
+				)
+			},
+		};
 	};
 	auto delay_generator = [test_request](const std::size_t& timeout_ms) {
 		ASSERT_EQ(test_request.step_duration_ms, timeout_ms);
