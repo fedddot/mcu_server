@@ -3,9 +3,11 @@
 
 #include <cstddef>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <string>
 
 #include "clonable_manager.hpp"
 #include "manager.hpp"
@@ -16,10 +18,14 @@
 namespace manager {
 	class StepperMotorManager: public ClonableManager<StepperMotorRequest, StepperMotorResponse> {
 	public:
-		using StepperMotorCreator = std::function<StepperMotor *(void)>;
+		using Steppers = std::map<std::string, std::shared_ptr<StepperMotor>>;
+		using SteppersCreator = std::function<Steppers()>;
 		using DelayGenerator = std::function<void(const std::size_t& timeout_ms)>;
 
-		StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator);
+		StepperMotorManager(
+			const SteppersCreator& steppers_ctor,
+			const DelayGenerator& delay_generator
+		);
 		StepperMotorManager(const StepperMotorManager& other) = default;
 		StepperMotorManager& operator=(const StepperMotorManager&) = delete;
 
@@ -27,43 +33,63 @@ namespace manager {
 		Manager<StepperMotorRequest, StepperMotorResponse> *clone() const override;
 	private:
 		const DelayGenerator m_delay_generator;
-		std::shared_ptr<StepperMotor> m_motor;
+		Steppers m_stepper_motors;
 	};
 
-	inline StepperMotorManager::StepperMotorManager(const StepperMotorCreator& stepper_ctor, const DelayGenerator& delay_generator): m_delay_generator(delay_generator) {
+	inline StepperMotorManager::StepperMotorManager(
+		const SteppersCreator& steppers_ctor,
+		const DelayGenerator& delay_generator
+	): m_delay_generator(delay_generator) {
 		if (!m_delay_generator) {
 			throw std::invalid_argument("invalid delay_generator received");
 		}
-		if (!stepper_ctor) {
-			throw std::invalid_argument("invalid stepper_ctor received");
+		if (!steppers_ctor) {
+			throw std::invalid_argument("invalid steppers_ctor received");
 		}
-		m_motor = std::shared_ptr<StepperMotor>(stepper_ctor());
+		m_stepper_motors = steppers_ctor();
+		for (const auto& [motor_id, motor] : m_stepper_motors) {
+			if (!motor) {
+				throw std::invalid_argument("motor " + motor_id + " registered as nullptr");
+			}
+			motor->set_state(State::DISABLED);
+		}
 	}
 	
 	inline StepperMotorResponse StepperMotorManager::run(const StepperMotorRequest& request) {
-		auto response = StepperMotorResponse();
+		const auto iter = m_stepper_motors.find(request.motor_id);
+		if (m_stepper_motors.end() == iter) {
+			return StepperMotorResponse {
+				StepperMotorResponse::ResultCode::NOT_FOUND,
+				std::nullopt,
+				std::string("motor " + request.motor_id + " not found")
+			};
+		}
+		auto motor = (iter->second).get();
+		if (!motor) {
+			return StepperMotorResponse {
+				StepperMotorResponse::ResultCode::EXCEPTION,
+				std::nullopt,
+				std::string("motor " + request.motor_id + " registered as nullptr")
+			};
+		}
 		try {
-			m_motor->set_state(State::ENABLED);
+			motor->set_state(State::ENABLED);
 			auto steps_to_go = request.steps_number;
 			while (steps_to_go) {
-				m_motor->step(request.direction);
+				motor->step(request.direction);
 				m_delay_generator(request.step_duration_ms);
 				--steps_to_go;
 			}
-			response = StepperMotorResponse {
-				StepperMotorResponse::ResultCode::OK,
-				std::nullopt,
-				std::nullopt
-			};
-		} catch (const std::exception& e) {
-			response = StepperMotorResponse {
-				StepperMotorResponse::ResultCode::EXCEPTION,
-				std::nullopt,
-				std::make_optional<std::string>(e.what())
-			};
+			motor->set_state(State::DISABLED);
+		} catch(...) {
+			motor->set_state(State::DISABLED);
+			throw;
 		}
-		m_motor->set_state(State::DISABLED);
-		return response;
+		return StepperMotorResponse {
+			StepperMotorResponse::ResultCode::OK,
+			std::nullopt,
+			std::nullopt
+		};
 	}
 
 	inline Manager<StepperMotorRequest, StepperMotorResponse> *StepperMotorManager::clone() const {

@@ -2,11 +2,13 @@
 #define	STEPPER_MOTOR_REQUEST_HPP
 
 #include <cstddef>
+#include <string>
 
 #include "stepper_motor_data.hpp"
 
 namespace manager {
 	struct StepperMotorRequest {
+		std::string motor_id;
 		Direction direction;
 		std::size_t steps_number;
 		std::size_t step_duration_ms;

@@ -15,7 +15,7 @@ namespace host {
 		StepperHost(
 			const ipc::ClonableIpcDataReader<ipc::RawData>& ipc_data_reader,
 			const ipc::ClonableIpcDataWriter<ipc::RawData>& ipc_data_writer,
-			const manager::StepperMotorManager::StepperMotorCreator& stepper_motor_creator,
+			const manager::StepperMotorManager::SteppersCreator& stepper_motor_creator,
 			const manager::StepperMotorManager::DelayGenerator& delay_generator
 		);
 		StepperHost(const StepperHost&) = delete;
@@ -25,7 +25,7 @@ namespace host {
 	inline StepperHost::StepperHost(
 		const ipc::ClonableIpcDataReader<ipc::RawData>& ipc_data_reader,
 		const ipc::ClonableIpcDataWriter<ipc::RawData>& ipc_data_writer,
-		const manager::StepperMotorManager::StepperMotorCreator& stepper_motor_creator,
+		const manager::StepperMotorManager::SteppersCreator& stepper_motor_creator,
 		const manager::StepperMotorManager::DelayGenerator& delay_generator
 	): Host(
 		ipc::StepperIpcDataReader(ipc_data_reader),
