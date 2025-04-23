@@ -9,10 +9,9 @@
 #include "host.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
-#include "test_manager.hpp"
+#include "custom_manager.hpp"
 
 using namespace manager;
-using namespace manager_tests;
 using namespace host;
 using namespace ipc;
 
@@ -33,7 +32,7 @@ TEST(ut_host, ctor_dtor_sanity) {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
-	const auto manager = TestManager<Request, Response>(
+	const auto manager = CustomManager<Request, Response>(
 			[](const Request& request) {
 				std::cout << "received request: " << request;
 				return 0;
@@ -73,7 +72,7 @@ TEST(ut_host, run_once_sanity) {
 			ASSERT_EQ(expected_response, response);
 		}
 	);
-	const auto manager = TestManager<Request, Response>(
+	const auto manager = CustomManager<Request, Response>(
 		[expected_response](const Request& request) {
 			std::cout << "received request: " << request << std::endl;
 			std::cout << "returning response: " << expected_response << std::endl;

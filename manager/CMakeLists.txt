@@ -16,4 +16,3 @@ target_include_directories(custom_manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/in
 target_link_libraries(custom_manager INTERFACE manager clonable_manager)
 
 add_subdirectory(stepper_motor_manager)
-add_subdirectory(tests EXCLUDE_FROM_ALL)

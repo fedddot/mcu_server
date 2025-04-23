@@ -19,10 +19,9 @@
 #include "raw_data_package_writer.hpp"
 #include "shared_ipc_data_reader.hpp"
 #include "shared_ipc_data_writer.hpp"
-#include "test_manager.hpp"
+#include "custom_manager.hpp"
 
 using namespace manager;
-using namespace manager_tests;
 using namespace host;
 using namespace ipc;
 
@@ -65,7 +64,7 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 			ASSERT_EQ(package_descriptor.preamble(), received_preamble);
 		}
 	);
-	const auto manager = TestManager<Request, Response> (
+	const auto manager = CustomManager<Request, Response> (
 		[expected_response, test_request](const Request& request) {
 			std::cout << "test manager received request: " << request << std::endl;
 			std::cout << "test manager is sending response: " << expected_response << std::endl;

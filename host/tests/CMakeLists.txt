@@ -19,7 +19,7 @@ target_link_libraries(
     shared_ipc_data_writer
 	test_ipc_data_reader
 	test_ipc_data_writer
-    test_manager
+    custom_manager
 
 	jsoncpp_static
 	gtest
