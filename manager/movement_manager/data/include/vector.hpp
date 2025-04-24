@@ -3,6 +3,7 @@
 
 namespace manager {
 	struct Vector {
+		Vector() = default;
 		Vector(double x, double y, double z);
 		Vector(const Vector&) = default;
 		Vector& operator=(const Vector&) = default;
@@ -13,7 +14,7 @@ namespace manager {
 		double z;
 	};
 
-	inline Vector::Vector(double x = 0.0, double y = 0.0, double z = 0.0) : x(x), y(y), z(z) {
+	inline Vector::Vector(double x, double y, double z) : x(x), y(y), z(z) {
 	}
 
 	inline bool operator==(const Vector& lhs, const Vector& rhs) {
