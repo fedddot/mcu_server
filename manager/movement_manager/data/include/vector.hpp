@@ -1,40 +1,42 @@
 #ifndef	VECTOR_HPP
 #define	VECTOR_HPP
 
+#include <map>
+
+#include "movement_manager_data.hpp"
+
 namespace manager {
-	struct Vector {
-		Vector() = default;
-		Vector(double x, double y, double z);
+	template <typename T>
+	class Vector {
+	public:
+		Vector(const T& x, const T& y, const T& z);
 		Vector(const Vector&) = default;
 		Vector& operator=(const Vector&) = default;
 		~Vector() = default;
 
-		bool zero_vector() const {
-			return (x == 0.0 && y == 0.0 && z == 0.0);
-		}
-
-		double x;
-		double y;
-		double z;
+		T get(const Axis& axis) const;
+		void set(const Axis& axis, const T& value);
+	private:
+		std::map<Axis, T> m_values;
 	};
 
-	inline Vector::Vector(double x, double y, double z) : x(x), y(y), z(z) {
+	template <typename T>
+	inline Vector<T>::Vector(const T& x, const T& y, const T& z): m_values {
+		{Axis::X, x},
+		{Axis::Y, y},
+		{Axis::Z, z}
+	} {
+
 	}
 
-	inline bool operator==(const Vector& lhs, const Vector& rhs) {
-		return (lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z);
+	template <typename T>
+	inline T Vector<T>::get(const Axis& axis) const {
+		return m_values.at(axis);
 	}
 
-	inline Vector operator+(const Vector& lhs, const Vector& rhs) {
-		return Vector(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
-	}
-
-	inline Vector operator-(const Vector& lhs, const Vector& rhs) {
-		return Vector(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
-	}
-
-	inline Vector operator-(const Vector& lhs) {
-		return Vector(-lhs.x, -lhs.y, -lhs.z);
+	template <typename T>
+	inline void Vector<T>::set(const Axis& axis, const T& value) {
+		m_values[axis] = value;
 	}
 }
 
