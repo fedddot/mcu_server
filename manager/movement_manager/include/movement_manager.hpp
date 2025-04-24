@@ -27,7 +27,6 @@ namespace manager {
 
 	inline MovementManager::MovementManager(
 	) {
-		throw std::runtime_error("not implemented");
 	}
 	
 	inline MovementManagerResponse MovementManager::run(const MovementManagerRequest& request) {
