@@ -6,7 +6,7 @@
 #include <tuple>
 
 #include "movement_manager_data.hpp"
-#include "vector.hpp"
+#include "movement_manager_vector.hpp"
 
 namespace manager {
 	class LinearMovement {

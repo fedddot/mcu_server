@@ -9,7 +9,7 @@
 #include "manager.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
-#include "vector.hpp"
+#include "movement_manager_vector.hpp"
 
 namespace manager {
 	class MovementManager: public ClonableManager<MovementManagerRequest, MovementManagerResponse> {
