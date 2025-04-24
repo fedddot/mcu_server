@@ -1,9 +1,8 @@
 #ifndef	LINEAR_MOVEMENT_HPP
 #define	LINEAR_MOVEMENT_HPP
 
-#include <functional>
 #include <stdexcept>
-#include <tuple>
+#include <vector>
 
 #include "movement_manager_data.hpp"
 #include "movement_manager_vector.hpp"
@@ -12,43 +11,36 @@ namespace manager {
 	class LinearMovement {
 	public:
 		LinearMovement(
-			const Vector& destination,
-			const double speed,
-			const double step_length
+			const Vector<double>& destination,
+			const Vector<double>& basis,
+			const double speed
 		);
 		LinearMovement(const LinearMovement& other) = default;
 		LinearMovement& operator=(const LinearMovement&) = default;
 
-		void perform() const;
+		std::vector<Axis> evaluate_steps() const;
 	private:
-		Vector m_destination;
+		Vector<double> m_destination;
+		Vector<double> m_basis;
 		double m_speed;
-		double m_step_length;
 
-		
-		using MovementElement = std::tuple<Axis, int>;
-		using MovementElements = std::vector<MovementElement>;
+		static Vector<int> to_discreet_basis(const Vector<double>& destination, const Vector<double>& basis);
+		static Vector<double> to_continuous_basis(const Vector<double>& destination, const Vector<double>& basis);
 
-		MovementElements decompose_movement(const Vector& destination) const;
+		static Axis longest_axis(const Vector<int>& steps_vector);
 	};
 
 	inline LinearMovement::LinearMovement(
-		const Vector& destination,
-		const double speed,
-		const double step_length
-	): m_destination(destination), m_speed(speed), m_step_length(step_length) {
-		if (m_destination.zero_vector()) {
-			throw std::invalid_argument("zero destination vector received");
-		}
+		const Vector<double>& destination,
+		const Vector<double>& basis,
+		const double speed
+	): m_destination(destination), m_basis(basis), m_speed(speed) {
 		if (m_speed <= 0.0) {
 			throw std::invalid_argument("zero or negative speed received");
 		}
-		if (m_step_length <= 0.0) {
-			throw std::invalid_argument("zero or negative step length received");
-		}
 	}
 	
-	inline void LinearMovement::perform() const {
+	inline std::vector<Axis> LinearMovement::evaluate_steps() const {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 }
