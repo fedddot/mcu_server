@@ -5,12 +5,13 @@
 #include <string>
 
 namespace manager {
-	enum class ResultCode: int {
-		OK,
-		BAD_REQUEST,
-		EXCEPTION,
-	};
 	struct MovementManagerResponse {
+		enum class ResultCode: int {
+			OK,
+			BAD_REQUEST,
+			EXCEPTION,
+		};
+		
 		ResultCode code;
 		std::optional<std::string> message;
 	};
