@@ -4,18 +4,27 @@
 #include "vector.hpp"
 
 namespace manager {
-	enum class MovementType: int {
-		LINEAR,
-		ROTATIONAL,
-	};
 	
-	struct LinearRotation {
-		Vector destination;
-		double speed;
-	};
-
 	struct MovementManagerRequest {
+		enum class MovementType: int {
+			LINEAR,
+			ROTATIONAL,
+		};		
+		struct LinearMovement {
+			Vector destination;
+			double speed;
+		};
+		struct RotationalMovement {
+			Vector rotation_center;
+			double angle;
+			double speed;
+		};
 		
+		MovementType type;
+		union {
+			LinearMovement linear;
+			RotationalMovement rotational;
+		} movement;
 	};
 }
 

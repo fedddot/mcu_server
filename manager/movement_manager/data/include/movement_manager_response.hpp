@@ -1,13 +1,18 @@
 #ifndef	MOVEMENT_MANAGER_RESPONSE_HPP
 #define	MOVEMENT_MANAGER_RESPONSE_HPP
 
+#include <optional>
+#include <string>
+
 namespace manager {
+	enum class ResultCode: int {
+		OK,
+		BAD_REQUEST,
+		EXCEPTION,
+	};
 	struct MovementManagerResponse {
-		enum class ResultCode: int {
-			OK,
-			EXCEPTION
-		};
 		ResultCode code;
+		std::optional<std::string> message;
 	};
 }
 
