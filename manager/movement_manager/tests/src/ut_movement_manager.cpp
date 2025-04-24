@@ -1,10 +1,6 @@
-#include <cstddef>
-
 #include "gtest/gtest.h"
 
 #include "movement_manager.hpp"
-#include "movement_manager_request.hpp"
-#include "movement_manager_response.hpp"
 
 using namespace manager;
 
