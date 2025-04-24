@@ -48,7 +48,7 @@ namespace manager {
 	}
 	
 	inline void LinearMovement::perform() const {
-
+		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 }
 
