@@ -9,6 +9,10 @@ namespace manager {
 		Vector& operator=(const Vector&) = default;
 		virtual ~Vector() noexcept = default;
 
+		bool zero_vector() const {
+			return (x == 0.0 && y == 0.0 && z == 0.0);
+		}
+
 		double x;
 		double y;
 		double z;

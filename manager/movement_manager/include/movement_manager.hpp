@@ -1,9 +1,11 @@
 #ifndef	STEPPER_MOTOR_MANAGER_HPP
 #define	STEPPER_MOTOR_MANAGER_HPP
 
+#include <optional>
 #include <stdexcept>
 
 #include "clonable_manager.hpp"
+#include "linear_movement.hpp"
 #include "manager.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
@@ -48,7 +50,6 @@ namespace manager {
 				.message = "unsupported movement type received",
 			};
 		}
-		throw std::runtime_error("not implemented");
 	}
 
 	inline Manager<MovementManagerRequest, MovementManagerResponse> *MovementManager::clone() const {
@@ -56,7 +57,31 @@ namespace manager {
 	}
 
 	inline MovementManagerResponse MovementManager::linear_movement(const Vector& destination, const double speed) const {
-		throw std::runtime_error("not implemented");
+		const auto movement = LinearMovement(
+			destination,
+			speed,
+			[](const double distance, const double speed) {
+				throw std::runtime_error("not implemented");
+			},
+			[](const double distance, const double speed) {
+				throw std::runtime_error("not implemented");
+			},
+			[](const double distance, const double speed) {
+				throw std::runtime_error("not implemented");
+			}
+		);
+		try {
+			movement.perform();
+		} catch (const std::exception& e) {
+			return MovementManagerResponse {
+				.code = MovementManagerResponse::ResultCode::EXCEPTION,
+				.message = e.what(),
+			};
+		}
+		return MovementManagerResponse {
+			.code = MovementManagerResponse::ResultCode::OK,
+			.message = std::nullopt,
+		};
 	}
 	
 	inline MovementManagerResponse MovementManager::circular_movement(const Vector& rotation_center, const double angle, const double speed) const {
