@@ -1,5 +1,5 @@
-#ifndef	VECTOR_HPP
-#define	VECTOR_HPP
+#ifndef	MOVEMENT_MANAGER_VECTOR_HPP
+#define	MOVEMENT_MANAGER_VECTOR_HPP
 
 #include <map>
 
@@ -40,4 +40,4 @@ namespace manager {
 	}
 }
 
-#endif // VECTOR_HPP
+#endif // MOVEMENT_MANAGER_VECTOR_HPP
