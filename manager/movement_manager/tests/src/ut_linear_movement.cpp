@@ -44,32 +44,43 @@ TEST(ut_linear_movement, evaluate_sanity) {
 		const AxesProperties axes_properties;
 		const std::map<Axis, double> allowed_absolute_errors;
 	};
+	const auto coarse_error = 2.0;
+	const auto fine_error = 0.008;
 	const auto destinations = {
 		TestCase {
 			Vector<double>(10.0, 20.0, 30.0),
 			AxesProperties(3.0, 4.0, 5.0),
 			{
-				{Axis::X, 2},
-				{Axis::Y, 2},
-				{Axis::Z, 2}
+				{Axis::X, coarse_error},
+				{Axis::Y, coarse_error},
+				{Axis::Z, coarse_error}
 			}
 		},
 		TestCase {
 			Vector<double>(-10.0, 20.0, -30.0),
 			AxesProperties(3.0, 4.0, 5.0),
 			{
-				{Axis::X, 2},
-				{Axis::Y, 2},
-				{Axis::Z, 2}
+				{Axis::X, coarse_error},
+				{Axis::Y, coarse_error},
+				{Axis::Z, coarse_error}
 			}
 		},
 		TestCase {
 			Vector<double>(35.761, 300.0, 90.86423),
 			AxesProperties(0.005, 0.005, 0.005),
 			{
-				{Axis::X, 0.4},
-				{Axis::Y, 0.3},
-				{Axis::Z, 1.0}
+				{Axis::X, fine_error},
+				{Axis::Y, fine_error},
+				{Axis::Z, fine_error}
+			}
+		},
+		TestCase {
+			Vector<double>(35.761, -300.0, -90.86423),
+			AxesProperties(0.005, 0.005, 0.005),
+			{
+				{Axis::X, fine_error},
+				{Axis::Y, fine_error},
+				{Axis::Z, fine_error}
 			}
 		},
 	};
