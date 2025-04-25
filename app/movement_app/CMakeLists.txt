@@ -6,6 +6,7 @@ target_link_libraries(
     movement_manager_data
     movement_manager_request
     movement_manager_response
+    movement_manager_vector
     jsoncpp_static
 )
 
@@ -42,7 +43,8 @@ target_link_libraries(
     movement_ipc_data_infra
     movement_ipc_data_reader
     movement_ipc_data_writer
-    movement_motor_manager
+    movement_manager
+    movement_manager_data
     movement_manager_request
     movement_manager_response
 )
