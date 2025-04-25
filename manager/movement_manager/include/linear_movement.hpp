@@ -2,7 +2,6 @@
 #define	LINEAR_MOVEMENT_HPP
 
 #include <cmath>
-#include <cstdlib>
 #include <limits>
 #include <stdexcept>
 #include <vector>
