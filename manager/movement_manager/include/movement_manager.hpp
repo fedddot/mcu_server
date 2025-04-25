@@ -16,6 +16,7 @@ namespace manager {
 	class MovementManager: public ClonableManager<MovementManagerRequest, MovementManagerResponse> {
 	public:
 		MovementManager(
+			const AxesProperties& axes_properties
 		);
 		MovementManager(const MovementManager& other) = default;
 		MovementManager& operator=(const MovementManager&) = delete;
@@ -29,7 +30,8 @@ namespace manager {
 	};
 
 	inline MovementManager::MovementManager(
-	): m_axes_properties(0.1, 0.1, 0.1) {
+		const AxesProperties& axes_properties
+	): m_axes_properties(axes_properties) {
 	}
 	
 	inline MovementManagerResponse MovementManager::run(const MovementManagerRequest& request) {
