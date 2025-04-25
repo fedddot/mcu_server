@@ -3,16 +3,15 @@
 #include "gtest/gtest.h"
 #include "json/writer.h"
 
-#include "stepper_ipc_data_infra.hpp"
-#include "stepper_ipc_data_reader.hpp"
-#include "stepper_motor_data.hpp"
-#include "stepper_motor_request.hpp"
+#include "movement_ipc_data_infra.hpp"
+#include "movement_ipc_data_reader.hpp"
+#include "movement_manager_request.hpp"
 #include "test_ipc_data_reader.hpp"
 
 using namespace ipc;
 using namespace manager;
 
-TEST(ut_stepper_ipc_data_reader, ctor_dtor_sanity) {
+TEST(ut_movement_ipc_data_reader, ctor_dtor_sanity) {
 	// GIVEN
 	const auto test_raw_data_reader = TestIpcDataReader<RawData>(
 		[]() -> std::optional<RawData> {
@@ -21,36 +20,37 @@ TEST(ut_stepper_ipc_data_reader, ctor_dtor_sanity) {
 	);
 	
 	// WHEN
-	StepperIpcDataReader *instance = nullptr;
+	MovementIpcDataReader *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new StepperIpcDataReader(test_raw_data_reader));
+	ASSERT_NO_THROW(instance = new MovementIpcDataReader(test_raw_data_reader));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
 
-TEST(ut_stepper_ipc_data_reader, read_sanity) {
+TEST(ut_movement_ipc_data_reader, read_sanity) {
 	// GIVEN
-	const auto test_stepper_request = StepperMotorRequest {
-		.direction = Direction::CW,
-		.steps_number = 100,
-		.step_duration_ms = 10
+	const auto axes_properties = AxesProperties(0.1, 0.1, 0.1);
+	const auto request_data = MovementManagerRequest::LinearMovementData {
+		.destination = Vector<double>(1.0, 2.0, 3.0),
+		.speed = 4.0
 	};
-	auto json_stepper_request = stepper_request_to_json_value(test_stepper_request);
-	const auto serial_json_stepper_request = Json::writeString(Json::StreamWriterBuilder(), json_stepper_request);
+	auto request = MovementManagerRequest(request_data);
+	auto json_movement_request = movement_request_to_json_value(request);
+	const auto serial_json_movement_request = Json::writeString(Json::StreamWriterBuilder(), json_movement_request);
 
 	const auto test_raw_data_reader = TestIpcDataReader<RawData>(
-		[serial_json_stepper_request]() -> std::optional<RawData> {
-			return std::optional<RawData>(RawData(serial_json_stepper_request.begin(), serial_json_stepper_request.end()));
+		[serial_json_movement_request]() -> std::optional<RawData> {
+			return std::optional<RawData>(RawData(serial_json_movement_request.begin(), serial_json_movement_request.end()));
 		}
 	);
 	
 	// WHEN
-	StepperIpcDataReader instance(test_raw_data_reader);
-	auto read_result = std::optional<StepperMotorRequest>();
+	MovementIpcDataReader instance(test_raw_data_reader);
+	auto read_result = std::optional<MovementManagerRequest>();
 
 	// THEN
 	ASSERT_NO_THROW(read_result = instance.read());
 	ASSERT_TRUE(read_result);
-	ASSERT_EQ(test_stepper_request, *read_result);
+	ASSERT_EQ(request.get_movement_type(), read_result->get_movement_type());
 }
