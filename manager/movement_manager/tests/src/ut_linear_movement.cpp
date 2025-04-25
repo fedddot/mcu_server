@@ -8,7 +8,7 @@ using namespace manager;
 TEST(ut_linear_movement, ctor_dtor_sanity) {
 	// GIVEN
 	const auto destination = Vector<double>(10.0, 20.0, 30.0);
-	const auto basis = Vector<double>(3.0, 4.0, 5.0);
+	const auto axes_properties = AxesProperties(3.0, 4.0, 5.0);
 	
 	// WHEN
 	LinearMovement *instance(nullptr);
@@ -17,7 +17,7 @@ TEST(ut_linear_movement, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		instance = new LinearMovement(
 			destination,
-			basis
+			axes_properties
 		)
 	);
 	ASSERT_NE(instance, nullptr);
@@ -27,12 +27,12 @@ TEST(ut_linear_movement, ctor_dtor_sanity) {
 TEST(ut_linear_movement, evaluate_sanity) {
 	// GIVEN
 	const auto destination = Vector<double>(10.0, 20.0, 30.0);
-	const auto basis = Vector<double>(3.0, 4.0, 5.0);
+	const auto axes_properties = AxesProperties(3.0, 4.0, 5.0);
 
 	// WHEN
 	LinearMovement instance(
 		destination,
-		basis
+		axes_properties
 	);
 	auto result = std::vector<AxisStep>();
 

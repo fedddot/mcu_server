@@ -60,6 +60,7 @@ namespace manager {
 	inline bool LinearMovement::is_enough(const Vector<double>& current) const {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	}
+	
 	inline AxisStep LinearMovement::evaluate_axis_step(const Vector<double>& current) const {
 		auto best_step = AxisStep {};
 		auto best_error_metric = std::numeric_limits<double>::max();
