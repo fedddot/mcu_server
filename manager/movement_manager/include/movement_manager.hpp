@@ -33,17 +33,17 @@ namespace manager {
 	}
 	
 	inline MovementManagerResponse MovementManager::run(const MovementManagerRequest& request) {
-		switch (request.type) {
+		switch (request.get_movement_type()) {
 		case MovementManagerRequest::MovementType::LINEAR:
 			return linear_movement(
-				request.movement.linear.destination, 
-				request.movement.linear.speed
+				request.get_movement_data<MovementManagerRequest::LinearMovementData>().destination, 
+				request.get_movement_data<MovementManagerRequest::LinearMovementData>().speed
 			);
 		case MovementManagerRequest::MovementType::ROTATIONAL:
 			return circular_movement(
-				request.movement.rotational.rotation_center,
-				request.movement.rotational.angle,
-				request.movement.rotational.speed
+				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().rotation_center,
+				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().angle,
+				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().speed
 			);
 		default:
 			return MovementManagerResponse {

@@ -19,15 +19,11 @@ TEST(ut_movement_manager, ctor_dtor_sanity) {
 
 TEST(ut_movement_manager, run_sanity) {
 	// GIVEN
-	auto request = MovementManagerRequest {
-		.type = MovementManagerRequest::MovementType::LINEAR,
-		.movement = {
-			.linear = {
-				.destination = Vector<double>(1.0, 2.0, 3.0),
-				.speed = 4.0
-			}
-		},
+	const auto request_data = MovementManagerRequest::LinearMovementData {
+		.destination = Vector<double>(1.0, 2.0, 3.0),
+		.speed = 4.0
 	};
+	auto request = MovementManagerRequest(request_data);
 	
 	// WHEN
 	MovementManager instance;
