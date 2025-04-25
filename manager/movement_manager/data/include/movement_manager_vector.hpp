@@ -38,6 +38,24 @@ namespace manager {
 	inline void Vector<T>::set(const Axis& axis, const T& value) {
 		m_values[axis] = value;
 	}
+
+	template <typename T>
+	inline double inner_product(const Vector<T>& one, const Vector<T>& other) {
+		auto result = 0.0;
+		for (const auto& axis : {Axis::X, Axis::Y, Axis::Z}) {
+			result += one.get(axis) * other.get(axis);
+		}
+		return result;
+	}
+
+	template <typename T>
+	inline Vector<T> vector_product(const Vector<T>& one, const Vector<T>& other) {
+		return Vector<T>(
+			one.get(Axis::Y) * other.get(Axis::Z) - one.get(Axis::Z) * other.get(Axis::Y),
+			- one.get(Axis::X) * other.get(Axis::Z) + one.get(Axis::Z) * other.get(Axis::X),
+			one.get(Axis::X) * other.get(Axis::Y) - one.get(Axis::Y) * other.get(Axis::X)
+		);
+	}
 }
 
 #endif // MOVEMENT_MANAGER_VECTOR_HPP

@@ -29,9 +29,6 @@ namespace manager {
 		AxisStep evaluate_axis_step(const Vector<double>& current) const;
 		Vector<double> add_step(const Vector<double>& current, const AxisStep& step) const;
 		static double evaluate_error_metric(const Vector<double>& base_vector, const Vector<double>& vector);
-		
-		static double inner_product(const Vector<double>& one, const Vector<double>& other);
-		static Vector<double> vector_product(const Vector<double>& one, const Vector<double>& other);
 	};
 
 	inline LinearMovement::LinearMovement(
@@ -103,22 +100,6 @@ namespace manager {
 		const auto vector_prod = vector_product(base_vector, vector);
 		const auto prod_norm_L2 = inner_product(vector_prod, vector_prod);
 		return prod_norm_L2;
-	}
-
-	inline double LinearMovement::inner_product(const Vector<double>& one, const Vector<double>& other) {
-		auto result = 0.0;
-		for (const auto& axis : {Axis::X, Axis::Y, Axis::Z}) {
-			result += one.get(axis) * other.get(axis);
-		}
-		return result;
-	}
-
-	inline Vector<double> LinearMovement::vector_product(const Vector<double>& one, const Vector<double>& other) {
-		return Vector<double>(
-			one.get(Axis::Y) * other.get(Axis::Z) - one.get(Axis::Z) * other.get(Axis::Y),
-			- one.get(Axis::X) * other.get(Axis::Z) + one.get(Axis::Z) * other.get(Axis::X),
-			one.get(Axis::X) * other.get(Axis::Y) - one.get(Axis::Y) * other.get(Axis::X)
-		);
 	}
 }
 
