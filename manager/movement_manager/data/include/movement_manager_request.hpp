@@ -1,7 +1,7 @@
 #ifndef	MOVEMENT_MANAGER_REQUEST_HPP
 #define	MOVEMENT_MANAGER_REQUEST_HPP
 
-#include "vector.hpp"
+#include "movement_manager_vector.hpp"
 
 namespace manager {
 	
@@ -11,11 +11,11 @@ namespace manager {
 			ROTATIONAL,
 		};		
 		struct LinearMovement {
-			Vector destination;
+			Vector<double> destination;
 			double speed;
 		};
 		struct RotationalMovement {
-			Vector rotation_center;
+			Vector<double> rotation_center;
 			double angle;
 			double speed;
 		};

@@ -23,7 +23,7 @@ TEST(ut_movement_manager, run_sanity) {
 		.type = MovementManagerRequest::MovementType::LINEAR,
 		.movement = {
 			.linear = {
-				.destination = Vector(1.0, 2.0, 3.0),
+				.destination = Vector<double>(1.0, 2.0, 3.0),
 				.speed = 4.0
 			}
 		},

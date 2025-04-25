@@ -7,6 +7,7 @@
 #include "clonable_manager.hpp"
 #include "linear_movement.hpp"
 #include "manager.hpp"
+#include "movement_manager_data.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
 #include "movement_manager_vector.hpp"
@@ -22,13 +23,13 @@ namespace manager {
 		MovementManagerResponse run(const MovementManagerRequest& request) override;
 		Manager<MovementManagerRequest, MovementManagerResponse> *clone() const override;
 	private:
-
-		MovementManagerResponse linear_movement(const Vector& destination, const double speed) const;
-		MovementManagerResponse circular_movement(const Vector& rotation_center, const double angle, const double speed) const;
+		AxesProperties m_axes_properties;
+		MovementManagerResponse linear_movement(const Vector<double>& destination, const double speed) const;
+		MovementManagerResponse circular_movement(const Vector<double>& rotation_center, const double angle, const double speed) const;
 	};
 
 	inline MovementManager::MovementManager(
-	) {
+	): m_axes_properties(0.1, 0.1, 0.1) {
 	}
 	
 	inline MovementManagerResponse MovementManager::run(const MovementManagerRequest& request) {
@@ -56,35 +57,20 @@ namespace manager {
 		return new MovementManager(*this);
 	}
 
-	inline MovementManagerResponse MovementManager::linear_movement(const Vector& destination, const double speed) const {
+	inline MovementManagerResponse MovementManager::linear_movement(const Vector<double>& destination, const double speed) const {
 		const auto movement = LinearMovement(
 			destination,
-			speed,
-			[](const double distance, const double speed) {
-				throw std::runtime_error("not implemented");
-			},
-			[](const double distance, const double speed) {
-				throw std::runtime_error("not implemented");
-			},
-			[](const double distance, const double speed) {
-				throw std::runtime_error("not implemented");
-			}
+			m_axes_properties
 		);
-		try {
-			movement.perform();
-		} catch (const std::exception& e) {
-			return MovementManagerResponse {
-				.code = MovementManagerResponse::ResultCode::EXCEPTION,
-				.message = e.what(),
-			};
-		}
+		const auto steps = movement.evaluate_steps();
+		throw std::runtime_error("not implemented");
 		return MovementManagerResponse {
 			.code = MovementManagerResponse::ResultCode::OK,
 			.message = std::nullopt,
 		};
 	}
 	
-	inline MovementManagerResponse MovementManager::circular_movement(const Vector& rotation_center, const double angle, const double speed) const {
+	inline MovementManagerResponse MovementManager::circular_movement(const Vector<double>& rotation_center, const double angle, const double speed) const {
 		throw std::runtime_error("not implemented");
 	}
 }
