@@ -17,7 +17,7 @@
 namespace manager {
 	class MovementManager: public ClonableManager<MovementManagerRequest, MovementManagerResponse> {
 	public:
-		using AxesController = std::function<void(const AxisStep& step, const std::size_t& step_duration)>;
+		using AxesController = std::function<void(const AxisStep& step, const double step_duration)>;
 		MovementManager(
 			const AxesController& axes_controller,
 			const AxesProperties& axes_properties

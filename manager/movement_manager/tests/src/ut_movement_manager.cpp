@@ -1,3 +1,9 @@
+#include <chrono>
+#include <cstddef>
+#include <iostream>
+#include <stdexcept>
+#include <thread>
+
 #include "gtest/gtest.h"
 
 #include "movement_manager.hpp"
@@ -15,7 +21,12 @@ TEST(ut_movement_manager, ctor_dtor_sanity) {
 
 	// THEN
 	ASSERT_NO_THROW(
-		instance = new MovementManager(axes_properties)
+		instance = new MovementManager(
+			[](const AxisStep& step, const double step_duration) {
+				throw std::runtime_error("NOT IMPLEMENTED");
+			},
+			axes_properties
+		)
 	);
 	ASSERT_NE(instance, nullptr);
 	ASSERT_NO_THROW(delete instance);
@@ -31,7 +42,13 @@ TEST(ut_movement_manager, run_sanity) {
 	auto request = MovementManagerRequest(request_data);
 	
 	// WHEN
-	MovementManager instance(axes_properties);
+	MovementManager instance(
+		[](const AxisStep& step, const double step_duration) {
+			std::cout << "moving along axis " << static_cast<int>(step.axis) << ", in direction " << static_cast<int>(step.direction) << ", step duration " << step_duration << std::endl;
+			std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<std::size_t>(step_duration * 1000)));
+		},
+		axes_properties
+	);
 	auto response = MovementManagerResponse {};
 
 	// THEN
