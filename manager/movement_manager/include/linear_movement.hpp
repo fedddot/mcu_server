@@ -58,7 +58,16 @@ namespace manager {
 	}
 
 	inline bool LinearMovement::is_enough(const Vector<double>& current) const {
-		throw std::runtime_error("NOT IMPLEMENTED");
+		for (const auto& axis : {Axis::X, Axis::Y, Axis::Z}) {
+			const auto difference = m_destination.get(axis) - current.get(axis);
+			if ((m_destination.get(axis) >= 0) && (difference < 0)) {
+				return true;
+			}
+			if ((m_destination.get(axis) < 0) && (difference > 0)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	inline AxisStep LinearMovement::evaluate_axis_step(const Vector<double>& current) const {
