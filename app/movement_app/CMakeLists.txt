@@ -3,9 +3,9 @@ target_include_directories(movement_ipc_data_infra INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
     movement_ipc_data_infra
     INTERFACE
-    movement_motor_data
-    movement_motor_request
-    movement_motor_response
+    movement_manager_data
+    movement_manager_request
+    movement_manager_response
     jsoncpp_static
 )
 
@@ -18,7 +18,7 @@ target_link_libraries(
     ipc_data_reader
     json_ipc_data_reader
     movement_ipc_data_infra
-    movement_motor_request
+    movement_manager_request
 )
 
 add_library(movement_ipc_data_writer INTERFACE)
@@ -30,7 +30,7 @@ target_link_libraries(
     ipc_data_writer
     json_ipc_data_writer
     movement_ipc_data_infra
-    movement_motor_response
+    movement_manager_response
 )
 
 add_library(movement_host INTERFACE)
@@ -43,8 +43,8 @@ target_link_libraries(
     movement_ipc_data_reader
     movement_ipc_data_writer
     movement_motor_manager
-    movement_motor_request
-    movement_motor_response
+    movement_manager_request
+    movement_manager_response
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

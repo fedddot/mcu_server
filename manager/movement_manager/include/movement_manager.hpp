@@ -17,7 +17,7 @@
 namespace manager {
 	class MovementManager: public ClonableManager<MovementManagerRequest, MovementManagerResponse> {
 	public:
-		using AxesController = std::function<void(const AxisStep& step, const double step_duration)>;
+		using AxesController = std::function<void(const AxisStep& step)>;
 		MovementManager(
 			const AxesController& axes_controller,
 			const AxesProperties& axes_properties
@@ -72,29 +72,18 @@ namespace manager {
 		if (speed <= 0) {
 			throw std::invalid_argument("speed must be a positive non-zero number");
 		}
-		const auto path_length = std::sqrt(inner_product(destination, destination));
-		if (!path_length) {
-			return MovementManagerResponse {
-				.code = MovementManagerResponse::ResultCode::OK,
-				.message = std::nullopt,
-			};
-		}
-		const auto movement = LinearMovement(
+
+		auto movement = LinearMovement(
 			destination,
-			m_axes_properties
+			m_axes_properties,
+			speed
 		);
-		const auto steps = movement.evaluate_steps();
-		const auto steps_number = steps.size();
-		if (steps_number == 0) {
-			return MovementManagerResponse {
-				.code = MovementManagerResponse::ResultCode::OK,
-				.message = std::nullopt,
-			};
-		}
-		const auto total_movement_time = path_length / speed;
-		const auto step_duration = total_movement_time / steps_number;
-		for (const auto& step: steps) {
-			m_axes_controller(step, step_duration);
+		while (true) {
+			const auto step = movement.next_step();
+			if (!step) {
+				break;
+			}
+			m_axes_controller(*step);
 		}
 		return MovementManagerResponse {
 			.code = MovementManagerResponse::ResultCode::OK,

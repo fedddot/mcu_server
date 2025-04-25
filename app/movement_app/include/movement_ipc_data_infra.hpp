@@ -1,19 +1,19 @@
-#ifndef	STEPPER_IPC_DATA_INFRA_HPP
-#define	STEPPER_IPC_DATA_INFRA_HPP
+#ifndef	MOVEMENT_IPC_DATA_INFRA_HPP
+#define	MOVEMENT_IPC_DATA_INFRA_HPP
 
 #include <cstddef>
 #include <vector>
 
 #include "json/value.h"
 
-#include "stepper_motor_data.hpp"
-#include "stepper_motor_request.hpp"
-#include "stepper_motor_response.hpp"
+#include "movement_manager_data.hpp"
+#include "movement_manager_request.hpp"
+#include "movement_manager_response.hpp"
 
 namespace ipc {
 	using RawData = std::vector<char>;
 	
-	inline Json::Value stepper_response_to_json_value(const manager::StepperMotorResponse& response) {
+	inline Json::Value movement_response_to_json_value(const manager::StepperMotorResponse& response) {
 		Json::Value json_data;
 		json_data["result"] = static_cast<int>(response.code);
 		if (response.state) {
@@ -25,7 +25,7 @@ namespace ipc {
 		return json_data;
 	}
 
-	inline manager::StepperMotorResponse json_value_to_stepper_response(const Json::Value& json_response) {
+	inline manager::StepperMotorResponse json_value_to_movement_response(const Json::Value& json_response) {
 		manager::StepperMotorResponse response;
 		if (!json_response.isMember("result")) {
 			throw std::runtime_error("Invalid JSON response: missing 'result' field");
@@ -41,7 +41,7 @@ namespace ipc {
 		return response;
 	}
 
-	inline Json::Value stepper_request_to_json_value(const manager::StepperMotorRequest& request) {
+	inline Json::Value movement_request_to_json_value(const manager::StepperMotorRequest& request) {
 		Json::Value json_data;
 		json_data["motor_id"] = Json::String(request.motor_id);
 		json_data["direction"] = Json::Int(static_cast<int>(request.direction));
@@ -50,7 +50,7 @@ namespace ipc {
 		return json_data;
 	}
 
-	inline manager::StepperMotorRequest json_value_to_stepper_request(const Json::Value& json_request) {
+	inline manager::StepperMotorRequest json_value_to_movement_request(const Json::Value& json_request) {
 		auto retrieve_required_field = [](const Json::Value& json, const std::string& field_name) {
 			if (!json.isMember(field_name)) {
 				throw std::runtime_error("missing field: " + std::string(field_name));
@@ -66,4 +66,4 @@ namespace ipc {
 	}
 }
 
-#endif // STEPPER_IPC_DATA_INFRA_HPP
+#endif // MOVEMENT_IPC_DATA_INFRA_HPP

@@ -3,6 +3,7 @@
 
 #include <map>
 #include <stdexcept>
+
 namespace manager {
 	enum class Axis: int {
 		X = 0,
@@ -18,6 +19,7 @@ namespace manager {
 	struct AxisStep {
 		Axis axis;
 		Direction direction;
+		double duration;
 	};
 
 	class AxesProperties {
