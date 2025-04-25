@@ -1,6 +1,4 @@
-#include <cstdlib>
 #include <iostream>
-#include <map>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -14,7 +12,7 @@ using namespace manager;
 static Vector<double> integrate_path(const std::vector<AxisStep>& steps, const AxesProperties& axes_properties);
 static void print_vector(const Vector<double>& vector);
 static void print_axis_properties(const AxesProperties& axes_properties);
-static void print_allowed_absolute_errors(const std::map<Axis, double>& allowed_absolute_errors);
+static void print_allowed_absolute_error(const double allowed_absolute_error);
 static std::string axis_to_string(const Axis& axis);
 
 TEST(ut_linear_movement, ctor_dtor_sanity) {
@@ -42,7 +40,7 @@ TEST(ut_linear_movement, evaluate_sanity) {
 	struct TestCase {
 		const Vector<double> destination;
 		const AxesProperties axes_properties;
-		const std::map<Axis, double> allowed_absolute_errors;
+		const double allowed_absolute_error;
 	};
 	const auto coarse_error = 2.0;
 	const auto fine_error = 0.008;
@@ -50,38 +48,22 @@ TEST(ut_linear_movement, evaluate_sanity) {
 		TestCase {
 			Vector<double>(10.0, 20.0, 30.0),
 			AxesProperties(3.0, 4.0, 5.0),
-			{
-				{Axis::X, coarse_error},
-				{Axis::Y, coarse_error},
-				{Axis::Z, coarse_error}
-			}
+			coarse_error
 		},
 		TestCase {
 			Vector<double>(-10.0, 20.0, -30.0),
 			AxesProperties(3.0, 4.0, 5.0),
-			{
-				{Axis::X, coarse_error},
-				{Axis::Y, coarse_error},
-				{Axis::Z, coarse_error}
-			}
+			coarse_error
 		},
 		TestCase {
 			Vector<double>(35.761, 300.0, 90.86423),
 			AxesProperties(0.005, 0.005, 0.005),
-			{
-				{Axis::X, fine_error},
-				{Axis::Y, fine_error},
-				{Axis::Z, fine_error}
-			}
+			fine_error
 		},
 		TestCase {
 			Vector<double>(35.761, -300.0, -90.86423),
 			AxesProperties(0.005, 0.005, 0.005),
-			{
-				{Axis::X, fine_error},
-				{Axis::Y, fine_error},
-				{Axis::Z, fine_error}
-			}
+			fine_error
 		},
 	};
 
@@ -89,7 +71,7 @@ TEST(ut_linear_movement, evaluate_sanity) {
 		std::cout << std::endl << std::endl << "Running test case" << std::endl;
 		print_vector(test_case.destination);
 		print_axis_properties(test_case.axes_properties);
-		print_allowed_absolute_errors(test_case.allowed_absolute_errors);
+		print_allowed_absolute_error(test_case.allowed_absolute_error);
 
 		// WHEN
 		LinearMovement instance(
@@ -109,7 +91,7 @@ TEST(ut_linear_movement, evaluate_sanity) {
 			// WHEN
 			const auto path_projection = path.get(axis);
 			const auto destination_projection = test_case.destination.get(axis);
-			const auto allowed_error = test_case.allowed_absolute_errors.at(axis);
+			const auto allowed_error = test_case.allowed_absolute_error;
 			const auto error = std::abs(path_projection - destination_projection);
 			std::cout << "axis " << axis_to_string(axis) << ": allowed error: " << allowed_error << ", error: " << error << std::endl;
 			// THEN
@@ -160,10 +142,6 @@ inline void print_axis_properties(const AxesProperties& axes_properties) {
 	std::cout << "}" << std::endl;
 }
 
-inline void print_allowed_absolute_errors(const std::map<Axis, double>& allowed_absolute_errors) {
-	std::cout << "Allowed absolute errors: {" << std::endl;
-	for (const auto& [axis, error] : allowed_absolute_errors) {
-		std::cout << '\t' << axis_to_string(axis) << " (max absolute error): " << error << "," << std::endl;
-	}
-	std::cout << "}" << std::endl;
+inline void print_allowed_absolute_error(const double allowed_absolute_error) {
+	std::cout << "Allowed absolute error: " << allowed_absolute_error << std::endl;
 }
