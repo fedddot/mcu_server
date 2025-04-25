@@ -1,6 +1,8 @@
 #ifndef	STEPPER_MOTOR_MANAGER_HPP
 #define	STEPPER_MOTOR_MANAGER_HPP
 
+#include <cmath>
+#include <functional>
 #include <optional>
 #include <stdexcept>
 
@@ -15,7 +17,9 @@
 namespace manager {
 	class MovementManager: public ClonableManager<MovementManagerRequest, MovementManagerResponse> {
 	public:
+		using AxesController = std::function<void(const AxisStep& step, const std::size_t& step_duration)>;
 		MovementManager(
+			const AxesController& axes_controller,
 			const AxesProperties& axes_properties
 		);
 		MovementManager(const MovementManager& other) = default;
@@ -24,14 +28,19 @@ namespace manager {
 		MovementManagerResponse run(const MovementManagerRequest& request) override;
 		Manager<MovementManagerRequest, MovementManagerResponse> *clone() const override;
 	private:
+		AxesController m_axes_controller;
 		AxesProperties m_axes_properties;
 		MovementManagerResponse linear_movement(const Vector<double>& destination, const double speed) const;
 		MovementManagerResponse circular_movement(const Vector<double>& rotation_center, const double angle, const double speed) const;
 	};
 
 	inline MovementManager::MovementManager(
+		const AxesController& axes_controller,
 		const AxesProperties& axes_properties
-	): m_axes_properties(axes_properties) {
+	): m_axes_controller(axes_controller), m_axes_properties(axes_properties) {
+		if (!m_axes_controller) {
+			throw std::invalid_argument("invalid axes controller received");
+		}
 	}
 	
 	inline MovementManagerResponse MovementManager::run(const MovementManagerRequest& request) {
@@ -60,12 +69,33 @@ namespace manager {
 	}
 
 	inline MovementManagerResponse MovementManager::linear_movement(const Vector<double>& destination, const double speed) const {
+		if (speed <= 0) {
+			throw std::invalid_argument("speed must be a positive non-zero number");
+		}
+		const auto path_length = std::sqrt(inner_product(destination, destination));
+		if (!path_length) {
+			return MovementManagerResponse {
+				.code = MovementManagerResponse::ResultCode::OK,
+				.message = std::nullopt,
+			};
+		}
 		const auto movement = LinearMovement(
 			destination,
 			m_axes_properties
 		);
 		const auto steps = movement.evaluate_steps();
-		throw std::runtime_error("not implemented");
+		const auto steps_number = steps.size();
+		if (steps_number == 0) {
+			return MovementManagerResponse {
+				.code = MovementManagerResponse::ResultCode::OK,
+				.message = std::nullopt,
+			};
+		}
+		const auto total_movement_time = path_length / speed;
+		const auto step_duration = total_movement_time / steps_number;
+		for (const auto& step: steps) {
+			m_axes_controller(step, step_duration);
+		}
 		return MovementManagerResponse {
 			.code = MovementManagerResponse::ResultCode::OK,
 			.message = std::nullopt,
