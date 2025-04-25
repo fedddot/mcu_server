@@ -1,1 +1,2 @@
+add_subdirectory(movement_app)
 add_subdirectory(stepper_motor_app)
