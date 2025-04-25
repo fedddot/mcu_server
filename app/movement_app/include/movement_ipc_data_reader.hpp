@@ -1,5 +1,5 @@
-#ifndef	STEPPER_IPC_DATA_READER_HPP
-#define	STEPPER_IPC_DATA_READER_HPP
+#ifndef	MOVEMENT_IPC_DATA_READER_HPP
+#define	MOVEMENT_IPC_DATA_READER_HPP
 
 #include <optional>
 
@@ -32,4 +32,4 @@ namespace ipc {
 	}
 }
 
-#endif // STEPPER_IPC_DATA_READER_HPP
+#endif // MOVEMENT_IPC_DATA_READER_HPP
