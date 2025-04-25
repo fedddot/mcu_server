@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "linear_movement.hpp"
+#include "movement_manager_data.hpp"
 
 using namespace manager;
 
@@ -8,8 +9,7 @@ TEST(ut_linear_movement, ctor_dtor_sanity) {
 	// GIVEN
 	const auto destination = Vector<double>(10.0, 20.0, 30.0);
 	const auto basis = Vector<double>(3.0, 4.0, 5.0);
-	const auto speed = double(1.3);
-
+	
 	// WHEN
 	LinearMovement *instance(nullptr);
 
@@ -17,8 +17,7 @@ TEST(ut_linear_movement, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		instance = new LinearMovement(
 			destination,
-			basis,
-			speed
+			basis
 		)
 	);
 	ASSERT_NE(instance, nullptr);
@@ -29,15 +28,13 @@ TEST(ut_linear_movement, evaluate_sanity) {
 	// GIVEN
 	const auto destination = Vector<double>(10.0, 20.0, 30.0);
 	const auto basis = Vector<double>(3.0, 4.0, 5.0);
-	const auto speed = double(1.3);
 
 	// WHEN
 	LinearMovement instance(
 		destination,
-		basis,
-		speed
+		basis
 	);
-	auto result = std::vector<Axis>();
+	auto result = std::vector<AxisStep>();
 
 	// THEN
 	ASSERT_NO_THROW(
