@@ -2,6 +2,7 @@
 #define	LINEAR_MOVEMENT_HPP
 
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 #include <stdexcept>
 #include <vector>
@@ -28,9 +29,10 @@ namespace manager {
 		bool is_enough(const Vector<double>& current) const;
 		AxisStep evaluate_axis_step(const Vector<double>& current) const;
 		Vector<double> add_step(const Vector<double>& current, const AxisStep& step) const;
-		double evaluate_error_metric(const Vector<double>& current) const;
+		static double evaluate_error_metric(const Vector<double>& base_vector, const Vector<double>& vector);
 		
 		static double inner_product(const Vector<double>& one, const Vector<double>& other);
+		static Vector<double> vector_product(const Vector<double>& one, const Vector<double>& other);
 	};
 
 	inline LinearMovement::LinearMovement(
@@ -63,7 +65,10 @@ namespace manager {
 			if ((m_destination.get(axis) >= 0) && (difference < 0)) {
 				return true;
 			}
-			if ((m_destination.get(axis) < 0) && (difference > 0)) {
+			if ((m_destination.get(axis) < 0) && (difference >= 0)) {
+				return true;
+			}
+			if (std::abs(difference) > std::abs(m_destination.get(axis))) {
 				return true;
 			}
 		}
@@ -76,7 +81,7 @@ namespace manager {
 		for (const auto& axis : {Axis::X, Axis::Y, Axis::Z}) {
 			const auto direction = (m_destination.get(axis) >= 0) ? Direction::POSITIVE : Direction::NEGATIVE;
 			const auto step_target = add_step(current, AxisStep {axis, direction});
-			const auto error_metric = evaluate_error_metric(step_target);
+			const auto error_metric = evaluate_error_metric(m_destination, step_target);
 			if (error_metric < best_error_metric) {
 				best_error_metric = error_metric;
 				best_step = AxisStep {axis, direction};
@@ -95,15 +100,10 @@ namespace manager {
 		return result;
 	}
 
-	inline double LinearMovement::evaluate_error_metric(const Vector<double>& current) const {
-		const auto current_len = std::sqrt(inner_product(current, current));
-		if (current_len == 0.0) {
-			throw std::runtime_error("current vector cannot be zero for error metric evaluation");
-		}
-		const auto prod_curr_dest = inner_product(m_destination, current);
-		const auto cos_curr_dest = prod_curr_dest / m_movement_length / current_len;
-		const auto sin_curr_dest = std::sqrt(1 - cos_curr_dest * cos_curr_dest);
-		return sin_curr_dest;
+	inline double LinearMovement::evaluate_error_metric(const Vector<double>& base_vector, const Vector<double>& vector) {
+		const auto vector_prod = vector_product(base_vector, vector);
+		const auto prod_norm_L2 = inner_product(vector_prod, vector_prod);
+		return prod_norm_L2;
 	}
 
 	inline double LinearMovement::inner_product(const Vector<double>& one, const Vector<double>& other) {
@@ -112,6 +112,14 @@ namespace manager {
 			result += one.get(axis) * other.get(axis);
 		}
 		return result;
+	}
+
+	inline Vector<double> LinearMovement::vector_product(const Vector<double>& one, const Vector<double>& other) {
+		return Vector<double>(
+			one.get(Axis::Y) * other.get(Axis::Z) - one.get(Axis::Z) * other.get(Axis::Y),
+			- one.get(Axis::X) * other.get(Axis::Z) + one.get(Axis::Z) * other.get(Axis::X),
+			one.get(Axis::X) * other.get(Axis::Y) - one.get(Axis::Y) * other.get(Axis::X)
+		);
 	}
 }
 
