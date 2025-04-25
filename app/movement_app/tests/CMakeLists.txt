@@ -2,7 +2,7 @@ add_executable(
 	movement_app_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_reader.cpp
-	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_writer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_writer.cpp
 	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host.cpp
 )
 
