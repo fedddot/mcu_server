@@ -10,25 +10,25 @@
 #include "movement_manager_request.hpp"
 
 namespace ipc {
-	class StepperIpcDataReader: public ClonableIpcDataReader<manager::MovementManagerRequest> {
+	class MovementIpcDataReader: public ClonableIpcDataReader<manager::MovementManagerRequest> {
 	public:
-		StepperIpcDataReader(const ClonableIpcDataReader<RawData>& raw_data_reader);
-		StepperIpcDataReader(const StepperIpcDataReader&) = default;
-		StepperIpcDataReader& operator=(const StepperIpcDataReader&) = default;
+		MovementIpcDataReader(const ClonableIpcDataReader<RawData>& raw_data_reader);
+		MovementIpcDataReader(const MovementIpcDataReader&) = default;
+		MovementIpcDataReader& operator=(const MovementIpcDataReader&) = default;
 		std::optional<manager::MovementManagerRequest> read() override;
 		IpcDataReader<manager::MovementManagerRequest> *clone() const override;
 	private:
 		JsonIpcDataReader<manager::MovementManagerRequest> m_json_data_reader;
 	};
 
-	inline StepperIpcDataReader::StepperIpcDataReader(const ClonableIpcDataReader<RawData>& raw_data_reader): m_json_data_reader(raw_data_reader, json_value_to_movement_request) {}
+	inline MovementIpcDataReader::MovementIpcDataReader(const ClonableIpcDataReader<RawData>& raw_data_reader): m_json_data_reader(raw_data_reader, json_value_to_movement_request) {}
 
-	inline std::optional<manager::MovementManagerRequest> StepperIpcDataReader::read() {
+	inline std::optional<manager::MovementManagerRequest> MovementIpcDataReader::read() {
 		return m_json_data_reader.read();
 	}
 
-	inline IpcDataReader<manager::MovementManagerRequest> *StepperIpcDataReader::clone() const {
-		return new StepperIpcDataReader(*this);
+	inline IpcDataReader<manager::MovementManagerRequest> *MovementIpcDataReader::clone() const {
+		return new MovementIpcDataReader(*this);
 	}
 }
 
