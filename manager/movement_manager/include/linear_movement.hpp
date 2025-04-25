@@ -51,7 +51,7 @@ namespace manager {
 				break;
 			}
 			const auto axis_step = evaluate_axis_step(current_position);
-			steps.push_back(*axis_step);
+			steps.push_back(axis_step);
 			current_position = add_step(current_position, axis_step);
 		}
 		return steps;
@@ -60,7 +60,7 @@ namespace manager {
 	inline bool LinearMovement::is_enough(const Vector<double>& current) const {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	}
-	
+
 	inline AxisStep LinearMovement::evaluate_axis_step(const Vector<double>& current) const {
 		auto best_step = AxisStep {};
 		auto best_error_metric = std::numeric_limits<double>::max();
