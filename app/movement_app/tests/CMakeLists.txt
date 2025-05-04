@@ -16,6 +16,8 @@ target_link_libraries(
 	test_ipc_data_writer
 
 	movement_host
+
+	test_axes_controller
 	
 	gtest
 )

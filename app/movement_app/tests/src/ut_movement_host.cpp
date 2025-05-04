@@ -11,9 +11,9 @@
 #include "movement_host.hpp"
 #include "movement_ipc_data_infra.hpp"
 #include "movement_manager_data.hpp"
-#include "movement_manager.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
+#include "test_axes_controller.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 
@@ -33,9 +33,11 @@ TEST(ut_movement_host, ctor_dtor_sanity) {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
-	auto axes_controller = [](const AxisStep& step) {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
+	auto axes_controller = TestAxesController(
+		[](const AxisStep& step) {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
+	);
 	const auto axes_properties = AxesProperties(0.1, 0.1, 0.1);
 
 	// WHEN
@@ -110,9 +112,11 @@ TEST(ut_movement_host, run_sanity) {
 			<< "step duration " << step.duration << "; ";
 		return stream.str();
 	};
-	auto axes_controller = [step_to_str](const AxisStep& step) {
-		std::cout << "axes_controller makes step: " << step_to_str(step) << std::endl;
-	};
+	auto axes_controller = TestAxesController(
+		[step_to_str](const AxisStep& step) {
+			std::cout << "axes_controller makes step: " << step_to_str(step) << std::endl;
+		}
+	);
 
 	// WHEN
 	MovementHost instance(raw_data_reader, raw_data_writer, axes_controller, axes_properties);
