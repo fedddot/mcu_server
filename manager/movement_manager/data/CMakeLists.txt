@@ -1,0 +1,13 @@
+add_library(movement_manager_data INTERFACE)
+target_include_directories(movement_manager_data INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
+add_library(movement_manager_vector INTERFACE)
+target_include_directories(movement_manager_vector INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(movement_manager_vector INTERFACE movement_manager_data)
+
+add_library(movement_manager_request INTERFACE)
+target_include_directories(movement_manager_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(movement_manager_request INTERFACE movement_manager_vector)
+
+add_library(movement_manager_response INTERFACE)
+target_include_directories(movement_manager_response INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
