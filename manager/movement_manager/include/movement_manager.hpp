@@ -2,7 +2,7 @@
 #define	STEPPER_MOTOR_MANAGER_HPP
 
 #include <cmath>
-#include <functional>
+#include <memory>
 #include <optional>
 #include <stdexcept>
 
@@ -17,7 +17,14 @@
 namespace manager {
 	class MovementManager: public ClonableManager<MovementManagerRequest, MovementManagerResponse> {
 	public:
-		using AxesController = std::function<void(const AxisStep& step)>;
+		class AxesController {
+		public:
+			virtual ~AxesController() noexcept = default;
+			virtual void step(const AxisStep& step) = 0;
+			virtual void enable() = 0;
+			virtual void disable() = 0;
+			virtual AxesController *clone() const = 0;
+		};
 		MovementManager(
 			const AxesController& axes_controller,
 			const AxesProperties& axes_properties
@@ -28,7 +35,7 @@ namespace manager {
 		MovementManagerResponse run(const MovementManagerRequest& request) override;
 		Manager<MovementManagerRequest, MovementManagerResponse> *clone() const override;
 	private:
-		AxesController m_axes_controller;
+		std::shared_ptr<AxesController> m_axes_controller;
 		AxesProperties m_axes_properties;
 		MovementManagerResponse linear_movement(const Vector<double>& destination, const double speed) const;
 		MovementManagerResponse circular_movement(const Vector<double>& rotation_center, const double angle, const double speed) const;
@@ -37,10 +44,8 @@ namespace manager {
 	inline MovementManager::MovementManager(
 		const AxesController& axes_controller,
 		const AxesProperties& axes_properties
-	): m_axes_controller(axes_controller), m_axes_properties(axes_properties) {
-		if (!m_axes_controller) {
-			throw std::invalid_argument("invalid axes controller received");
-		}
+	): m_axes_controller(axes_controller.clone()), m_axes_properties(axes_properties) {
+
 	}
 	
 	inline MovementManagerResponse MovementManager::run(const MovementManagerRequest& request) {
@@ -78,13 +83,15 @@ namespace manager {
 			m_axes_properties,
 			speed
 		);
+		m_axes_controller->enable();
 		while (true) {
 			const auto step = movement.next_step();
 			if (!step) {
 				break;
 			}
-			m_axes_controller(*step);
+			m_axes_controller->step(*step);
 		}
+		m_axes_controller->disable();
 		return MovementManagerResponse {
 			.code = MovementManagerResponse::ResultCode::OK,
 			.message = std::nullopt,

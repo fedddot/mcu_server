@@ -9,6 +9,7 @@
 #include "movement_manager.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_response.hpp"
+#include "test_axes_controller.hpp"
 
 using namespace manager;
 
@@ -22,9 +23,11 @@ TEST(ut_movement_manager, ctor_dtor_sanity) {
 	// THEN
 	ASSERT_NO_THROW(
 		instance = new MovementManager(
-			[](const AxisStep& step) {
-				throw std::runtime_error("NOT IMPLEMENTED");
-			},
+			TestAxesController(
+				[](const AxisStep& step) {
+					throw std::runtime_error("NOT IMPLEMENTED");
+				}
+			),
 			axes_properties
 		)
 	);
@@ -43,10 +46,12 @@ TEST(ut_movement_manager, run_sanity) {
 	
 	// WHEN
 	MovementManager instance(
-		[](const AxisStep& step) {
-			std::cout << "moving along axis " << static_cast<int>(step.axis) << ", in direction " << static_cast<int>(step.direction) << ", step duration " << step.duration << std::endl;
-			std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<std::size_t>(step.duration * 1000)));
-		},
+		TestAxesController(
+			[](const AxisStep& step) {
+				std::cout << "moving along axis " << static_cast<int>(step.axis) << ", in direction " << static_cast<int>(step.direction) << ", step duration " << step.duration << std::endl;
+				std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<std::size_t>(step.duration * 1000)));
+			}
+		),
 		axes_properties
 	);
 	auto response = MovementManagerResponse {};
