@@ -117,8 +117,8 @@ namespace manager {
 	inline std::size_t LinearMovement::evaluate_steps_number(const Vector<double>& destination, const AxesProperties& axes_properties) {
 		auto result = std::size_t(0UL);
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
-			const auto steps_per_axis = static_cast<std::size_t>(destination.get(axis) / axes_properties.get_step_length(axis));
-			result += steps_per_axis;
+			const auto steps_per_axis = std::abs(destination.get(axis) / axes_properties.get_step_length(axis));
+			result += static_cast<std::size_t>(steps_per_axis);
 		}
 		return result;
 	}
