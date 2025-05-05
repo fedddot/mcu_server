@@ -2,7 +2,7 @@
 #define	STEPPER_MOTOR_DATA_HPP
 
 namespace manager {
-	enum class Direction: int {
+	enum class RotationDirection: int {
 		CW,
 		CCW
 	};

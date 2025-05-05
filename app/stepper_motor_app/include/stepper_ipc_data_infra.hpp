@@ -59,7 +59,7 @@ namespace ipc {
 		};
 		return manager::StepperMotorRequest {
 			.motor_id = retrieve_required_field(json_request, "motor_id").asString(),
-			.direction = static_cast<manager::Direction>(retrieve_required_field(json_request, "direction").asInt()),
+			.direction = static_cast<manager::RotationDirection>(retrieve_required_field(json_request, "direction").asInt()),
 			.steps_number = static_cast<std::size_t>(retrieve_required_field(json_request, "steps_number").asUInt()),
 			.step_duration_ms = static_cast<std::size_t>(retrieve_required_field(json_request, "step_duration_ms").asUInt()),
 		};

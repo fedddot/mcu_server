@@ -9,7 +9,7 @@
 namespace manager {
 	struct StepperMotorRequest {
 		std::string motor_id;
-		Direction direction;
+		RotationDirection direction;
 		std::size_t steps_number;
 		std::size_t step_duration_ms;
 	};
