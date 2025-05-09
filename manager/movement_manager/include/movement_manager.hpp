@@ -15,7 +15,7 @@
 #include "movement_manager_vector.hpp"
 
 namespace manager {
-	class MovementManager: public ClonableManager<MovementManagerRequest, MovementManagerResponse> {
+	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse>, public Clonable<Manager<MovementManagerRequest, MovementManagerResponse>> {
 	public:
 		class AxesController {
 		public:

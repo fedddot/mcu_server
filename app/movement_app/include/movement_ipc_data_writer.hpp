@@ -3,16 +3,17 @@
 
 #include <vector>
 
+#include "ipc_clonable.hpp"
 #include "ipc_data_writer.hpp"
 #include "json_ipc_data_writer.hpp"
 #include "movement_ipc_data_infra.hpp"
 #include "movement_manager_response.hpp"
 
 namespace ipc {
-	class MovementIpcDataWriter: public ClonableIpcDataWriter<manager::MovementManagerResponse> {
+	class MovementIpcDataWriter: public IpcDataWriter<manager::MovementManagerResponse>, public Clonable<IpcDataWriter<manager::MovementManagerResponse>> {
 	public:
 		using RawData = std::vector<char>;
-		MovementIpcDataWriter(const ClonableIpcDataWriter<RawData>& raw_data_writer);
+		MovementIpcDataWriter(const Clonable<IpcDataWriter<RawData>>& raw_data_writer);
 		MovementIpcDataWriter(const MovementIpcDataWriter&) = default;
 		MovementIpcDataWriter& operator=(const MovementIpcDataWriter&) = default;
 		void write(const manager::MovementManagerResponse& ipc_data) const override;
@@ -21,7 +22,7 @@ namespace ipc {
 		JsonIpcDataWriter<manager::MovementManagerResponse> m_json_data_writer;
 	};
 	
-	inline MovementIpcDataWriter::MovementIpcDataWriter(const ClonableIpcDataWriter<RawData>& raw_data_writer): m_json_data_writer(raw_data_writer, movement_response_to_json_value) {}
+	inline MovementIpcDataWriter::MovementIpcDataWriter(const Clonable<IpcDataWriter<RawData>>& raw_data_writer): m_json_data_writer(raw_data_writer, movement_response_to_json_value) {}
 
 	inline void MovementIpcDataWriter::write(const manager::MovementManagerResponse& ipc_data) const {
 		m_json_data_writer.write(ipc_data);
