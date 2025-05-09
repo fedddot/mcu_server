@@ -15,7 +15,7 @@ target_link_libraries(
     ipc_data
     ipc_clonable
     ipc_data_reader
-    clonable_ipc_data_reader
+    ipc_data_reader
     raw_data_package_descriptor
 )
 
@@ -27,7 +27,7 @@ target_link_libraries(
     ipc_data
     ipc_clonable
     ipc_data_writer
-    clonable_ipc_data_writer
+    ipc_data_writer
     raw_data_package_descriptor
 )
 

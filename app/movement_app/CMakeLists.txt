@@ -15,7 +15,6 @@ target_include_directories(movement_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LI
 target_link_libraries(
     movement_ipc_data_reader
     INTERFACE
-    clonable_ipc_data_reader
     ipc_data_reader
     json_ipc_data_reader
     movement_ipc_data_infra
@@ -27,7 +26,6 @@ target_include_directories(movement_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LI
 target_link_libraries(
     movement_ipc_data_writer
     INTERFACE
-    clonable_ipc_data_writer
     ipc_data_writer
     json_ipc_data_writer
     movement_ipc_data_infra

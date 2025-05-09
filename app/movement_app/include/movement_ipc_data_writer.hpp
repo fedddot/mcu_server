@@ -3,7 +3,6 @@
 
 #include <vector>
 
-#include "clonable_ipc_data_writer.hpp"
 #include "ipc_data_writer.hpp"
 #include "json_ipc_data_writer.hpp"
 #include "movement_ipc_data_infra.hpp"

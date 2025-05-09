@@ -14,7 +14,6 @@ target_include_directories(stepper_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
     stepper_ipc_data_reader
     INTERFACE
-    clonable_ipc_data_reader
     ipc_data_reader
     json_ipc_data_reader
     stepper_ipc_data_infra
@@ -26,7 +25,6 @@ target_include_directories(stepper_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
     stepper_ipc_data_writer
     INTERFACE
-    clonable_ipc_data_writer
     ipc_data_writer
     json_ipc_data_writer
     stepper_ipc_data_infra
