@@ -7,18 +7,18 @@
 #include "json/writer.h"
 
 #include "ipc_data_writer.hpp"
-#include "clonable_ipc_data_writer.hpp"
+#include "ipc_data.hpp"
+#include "ipc_clonable.hpp"
 #include "json_ipc_data_writer.hpp"
 
 using namespace ipc;
 
 using TestIpcData = std::string;
-using RawData = typename JsonIpcDataWriter<TestIpcData>::RawData;
 
 static RawData serialize_ipc_data(const TestIpcData& ipc_data);
 static Json::Value transform_ipc_data(const TestIpcData& data);
 
-class TestRawWriter: public ClonableIpcDataWriter<RawData> {
+class TestRawWriter: public IpcDataWriter<RawData>, public Clonable<IpcDataWriter<RawData>> {
 public:
 	TestRawWriter(const std::function<void(const RawData&)>& test_action): m_test_action(test_action) {
 		if (!m_test_action) {
