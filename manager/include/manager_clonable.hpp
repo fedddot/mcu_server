@@ -3,9 +3,9 @@
 
 namespace manager {
 	template <typename T>
-	class ManagerClonable {
+	class Clonable {
 	public:
-		virtual ~ManagerClonable() noexcept = default;
+		virtual ~Clonable() noexcept = default;
 		virtual T *clone() const = 0;
 	};
 }

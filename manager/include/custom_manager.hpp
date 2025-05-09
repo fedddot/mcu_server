@@ -5,11 +5,11 @@
 #include <stdexcept>
 
 #include "manager.hpp"
-#include "clonable_manager.hpp"
+#include "manager_clonable.hpp"
 
 namespace manager {
 	template <typename Request, typename Response>
-	class CustomManager: public ClonableManager<Request, Response> {
+	class CustomManager: public Manager<Request, Response>, public Clonable<Manager<Request, Response>> {
 	public:
 		using CustomAction = std::function<Response(const Request&)>;
 		CustomManager(const CustomAction& custom_action);
