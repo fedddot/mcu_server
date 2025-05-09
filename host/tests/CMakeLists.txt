@@ -15,8 +15,6 @@ target_link_libraries(
     raw_data_package_reader
     raw_data_package_utils
     raw_data_package_writer
-    shared_ipc_data_reader
-    shared_ipc_data_writer
 	test_ipc_data_reader
 	test_ipc_data_writer
     custom_manager
