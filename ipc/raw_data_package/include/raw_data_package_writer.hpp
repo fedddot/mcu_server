@@ -4,14 +4,14 @@
 #include <functional>
 #include <vector>
 
+#include "ipc_clonable.hpp"
+#include "ipc_data.hpp"
 #include "ipc_data_writer.hpp"
-#include "clonable_ipc_data_writer.hpp"
 #include "raw_data_package_descriptor.hpp"
 
 namespace ipc {
-	class RawDataPackageWriter: public ClonableIpcDataWriter<std::vector<char>> {
+	class RawDataPackageWriter: public IpcDataWriter<RawData>, public Clonable<IpcDataWriter<RawData>> {
 	public:
-		using RawData = typename RawDataPackageDescriptor::RawData;
 		using PackageSizeSerializer = std::function<RawData(const RawDataPackageDescriptor&, const std::size_t&)>;
 		using RawDataWriter = std::function<void(const RawData&)>;
 
@@ -66,7 +66,7 @@ namespace ipc {
 		m_raw_data_writer(raw_data);
 	}
 
-	inline IpcDataWriter<typename RawDataPackageWriter::RawData> *RawDataPackageWriter::clone() const {
+	inline IpcDataWriter<RawData> *RawDataPackageWriter::clone() const {
 		return new RawDataPackageWriter(*this);
 	}
 }

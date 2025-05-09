@@ -8,7 +8,7 @@ target_link_libraries(
     movement_manager
     INTERFACE
     manager
-    clonable_manager
+    manager_clonable
     movement_manager_request
     movement_manager_response
     linear_movement

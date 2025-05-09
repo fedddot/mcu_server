@@ -5,23 +5,23 @@
 #include <memory>
 #include <optional>
 #include <stdexcept>
-#include <vector>
 
 #include "json/reader.h"
 #include "json/value.h"
 
+#include "ipc_clonable.hpp"
 #include "ipc_data_reader.hpp"
-#include "clonable_ipc_data_reader.hpp"
+#include "ipc_data.hpp"
 
 namespace ipc {
 	template <typename IpcData>
-	class JsonIpcDataReader: public ClonableIpcDataReader<IpcData> {
+	class JsonIpcDataReader: public IpcDataReader<IpcData>, public Clonable<IpcDataReader<IpcData>> {
 	public:
-		using RawData = std::vector<char>;
 		using JsonDataToIpcDataTransformer = std::function<IpcData(const Json::Value&)>;
-		
+		using ClonableRawDataReader = Clonable<IpcDataReader<RawData>>;
+
 		JsonIpcDataReader(
-			const ClonableIpcDataReader<RawData>& raw_data_reader,
+			const ClonableRawDataReader& raw_data_reader,
 			const JsonDataToIpcDataTransformer& ipc_data_transformer
 		);
 		JsonIpcDataReader(const JsonIpcDataReader&) = default;
@@ -37,7 +37,7 @@ namespace ipc {
 
 	template <typename IpcData>
 	inline JsonIpcDataReader<IpcData>::JsonIpcDataReader(
-		const ClonableIpcDataReader<RawData>& raw_data_reader,
+		const ClonableRawDataReader& raw_data_reader,
 		const JsonDataToIpcDataTransformer& ipc_data_transformer
 	): m_raw_data_reader(raw_data_reader.clone()), m_ipc_data_transformer(ipc_data_transformer) {
 		if (!m_ipc_data_transformer) {

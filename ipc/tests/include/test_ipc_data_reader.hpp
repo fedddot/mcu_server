@@ -4,12 +4,12 @@
 #include <functional>
 #include <optional>
 
-#include "clonable_ipc_data_reader.hpp"
+#include "ipc_clonable.hpp"
 #include "ipc_data_reader.hpp"
 
 namespace ipc {
 	template <typename IpcData>
-	class TestIpcDataReader: public ClonableIpcDataReader<IpcData> {
+	class TestIpcDataReader: public IpcDataReader<IpcData>, public Clonable<IpcDataReader<IpcData>> {
 	public:
 		using Action = std::function<std::optional<IpcData>(void)>;
 		TestIpcDataReader(const Action& action): m_action(action) {
@@ -21,7 +21,6 @@ namespace ipc {
 		std::optional<IpcData> read() override {
 			return m_action();
 		}
-
 		IpcDataReader<IpcData> *clone() const override {
 			return new TestIpcDataReader(*this);
 		}

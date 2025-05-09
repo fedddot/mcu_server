@@ -3,8 +3,9 @@ target_include_directories(json_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_D
 target_link_libraries(
     json_ipc_data_reader
     INTERFACE
+    ipc_clonable
+    ipc_data
     ipc_data_reader
-    clonable_ipc_data_reader
     jsoncpp_static
 )
 
@@ -13,8 +14,9 @@ target_include_directories(json_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_D
 target_link_libraries(
     json_ipc_data_writer
     INTERFACE
+    ipc_clonable
+    ipc_data
     ipc_data_writer
-    clonable_ipc_data_writer
     jsoncpp_static
 )
 

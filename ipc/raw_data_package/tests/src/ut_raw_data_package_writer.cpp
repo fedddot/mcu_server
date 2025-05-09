@@ -4,13 +4,12 @@
 
 #include "gtest/gtest.h"
 
+#include "ipc_data.hpp"
 #include "raw_data_package_writer.hpp"
 #include "raw_data_package_descriptor.hpp"
 #include "raw_data_package_utils.hpp"
 
 using namespace ipc;
-
-using RawData = typename RawDataPackageDescriptor::RawData;
 
 TEST(ut_raw_data_package_writer, ctor_dtor_sanity) {
 	// GIVEN

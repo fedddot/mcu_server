@@ -1,21 +1,21 @@
-#include "json/config.h"
-#include "json/writer.h"
 #include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
+#include "json/config.h"
+#include "json/writer.h"
 #include "json/value.h"
 
+#include "ipc_clonable.hpp"
 #include "ipc_data_reader.hpp"
-#include "clonable_ipc_data_reader.hpp"
+#include "ipc_data.hpp"
 #include "json_ipc_data_reader.hpp"
 
 using namespace ipc;
 
 using TestIpcData = std::string;
-using RawData = typename JsonIpcDataReader<TestIpcData>::RawData;
 
-class TestRawReader: public ClonableIpcDataReader<RawData> {
+class TestRawReader: public IpcDataReader<RawData>, public Clonable<IpcDataReader<RawData>> {
 public:
 	TestRawReader(const std::optional<RawData>& data_opt) {
 		m_data_option = data_opt;

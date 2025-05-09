@@ -3,23 +3,23 @@
 
 #include <functional>
 #include <stdexcept>
-#include <vector>
 
 #include "json/value.h"
 #include "json/writer.h"
 
+#include "ipc_clonable.hpp"
 #include "ipc_data_writer.hpp"
-#include "clonable_ipc_data_writer.hpp"
+#include "ipc_data.hpp"
 
 namespace ipc {
 	template <typename IpcData>
-	class JsonIpcDataWriter: public ClonableIpcDataWriter<IpcData> {
+	class JsonIpcDataWriter: public IpcDataWriter<IpcData>, public Clonable<IpcDataWriter<IpcData>> {
 	public:
-		using RawData = std::vector<char>;
 		using IpcDataToJsonDataTransformer = std::function<Json::Value(const IpcData&)>;
+		using ClonableRawDataWriter = Clonable<IpcDataWriter<RawData>>;
 
 		JsonIpcDataWriter(
-			const ClonableIpcDataWriter<RawData>& raw_data_writer,
+			const ClonableRawDataWriter& raw_data_writer,
 			const IpcDataToJsonDataTransformer& ipc_data_transformer
 		);
 		JsonIpcDataWriter(const JsonIpcDataWriter&) = default;
@@ -33,7 +33,7 @@ namespace ipc {
 
 	template <typename IpcData>
 	inline JsonIpcDataWriter<IpcData>::JsonIpcDataWriter(
-		const ClonableIpcDataWriter<RawData>& raw_data_writer,
+		const ClonableRawDataWriter& raw_data_writer,
 		const IpcDataToJsonDataTransformer& ipc_data_transformer
 	): m_raw_data_writer(raw_data_writer.clone()), m_ipc_data_transformer(ipc_data_transformer) {
 		if (!m_ipc_data_transformer) {

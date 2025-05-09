@@ -6,7 +6,7 @@
 #include <optional>
 #include <stdexcept>
 
-#include "clonable_manager.hpp"
+#include "manager_clonable.hpp"
 #include "linear_movement.hpp"
 #include "manager.hpp"
 #include "movement_manager_data.hpp"
@@ -15,7 +15,7 @@
 #include "movement_manager_vector.hpp"
 
 namespace manager {
-	class MovementManager: public ClonableManager<MovementManagerRequest, MovementManagerResponse> {
+	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse>, public Clonable<Manager<MovementManagerRequest, MovementManagerResponse>> {
 	public:
 		class AxesController {
 		public:

@@ -4,13 +4,11 @@ target_link_libraries(
     host
     INTERFACE
     ipc_data_reader
-    clonable_ipc_data_reader
-
-    ipc_data_writer
-    clonable_ipc_data_writer
+    ipc_data_reader
+    ipc_clonable
     
     manager
-    clonable_manager
+    manager_clonable
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

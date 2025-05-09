@@ -2,6 +2,9 @@
 #define	MOVEMENT_HOST_HPP
 
 #include "host.hpp"
+#include "ipc_clonable.hpp"
+#include "ipc_data_reader.hpp"
+#include "ipc_data_writer.hpp"
 #include "movement_ipc_data_infra.hpp"
 #include "movement_ipc_data_reader.hpp"
 #include "movement_ipc_data_writer.hpp"
@@ -14,8 +17,8 @@ namespace host {
 	class MovementHost: public Host<manager::MovementManagerRequest, manager::MovementManagerResponse> {
 	public:
 		MovementHost(
-			const ipc::ClonableIpcDataReader<ipc::RawData>& ipc_data_reader,
-			const ipc::ClonableIpcDataWriter<ipc::RawData>& ipc_data_writer,
+			const ipc::Clonable<ipc::IpcDataReader<ipc::RawData>>& ipc_data_reader,
+			const ipc::Clonable<ipc::IpcDataWriter<ipc::RawData>>& ipc_data_writer,
 			const manager::MovementManager::AxesController& axes_controller,
 			const manager::AxesProperties& axes_properties
 		);
@@ -24,8 +27,8 @@ namespace host {
 	};
 
 	inline MovementHost::MovementHost(
-		const ipc::ClonableIpcDataReader<ipc::RawData>& ipc_data_reader,
-		const ipc::ClonableIpcDataWriter<ipc::RawData>& ipc_data_writer,
+		const ipc::Clonable<ipc::IpcDataReader<ipc::RawData>>& ipc_data_reader,
+		const ipc::Clonable<ipc::IpcDataWriter<ipc::RawData>>& ipc_data_writer,
 		const manager::MovementManager::AxesController& axes_controller,
 		const manager::AxesProperties& axes_properties
 	): Host(

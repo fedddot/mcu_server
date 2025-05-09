@@ -5,7 +5,6 @@
 #include "raw_data_package_utils.hpp"
 
 using namespace ipc;
-using RawData = typename RawDataPackageDescriptor::RawData;
 
 enum: std::size_t { BITS_IN_BYTE = 8UL };
 

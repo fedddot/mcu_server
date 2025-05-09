@@ -7,7 +7,7 @@ target_include_directories(stepper_motor_manager INTERFACE ${CMAKE_CURRENT_LIST_
 target_link_libraries(
     stepper_motor_manager
     INTERFACE
-    clonable_manager
+    manager_clonable
     manager
     stepper_motor
     stepper_motor_request

@@ -3,12 +3,12 @@
 
 #include <cstddef>
 #include <stdexcept>
-#include <vector>
+
+#include "ipc_data.hpp"
 
 namespace ipc {
 	class RawDataPackageDescriptor {
 	public:
-		using RawData = std::vector<char>;
 		RawDataPackageDescriptor(
 			const RawData& preamble,
 			const std::size_t& encoded_size_length
@@ -33,7 +33,7 @@ namespace ipc {
 		}
 	}
 
-	inline typename RawDataPackageDescriptor::RawData RawDataPackageDescriptor::preamble() const {
+	inline RawData RawDataPackageDescriptor::preamble() const {
 		return m_preamble;
 	}
 
