@@ -1,14 +1,13 @@
-#ifndef	CLONABLE_MANAGER_HPP
-#define	CLONABLE_MANAGER_HPP
-
-#include "manager.hpp"
+#ifndef	MANAGER_CLONABLE_HPP
+#define	MANAGER_CLONABLE_HPP
 
 namespace manager {
-	template <typename Request, typename Response>
-	class ClonableManager: public Manager<Request, Response> {
+	template <typename T>
+	class ManagerClonable {
 	public:
-		virtual Manager<Request, Response> *clone() const = 0;
+		virtual ~ManagerClonable() noexcept = default;
+		virtual T *clone() const = 0;
 	};
 }
 
-#endif // CLONABLE_MANAGER_HPP
+#endif // MANAGER_CLONABLE_HPP
