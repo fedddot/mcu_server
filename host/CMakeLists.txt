@@ -8,7 +8,7 @@ target_link_libraries(
     ipc_clonable
     
     manager
-    clonable_manager
+    manager_clonable
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

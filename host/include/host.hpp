@@ -6,7 +6,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "clonable_manager.hpp"
+#include "manager_clonable.hpp"
 #include "ipc_clonable.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
@@ -20,7 +20,7 @@ namespace host {
 		Host(
 			const ipc::Clonable<ipc::IpcDataReader<Request>>& ipc_data_reader,
 			const ipc::Clonable<ipc::IpcDataWriter<Response>>& ipc_data_writer,
-			const manager::ClonableManager<Request, Response>& manager,
+			const manager::Clonable<manager::Manager<Request, Response>>& manager,
 			const FailureReporter& failure_reporter
 		);
 		Host(const Host&) = delete;
@@ -39,7 +39,7 @@ namespace host {
 	inline Host<Request, Response>::Host(
 		const ipc::Clonable<ipc::IpcDataReader<Request>>& ipc_data_reader,
 		const ipc::Clonable<ipc::IpcDataWriter<Response>>& ipc_data_writer,
-		const manager::ClonableManager<Request, Response>& manager,
+		const manager::Clonable<manager::Manager<Request, Response>>& manager,
 		const FailureReporter& failure_reporter
 	): m_ipc_data_reader(ipc_data_reader.clone()), m_ipc_data_writer(ipc_data_writer.clone()), m_manager(manager.clone()), m_failure_reporter(failure_reporter) {
 		if (!m_failure_reporter) {

@@ -6,7 +6,7 @@
 #include <optional>
 #include <stdexcept>
 
-#include "clonable_manager.hpp"
+#include "manager_clonable.hpp"
 #include "linear_movement.hpp"
 #include "manager.hpp"
 #include "movement_manager_data.hpp"

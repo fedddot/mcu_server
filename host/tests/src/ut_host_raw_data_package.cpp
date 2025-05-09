@@ -29,8 +29,8 @@ using Response = int;
 
 using TestHost = Host<Request, Response>;
 
-static std::shared_ptr<Clonable<IpcDataReader<Request>>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc);
-static std::shared_ptr<Clonable<IpcDataWriter<Response>>> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer);
+static std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc);
+static std::shared_ptr<ipc::Clonable<IpcDataWriter<Response>>> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer);
 
 static RawData generate_serial_request(const RawDataPackageDescriptor& desc, const Request& request);
 
@@ -104,7 +104,7 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 	ASSERT_TRUE(buff.empty());
 }
 
-inline std::shared_ptr<Clonable<IpcDataReader<Request>>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc) {
+inline std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc) {
 	const auto ipc_data_reader = RawDataPackageReader(
 		buffer,
 		desc,
@@ -114,7 +114,7 @@ inline std::shared_ptr<Clonable<IpcDataReader<Request>>> create_ipc_reader(RawDa
 		const auto request_data = json_data["request"].asString();
 		return Request(request_data);
 	};
-	return std::shared_ptr<Clonable<IpcDataReader<Request>>>(
+	return std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>>(
 		new JsonIpcDataReader<Request>(
 			ipc_data_reader,
 			request_retriever
@@ -122,7 +122,7 @@ inline std::shared_ptr<Clonable<IpcDataReader<Request>>> create_ipc_reader(RawDa
 	);
 }
 
-inline std::shared_ptr<Clonable<IpcDataWriter<Response>>> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer) {
+inline std::shared_ptr<ipc::Clonable<IpcDataWriter<Response>>> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer) {
 	const auto ipc_data_writer = RawDataPackageWriter(
 		desc,
 		serialize_package_size,
@@ -131,7 +131,7 @@ inline std::shared_ptr<Clonable<IpcDataWriter<Response>>> create_ipc_writer(cons
 	auto response_serializer = [](const Response& resp) -> Json::Value {
 		return Json::Value(resp);
 	};
-	return std::shared_ptr<Clonable<IpcDataWriter<Response>>>(
+	return std::shared_ptr<ipc::Clonable<IpcDataWriter<Response>>>(
 		new JsonIpcDataWriter<Response>(
 			ipc_data_writer,
 			response_serializer
