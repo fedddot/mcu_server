@@ -3,12 +3,11 @@
 
 #include <functional>
 
-#include "clonable_ipc_data_writer.hpp"
 #include "ipc_data_writer.hpp"
 
 namespace ipc {
 	template <typename IpcData>
-	class TestIpcDataWriter: public ClonableIpcDataWriter<IpcData> {
+	class TestIpcDataWriter: public IpcDataWriter<IpcData> {
 	public:
 		using Action = std::function<void(const IpcData&)>;
 		TestIpcDataWriter(const Action& action): m_action(action) {
@@ -19,10 +18,6 @@ namespace ipc {
 
 		void write(const IpcData& response) const override {
 			m_action(response);
-		}
-
-		IpcDataWriter<IpcData> *clone() const override {
-			return new TestIpcDataWriter(*this);
 		}
 	private:
 		Action m_action;

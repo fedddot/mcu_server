@@ -1,7 +1,7 @@
 add_library(test_ipc_data_reader INTERFACE)
 target_include_directories(test_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(test_ipc_data_reader INTERFACE ipc_data_reader clonable_ipc_data_reader)
+target_link_libraries(test_ipc_data_reader INTERFACE ipc_data_reader)
 
 add_library(test_ipc_data_writer INTERFACE)
 target_include_directories(test_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(test_ipc_data_writer INTERFACE ipc_data_writer clonable_ipc_data_writer)
+target_link_libraries(test_ipc_data_writer INTERFACE ipc_data_writer)
