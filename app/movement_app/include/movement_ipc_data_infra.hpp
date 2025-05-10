@@ -8,7 +8,6 @@
 
 #include "json/value.h"
 
-#include "init_request.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_request.hpp"
 #include "linear_movement_request.hpp"
