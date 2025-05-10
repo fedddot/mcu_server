@@ -64,14 +64,14 @@ TEST(ut_json_ipc_data_reader, read_sanity) {
 	// THEN
 	ASSERT_NO_THROW(read_result = instance.read());
 	ASSERT_TRUE(read_result);
-	ASSERT_EQ(test_ipc_data, *read_result);
+	ASSERT_EQ(test_ipc_data, read_result->get());
 }
 
 TEST(ut_json_ipc_data_reader, read_missing_raw_data_negative) {
 	// WHEN
 	const auto raw_data_reader = TestRawReader(std::optional<Result<RawData>>());
 	auto instance = JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data);
-	auto read_result = std::optional<TestIpcData>();
+	auto read_result = std::optional<Result<TestIpcData>>();
 
 	// THEN
 	ASSERT_NO_THROW(read_result = instance.read());
