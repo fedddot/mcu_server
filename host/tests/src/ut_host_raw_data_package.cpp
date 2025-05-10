@@ -11,7 +11,7 @@
 #include "json/writer.h"
 
 #include "host.hpp"
-#include "ipc_clonable.hpp"
+#include "ipc_instance.hpp"
 #include "json_ipc_data_reader.hpp"
 #include "json_ipc_data_writer.hpp"
 #include "raw_data_package_descriptor.hpp"

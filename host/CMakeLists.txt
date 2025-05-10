@@ -5,7 +5,7 @@ target_link_libraries(
     INTERFACE
     manager
     manager_clonable
-    ipc_clonable
+    ipc_instance
     ipc_data_reader
     ipc_data_writer
 )

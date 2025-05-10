@@ -4,7 +4,7 @@
 #include <functional>
 #include <optional>
 
-#include "ipc_clonable.hpp"
+#include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_instance.hpp"
 

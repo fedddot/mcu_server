@@ -13,7 +13,7 @@ target_link_libraries(
     raw_data_package_reader
     INTERFACE
     ipc_data
-    ipc_clonable
+    ipc_instance
     ipc_data_reader
     ipc_data_reader
     raw_data_package_descriptor
@@ -25,7 +25,7 @@ target_link_libraries(
     raw_data_package_writer
     INTERFACE
     ipc_data
-    ipc_clonable
+    ipc_instance
     ipc_data_writer
     ipc_data_writer
     raw_data_package_descriptor

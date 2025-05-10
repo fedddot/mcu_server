@@ -8,7 +8,7 @@
 
 #include "manager.hpp"
 #include "manager_clonable.hpp"
-#include "ipc_clonable.hpp"
+#include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
 

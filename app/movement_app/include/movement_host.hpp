@@ -2,7 +2,7 @@
 #define	MOVEMENT_HOST_HPP
 
 #include "host.hpp"
-#include "ipc_clonable.hpp"
+#include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
 #include "movement_ipc_data_infra.hpp"

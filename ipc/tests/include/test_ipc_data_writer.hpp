@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include "ipc_clonable.hpp"
+#include "ipc_instance.hpp"
 #include "ipc_data_writer.hpp"
 
 namespace ipc {
