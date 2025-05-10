@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 #include "json/writer.h"
 
-#include "ipc_result.hpp"
+#include "ipc_instance.hpp"
 #include "linear_movement_request.hpp"
 #include "movement_ipc_data_infra.hpp"
 #include "movement_ipc_data_reader.hpp"

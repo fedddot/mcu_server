@@ -10,7 +10,7 @@
 #include "ipc_clonable.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data.hpp"
-#include "ipc_result.hpp"
+#include "ipc_instance.hpp"
 #include "json_ipc_data_reader.hpp"
 
 using namespace ipc;

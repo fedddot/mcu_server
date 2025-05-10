@@ -14,7 +14,7 @@
 #include "rotation_movement_request.hpp"
 #include "movement_manager_response.hpp"
 #include "movement_manager_vector.hpp"
-#include "ipc_result.hpp"
+#include "ipc_instance.hpp"
 
 namespace ipc {
 	template <typename AxisControllerConfig>

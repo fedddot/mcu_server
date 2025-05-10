@@ -1,5 +1,5 @@
-#ifndef	IPC_RESULT_HPP
-#define	IPC_RESULT_HPP
+#ifndef	IPC_INSTANCE_HPP
+#define	IPC_INSTANCE_HPP
 
 #include <memory>
 #include <stdexcept>
@@ -35,4 +35,4 @@ namespace ipc {
 	}
 }
 
-#endif // IPC_RESULT_HPP
+#endif // IPC_INSTANCE_HPP

@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "host.hpp"
-#include "ipc_result.hpp"
+#include "ipc_instance.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 #include "custom_manager.hpp"

@@ -7,7 +7,7 @@ target_link_libraries(
     movement_manager_request
     movement_manager_response
     movement_manager_vector
-    ipc_result
+    ipc_instance
     jsoncpp_static
 )
 
@@ -20,7 +20,7 @@ target_link_libraries(
     movement_manager_request
     movement_manager_response
     movement_manager_vector
-    ipc_result
+    ipc_instance
     jsoncpp_static
 )
 
@@ -32,7 +32,7 @@ target_link_libraries(
     ipc_clonable
     ipc_data
     ipc_data_reader
-    ipc_result
+    ipc_instance
     json_ipc_data_reader
     movement_ipc_data_infra
     movement_manager_request

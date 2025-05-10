@@ -3,7 +3,7 @@
 
 #include <optional>
 
-#include "ipc_result.hpp"
+#include "ipc_instance.hpp"
 
 namespace ipc {
 	template <typename IpcData>
