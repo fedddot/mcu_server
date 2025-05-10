@@ -1,8 +1,6 @@
 #ifndef	MOVEMENT_MANAGER_REQUEST_HPP
 #define	MOVEMENT_MANAGER_REQUEST_HPP
 
-#include <stdexcept>
-
 namespace manager {
 	class MovementManagerRequest {
 	public:
