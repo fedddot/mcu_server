@@ -23,7 +23,7 @@ namespace ipc {
 		);
 		RawDataPackageReader(const RawDataPackageReader&) = default;
 		RawDataPackageReader& operator=(const RawDataPackageReader&) = default;
-		std::optional<RawData> read() override;
+		std::optional<Result<RawData>> read() override;
 		IpcDataReader<RawData> *clone() const override;
 	private:
 		RawData *m_buffer;
@@ -46,11 +46,11 @@ namespace ipc {
 		}
 	}
 
-	inline std::optional<RawData> RawDataPackageReader::read() {
+	inline std::optional<Result<RawData>> RawDataPackageReader::read() {
 		const auto preamble_size = m_descriptor.preamble().size();
 		const auto encoded_size_len = m_descriptor.encoded_size_length();
 		if (!validate_preamble()) {
-			return std::optional<RawData>();
+			return std::nullopt;
 		}
 		const auto package_size = m_size_parser(
 			m_descriptor,
@@ -60,7 +60,7 @@ namespace ipc {
 			)
 		);
 		if (m_buffer->size() < preamble_size + encoded_size_len + package_size) {
-			return std::optional<RawData>();
+			return std::nullopt;
 		}
 		const auto package_data = RawData(
 			m_buffer->begin() + preamble_size + encoded_size_len,
@@ -70,7 +70,7 @@ namespace ipc {
 			m_buffer->begin(),
 			m_buffer->begin() + preamble_size + encoded_size_len + package_size
 		);
-		return std::optional<RawData>(package_data);
+		return Result<RawData>(new RawData(package_data));
 	}
 
 	inline bool RawDataPackageReader::validate_preamble() {
