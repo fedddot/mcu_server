@@ -5,7 +5,6 @@
 #include <functional>
 #include <optional>
 #include <stdexcept>
-#include <vector>
 
 #include "ipc_data.hpp"
 #include "ipc_data_reader.hpp"

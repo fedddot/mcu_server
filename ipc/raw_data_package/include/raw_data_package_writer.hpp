@@ -2,7 +2,6 @@
 #define	RAW_DATA_PACKAGE_WRITER_HPP
 
 #include <functional>
-#include <vector>
 
 #include "ipc_instance.hpp"
 #include "ipc_data.hpp"
@@ -10,34 +9,29 @@
 #include "raw_data_package_descriptor.hpp"
 
 namespace ipc {
-	class RawDataPackageWriter: public IpcDataWriter<RawData>, public Clonable<IpcDataWriter<RawData>> {
+	class RawDataPackageWriter: public IpcDataWriter<RawData> {
 	public:
 		using PackageSizeSerializer = std::function<RawData(const RawDataPackageDescriptor&, const std::size_t&)>;
-		using RawDataWriter = std::function<void(const RawData&)>;
-
+		
 		RawDataPackageWriter(
 			const RawDataPackageDescriptor& descriptor,
 			const PackageSizeSerializer& size_serializer,
-			const RawDataWriter& raw_data_writer
+			const Instance<IpcDataWriter<RawData>>& raw_data_writer
 		);
 		RawDataPackageWriter(const RawDataPackageWriter&) = default;
 		RawDataPackageWriter& operator=(const RawDataPackageWriter&) = default;
 		void write(const RawData& data) const override;
-		IpcDataWriter<RawData> *clone() const override;
 	private:
 		RawDataPackageDescriptor m_descriptor;
 		PackageSizeSerializer m_size_serializer;
-		RawDataWriter m_raw_data_writer;
+		Instance<IpcDataWriter<RawData>> m_raw_data_writer;
 	};
 
 	inline RawDataPackageWriter::RawDataPackageWriter(
 		const RawDataPackageDescriptor& descriptor,
 		const PackageSizeSerializer& size_serializer,
-		const RawDataWriter& raw_data_writer
+		const Instance<IpcDataWriter<RawData>>& raw_data_writer
 	): m_descriptor(descriptor), m_size_serializer(size_serializer), m_raw_data_writer(raw_data_writer) {
-		if (!m_raw_data_writer) {
-			throw std::invalid_argument("invalid raw data writer received");
-		}
 		if (!m_size_serializer) {
 			throw std::invalid_argument("invalid size serializer received");
 		}
@@ -63,11 +57,7 @@ namespace ipc {
 			data.begin(),
 			data.end()
 		);
-		m_raw_data_writer(raw_data);
-	}
-
-	inline IpcDataWriter<RawData> *RawDataPackageWriter::clone() const {
-		return new RawDataPackageWriter(*this);
+		m_raw_data_writer.get().write(raw_data);
 	}
 }
 
