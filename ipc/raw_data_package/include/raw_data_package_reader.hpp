@@ -7,13 +7,12 @@
 #include <stdexcept>
 #include <vector>
 
-#include "ipc_clonable.hpp"
 #include "ipc_data.hpp"
 #include "ipc_data_reader.hpp"
 #include "raw_data_package_descriptor.hpp"
 
 namespace ipc {
-	class RawDataPackageReader: public IpcDataReader<RawData>, public Clonable<IpcDataReader<RawData>> {
+	class RawDataPackageReader: public IpcDataReader<RawData> {
 	public:
 		using PackageSizeParser = std::function<std::size_t(const RawDataPackageDescriptor&, const RawData&)>;
 		RawDataPackageReader(
@@ -24,7 +23,6 @@ namespace ipc {
 		RawDataPackageReader(const RawDataPackageReader&) = default;
 		RawDataPackageReader& operator=(const RawDataPackageReader&) = default;
 		std::optional<Instance<RawData>> read() override;
-		IpcDataReader<RawData> *clone() const override;
 	private:
 		RawData *m_buffer;
 		RawDataPackageDescriptor m_descriptor;
@@ -87,10 +85,6 @@ namespace ipc {
 			m_buffer->erase(m_buffer->begin());
 		}
 		return false;
-	}
-
-	inline IpcDataReader<RawData> *RawDataPackageReader::clone() const {
-		return new RawDataPackageReader(*this);
 	}
 }
 
