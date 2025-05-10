@@ -2,6 +2,7 @@
 #define	STEPPER_MOTOR_MANAGER_HPP
 
 #include <cmath>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -19,8 +20,9 @@ namespace manager {
 	template <typename AxisControllerConfig>
 	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse>, public Clonable<Manager<MovementManagerRequest, MovementManagerResponse>> {
 	public:
+		using AxesControllerCreator = std::function<AxesController *(const AxisControllerConfig&)>;
 		MovementManager(
-			const AxesController& axes_controller,
+			const AxesControllerCreator& axes_controller_ctor,
 			const AxesProperties& axes_properties
 		);
 		MovementManager(const MovementManager& other) = default;
@@ -29,6 +31,7 @@ namespace manager {
 		MovementManagerResponse run(const MovementManagerRequest& request) override;
 		Manager<MovementManagerRequest, MovementManagerResponse> *clone() const override;
 	private:
+		AxesControllerCreator m_axes_controller_ctor;
 		std::shared_ptr<AxesController> m_axes_controller;
 		AxesProperties m_axes_properties;
 		MovementManagerResponse linear_movement(const MovementManagerRequest& request) const;
@@ -37,10 +40,12 @@ namespace manager {
 
 	template <typename AxisControllerConfig>
 	inline MovementManager<AxisControllerConfig>::MovementManager(
-		const AxesController& axes_controller,
+		const AxesControllerCreator& axes_controller_ctor,
 		const AxesProperties& axes_properties
-	): m_axes_controller(axes_controller.clone()), m_axes_properties(axes_properties) {
-
+	): m_axes_controller_ctor(axes_controller_ctor), m_axes_controller(nullptr), m_axes_properties(axes_properties) {
+		if (!m_axes_controller_ctor) {
+			throw std::invalid_argument("invalid axes_controller_ctor received");
+		}
 	}
 	
 	template <typename AxisControllerConfig>
@@ -65,6 +70,12 @@ namespace manager {
 
 	template <typename AxisControllerConfig>
 	inline MovementManagerResponse MovementManager<AxisControllerConfig>::linear_movement(const MovementManagerRequest& request) const {
+		if (!m_axes_controller) {
+			return MovementManagerResponse {
+				.code = MovementManagerResponse::ResultCode::EXCEPTION,
+				.message = "axes controller is not initialized",
+			};
+		}
 		const auto& request_casted = dynamic_cast<const LinearMovementRequest&>(request);
 		const auto speed = request_casted.speed();
 		const auto destination = request_casted.destination();
