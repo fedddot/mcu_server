@@ -4,6 +4,9 @@ target_include_directories(ipc_clonable INTERFACE ${CMAKE_CURRENT_LIST_DIR}/incl
 add_library(ipc_data INTERFACE)
 target_include_directories(ipc_data INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(ipc_result INTERFACE)
+target_include_directories(ipc_result INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
 add_library(ipc_data_reader INTERFACE)
 target_include_directories(ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
