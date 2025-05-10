@@ -24,9 +24,8 @@ target_include_directories(raw_data_package_writer INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
     raw_data_package_writer
     INTERFACE
-    ipc_data
     ipc_instance
-    ipc_data_writer
+    ipc_data
     ipc_data_writer
     raw_data_package_descriptor
 )
