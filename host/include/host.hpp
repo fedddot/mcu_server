@@ -6,11 +6,11 @@
 #include <memory>
 #include <stdexcept>
 
+#include "manager.hpp"
 #include "manager_clonable.hpp"
 #include "ipc_clonable.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
-#include "manager.hpp"
 
 namespace host {
 	template <typename Request, typename Response>
@@ -54,7 +54,7 @@ namespace host {
 			if (!request) {
 				return;
 			}
-			const auto response = m_manager->run(*request);
+			const auto response = m_manager->run(request->get());
 			m_ipc_data_writer->write(response);
 		} catch (const std::exception& e) {
 			const auto response = m_failure_reporter(e);
