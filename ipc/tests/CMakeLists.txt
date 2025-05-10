@@ -4,4 +4,4 @@ target_link_libraries(test_ipc_data_reader INTERFACE ipc_data_reader ipc_instanc
 
 add_library(test_ipc_data_writer INTERFACE)
 target_include_directories(test_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(test_ipc_data_writer INTERFACE ipc_data_writer ipc_instance)
+target_link_libraries(test_ipc_data_writer INTERFACE ipc_data_writer)

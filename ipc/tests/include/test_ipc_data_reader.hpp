@@ -10,7 +10,7 @@
 
 namespace ipc {
 	template <typename IpcData>
-	class TestIpcDataReader: public IpcDataReader<IpcData>, public Clonable<IpcDataReader<IpcData>> {
+	class TestIpcDataReader: public IpcDataReader<IpcData> {
 	public:
 		using Action = std::function<std::optional<Instance<IpcData>>(void)>;
 		TestIpcDataReader(const Action& action): m_action(action) {
@@ -21,9 +21,6 @@ namespace ipc {
 		
 		std::optional<Instance<IpcData>> read() override {
 			return m_action();
-		}
-		IpcDataReader<IpcData> *clone() const override {
-			return new TestIpcDataReader(*this);
 		}
 	private:
 		Action m_action;
