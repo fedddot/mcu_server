@@ -2,7 +2,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -12,6 +11,7 @@
 
 #include "host.hpp"
 #include "ipc_data.hpp"
+#include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
 #include "ipc_instance.hpp"
 #include "json_ipc_data_reader.hpp"
@@ -112,16 +112,16 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 }
 
 inline Instance<IpcDataReader<Request>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc) {
-	const auto ipc_data_reader = RawDataPackageReader(
+	const auto ipc_data_reader = Instance<IpcDataReader<RawData>>(new RawDataPackageReader(
 		buffer,
 		desc,
 		parse_package_size
-	);
+	));
 	auto request_retriever = [](const Json::Value& json_data) -> Instance<Request> {
 		const auto request_data = json_data["request"].asString();
 		return Instance<Request>(new Request(request_data));
 	};
-	return Instance<IpcDataReader<Request>>>(
+	return Instance<IpcDataReader<Request>>(
 		new JsonIpcDataReader<Request>(
 			ipc_data_reader,
 			request_retriever
@@ -129,16 +129,18 @@ inline Instance<IpcDataReader<Request>> create_ipc_reader(RawData *buffer, const
 	);
 }
 
-inline Instance<IpcDataWriter<Response>>> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer) {
-	const auto ipc_data_writer = RawDataPackageWriter(
-		desc,
-		serialize_package_size,
-		raw_data_writer
+inline Instance<IpcDataWriter<Response>> create_ipc_writer(const RawDataPackageDescriptor& desc, const Instance<IpcDataWriter<RawData>>& raw_data_writer) {
+	const auto ipc_data_writer = Instance<IpcDataWriter<RawData>>(
+		new RawDataPackageWriter(
+			desc,
+			serialize_package_size,
+			raw_data_writer
+		)
 	);
 	auto response_serializer = [](const Response& resp) -> Json::Value {
 		return Json::Value(resp);
 	};
-	return Instance<IpcDataWriter<Response>>>(
+	return Instance<IpcDataWriter<Response>>(
 		new JsonIpcDataWriter<Response>(
 			ipc_data_writer,
 			response_serializer
