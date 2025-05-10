@@ -31,7 +31,7 @@ namespace ipc {
 		virtual ~DefaultMovementDataTransformers() noexcept = default;
 
 		Json::Value request_to_json_value(const manager::MovementManagerRequest& request) const;
-		Result<manager::MovementManagerRequest> json_value_to_request(const Json::Value& json_request) const;
+		Instance<manager::MovementManagerRequest> json_value_to_request(const Json::Value& json_request) const;
 		Json::Value response_to_json_value(const manager::MovementManagerResponse& response) const;
 		manager::MovementManagerResponse json_value_to_response(const Json::Value& json_response) const;
 	private:
@@ -85,12 +85,12 @@ namespace ipc {
 	}
 
 	template <typename AxisControllerConfig>
-	inline Result<manager::MovementManagerRequest> DefaultMovementDataTransformers<AxisControllerConfig>::json_value_to_request(const Json::Value& json_request) const {
+	inline Instance<manager::MovementManagerRequest> DefaultMovementDataTransformers<AxisControllerConfig>::json_value_to_request(const Json::Value& json_request) const {
 		using RequestType = manager::MovementManagerRequest::RequestType;
 		const auto request_type = json_value_to_movement_type(retrieve_required_field(json_request, "type"));
 		switch (request_type) {
 		case RequestType::LINEAR_MOVEMENT:
-			return Result<manager::MovementManagerRequest>(
+			return Instance<manager::MovementManagerRequest>(
 				new manager::LinearMovementRequest(
 					json_value_to_linear_movement_request(
 						retrieve_required_field(
