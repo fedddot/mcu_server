@@ -9,7 +9,7 @@
 #include "json/value.h"
 
 #include "movement_host.hpp"
-#include "movement_ipc_data_infra.hpp"
+#include "response_json_transformer.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"

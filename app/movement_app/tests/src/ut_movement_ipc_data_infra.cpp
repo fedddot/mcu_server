@@ -7,7 +7,7 @@
 
 #include "ipc_instance.hpp"
 #include "linear_movement_request.hpp"
-#include "movement_ipc_data_infra.hpp"
+#include "response_json_transformer.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
@@ -22,7 +22,7 @@ static Json::Value cfg2json(const AxisControllerConfig& cfg);
 static AxisControllerConfig json2cfg(const Json::Value& cfg);
 static bool doubles_equal(const double one, const double other, const double tolerance);
 
-TEST(ut_movement_ipc_data_infra, ctor_dtor_sanity) {
+TEST(ut_response_json_transformer, ctor_dtor_sanity) {
 	// WHEN
 	DefaultMovementDataTransformers<AxisControllerConfig> *instance = nullptr;
 
@@ -32,7 +32,7 @@ TEST(ut_movement_ipc_data_infra, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-TEST(ut_movement_ipc_data_infra, linear_request2json_sanity) {
+TEST(ut_response_json_transformer, linear_request2json_sanity) {
 	// GIVEN
 	const auto request = LinearMovementRequest(Vector<double>(0.1, 0.2, 0.3), 0.4);
 	
@@ -44,7 +44,7 @@ TEST(ut_movement_ipc_data_infra, linear_request2json_sanity) {
 	ASSERT_NO_THROW(result = instance.request_to_json_value(request));
 }
 
-TEST(ut_movement_ipc_data_infra, json2linear_request_sanity) {
+TEST(ut_response_json_transformer, json2linear_request_sanity) {
 	// GIVEN
 	const auto test_request = LinearMovementRequest(Vector<double>(0.1, 0.2, 0.3), 0.4);
 	const auto doubles_equality_tolerance = double(0.0001);
@@ -65,7 +65,7 @@ TEST(ut_movement_ipc_data_infra, json2linear_request_sanity) {
 	ASSERT_TRUE(doubles_equal(test_request.speed(), casted_result_ptr->speed(), doubles_equality_tolerance));
 }
 
-TEST(ut_movement_ipc_data_infra, response2json_sanity) {
+TEST(ut_response_json_transformer, response2json_sanity) {
 	// GIVEN
 	const auto response = MovementManagerResponse {
 		.code = MovementManagerResponse::ResultCode::BAD_REQUEST,
@@ -80,7 +80,7 @@ TEST(ut_movement_ipc_data_infra, response2json_sanity) {
 	ASSERT_NO_THROW(result = instance.response_to_json_value(response));
 }
 
-TEST(ut_movement_ipc_data_infra, json2response_sanity) {
+TEST(ut_response_json_transformer, json2response_sanity) {
 	// GIVEN
 	const auto test_response = MovementManagerResponse {
 		.code = MovementManagerResponse::ResultCode::BAD_REQUEST,

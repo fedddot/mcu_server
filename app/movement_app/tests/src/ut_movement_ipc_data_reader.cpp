@@ -7,7 +7,7 @@
 
 #include "ipc_instance.hpp"
 #include "linear_movement_request.hpp"
-#include "movement_ipc_data_infra.hpp"
+#include "response_json_transformer.hpp"
 #include "movement_ipc_data_reader.hpp"
 #include "movement_manager_request.hpp"
 #include "test_ipc_data_reader.hpp"

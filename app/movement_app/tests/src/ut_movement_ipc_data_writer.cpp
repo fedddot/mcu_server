@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "movement_ipc_data_infra.hpp"
+#include "response_json_transformer.hpp"
 #include "movement_ipc_data_writer.hpp"
 #include "movement_manager_response.hpp"
 #include "test_ipc_data_writer.hpp"

@@ -1,7 +1,7 @@
-add_library(movement_ipc_data_infra INTERFACE)
-target_include_directories(movement_ipc_data_infra INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(response_json_transformer INTERFACE)
+target_include_directories(response_json_transformer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-    movement_ipc_data_infra
+    response_json_transformer
     INTERFACE
     movement_manager_data
     movement_manager_request
@@ -46,7 +46,7 @@ target_link_libraries(
     ipc_instance
     ipc_data_writer
     json_ipc_data_writer
-    movement_ipc_data_infra
+    response_json_transformer
     movement_manager_response
 )
 
@@ -56,7 +56,7 @@ target_link_libraries(
     movement_host
     INTERFACE
     host
-    movement_ipc_data_infra
+    response_json_transformer
     movement_ipc_data_reader
     movement_ipc_data_writer
     movement_manager

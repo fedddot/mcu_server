@@ -6,11 +6,12 @@
 #include "ipc_instance.hpp"
 #include "ipc_data_writer.hpp"
 #include "json_ipc_data_writer.hpp"
-#include "movement_ipc_data_infra.hpp"
+#include "response_json_transformer.hpp"
 #include "movement_manager_response.hpp"
 
 namespace ipc {
-	class MovementIpcDataWriter: public IpcDataWriter<manager::MovementManagerResponse>, public Clonable<IpcDataWriter<manager::MovementManagerResponse>> {
+	template <typename AxisControllerConfig>
+	class MovementIpcDataWriter: public IpcDataWriter<manager::MovementManagerResponse> {
 	public:
 		using AxisControllerConfigToJsonTransformer = typename DefaultMovementDataTransformers<AxisControllerConfig>::AxisControllerConfigToJsonTransformer;
 		using JsonToAxisControllerConfigTransformer = typename DefaultMovementDataTransformers<AxisControllerConfig>::JsonToAxisControllerConfigTransformer;
@@ -24,8 +25,10 @@ namespace ipc {
 		JsonIpcDataWriter<manager::MovementManagerResponse> m_json_data_writer;
 	};
 	
+	template <typename AxisControllerConfig>
 	inline MovementIpcDataWriter::MovementIpcDataWriter(const Clonable<IpcDataWriter<RawData>>& raw_data_writer): m_json_data_writer(raw_data_writer, movement_response_to_json_value) {}
 
+	template <typename AxisControllerConfig>
 	inline void MovementIpcDataWriter::write(const manager::MovementManagerResponse& ipc_data) const {
 		m_json_data_writer.write(ipc_data);
 	}
