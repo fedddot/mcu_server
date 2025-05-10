@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 #include "axes_controller.hpp"
+#include "init_request.hpp"
 #include "manager_clonable.hpp"
 #include "linear_movement.hpp"
 #include "manager.hpp"
@@ -34,8 +35,12 @@ namespace manager {
 		AxesControllerCreator m_axes_controller_ctor;
 		std::shared_ptr<AxesController> m_axes_controller;
 		AxesProperties m_axes_properties;
+		MovementManagerResponse init(const MovementManagerRequest& request);
 		MovementManagerResponse linear_movement(const MovementManagerRequest& request) const;
 		MovementManagerResponse circular_movement(const MovementManagerRequest& request) const;
+
+		template <typename T> 
+		static const T& downcast_request(const MovementManagerRequest& request);
 	};
 
 	template <typename AxisControllerConfig>
@@ -51,6 +56,8 @@ namespace manager {
 	template <typename AxisControllerConfig>
 	inline MovementManagerResponse MovementManager<AxisControllerConfig>::run(const MovementManagerRequest& request) {
 		switch (request.type()) {
+		case MovementManagerRequest::RequestType::INIT:
+			return init(request);
 		case MovementManagerRequest::RequestType::LINEAR_MOVEMENT:
 			return linear_movement(request);
 		case MovementManagerRequest::RequestType::ROTATIONAL_MOVEMENT:
@@ -69,6 +76,16 @@ namespace manager {
 	}
 
 	template <typename AxisControllerConfig>
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::init(const MovementManagerRequest& request) {
+		const auto& request_casted = downcast_request<InitRequest<AxisControllerConfig>>(request);
+		m_axes_controller = std::shared_ptr<AxesController>(m_axes_controller_ctor(request_casted.axis_controller_config()));
+		return MovementManagerResponse {
+			.code = MovementManagerResponse::ResultCode::OK,
+			.message = std::nullopt,
+		};
+	}
+
+	template <typename AxisControllerConfig>
 	inline MovementManagerResponse MovementManager<AxisControllerConfig>::linear_movement(const MovementManagerRequest& request) const {
 		if (!m_axes_controller) {
 			return MovementManagerResponse {
@@ -76,7 +93,7 @@ namespace manager {
 				.message = "axes controller is not initialized",
 			};
 		}
-		const auto& request_casted = dynamic_cast<const LinearMovementRequest&>(request);
+		const auto& request_casted = downcast_request<LinearMovementRequest>(request);
 		const auto speed = request_casted.speed();
 		const auto destination = request_casted.destination();
 		auto movement = LinearMovement(
@@ -102,6 +119,16 @@ namespace manager {
 	template <typename AxisControllerConfig>
 	inline MovementManagerResponse MovementManager<AxisControllerConfig>::circular_movement(const MovementManagerRequest& request) const {
 		throw std::runtime_error("not implemented");
+	}
+
+	template <typename AxisControllerConfig>
+	template <typename T>
+	inline const T& MovementManager<AxisControllerConfig>::downcast_request(const MovementManagerRequest& request) {
+		try {
+			return dynamic_cast<const T&>(request);
+		} catch (...) {
+			throw std::invalid_argument("failed to cast received request into target type");
+		}
 	}
 }
 
