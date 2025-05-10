@@ -10,31 +10,31 @@
 #include "movement_manager_response.hpp"
 
 namespace ipc {
-	template <typename AxisControllerConfig>
 	class MovementIpcDataWriter: public IpcDataWriter<manager::MovementManagerResponse> {
 	public:
-		using AxisControllerConfigToJsonTransformer = typename ResponseJsonTransformer<AxisControllerConfig>::AxisControllerConfigToJsonTransformer;
-		using JsonToAxisControllerConfigTransformer = typename ResponseJsonTransformer<AxisControllerConfig>::JsonToAxisControllerConfigTransformer;
-	
-		MovementIpcDataWriter(const Clonable<IpcDataWriter<RawData>>& raw_data_writer);
+		MovementIpcDataWriter(const Instance<IpcDataWriter<RawData>>& raw_data_writer);
 		MovementIpcDataWriter(const MovementIpcDataWriter&) = default;
 		MovementIpcDataWriter& operator=(const MovementIpcDataWriter&) = default;
 		void write(const manager::MovementManagerResponse& ipc_data) const override;
-		IpcDataWriter<manager::MovementManagerResponse> *clone() const override;
 	private:
+		ResponseJsonTransformer m_response_transformer;
 		JsonIpcDataWriter<manager::MovementManagerResponse> m_json_data_writer;
 	};
 	
-	template <typename AxisControllerConfig>
-	inline MovementIpcDataWriter::MovementIpcDataWriter(const Clonable<IpcDataWriter<RawData>>& raw_data_writer): m_json_data_writer(raw_data_writer, movement_response_to_json_value) {}
+	
+	inline MovementIpcDataWriter::MovementIpcDataWriter(
+		const Instance<IpcDataWriter<RawData>>& raw_data_writer
+	): m_json_data_writer(
+		raw_data_writer,
+		[this](const manager::MovementManagerResponse& response) {
+			return m_response_transformer.response_to_json_value(response);
+		}
+	) {
 
-	template <typename AxisControllerConfig>
+	}
+
 	inline void MovementIpcDataWriter::write(const manager::MovementManagerResponse& ipc_data) const {
 		m_json_data_writer.write(ipc_data);
-	}
-	
-	inline IpcDataWriter<manager::MovementManagerResponse> *MovementIpcDataWriter::clone() const {
-		return new MovementIpcDataWriter(*this);
 	}
 }
 
