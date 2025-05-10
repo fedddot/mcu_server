@@ -1,0 +1,64 @@
+#ifndef	ROTATION_MOVEMENT_REQUEST_HPP
+#define	ROTATION_MOVEMENT_REQUEST_HPP
+
+#include <stdexcept>
+
+#include "movement_manager_request.hpp"
+#include "movement_manager_vector.hpp"
+
+namespace manager {
+	class RotationMovementRequest: public MovementManagerRequest {
+	public:
+		RotationMovementRequest(
+			const Vector<double>& destination,
+			const Vector<double>& rotation_center,
+			const double angle,
+			const double speed
+		);
+		RotationMovementRequest(const RotationMovementRequest&) = default;
+		RotationMovementRequest& operator=(const RotationMovementRequest&) = default;
+		RequestType type() const override;
+		Vector<double> destination() const;
+		Vector<double> rotation_center() const;
+		double angle() const;
+		double speed() const;
+	private:
+		Vector<double> m_destination;
+		Vector<double> m_rotation_center;
+		double m_angle;
+		double m_speed;
+	};
+
+	inline RotationMovementRequest::RotationMovementRequest(
+		const Vector<double>& destination,
+		const Vector<double>& rotation_center,
+		const double angle,
+		const double speed
+	): m_destination(destination), m_rotation_center(rotation_center), m_angle(angle), m_speed(speed) {
+		if (m_speed <= 0.0) {
+			throw std::invalid_argument("speed must be greater than 0.0");
+		}
+	}
+
+	inline MovementManagerRequest::RequestType RotationMovementRequest::type() const {
+		return RequestType::ROTATIONAL_MOVEMENT;
+	}
+
+	inline Vector<double> RotationMovementRequest::destination() const {
+		return m_destination;
+	}
+
+	inline Vector<double> RotationMovementRequest::rotation_center() const {
+		return m_rotation_center;
+	}
+
+	inline double RotationMovementRequest::angle() const {
+		return m_angle;
+	}
+
+	inline double RotationMovementRequest::speed() const {
+		return m_speed;
+	}
+}
+
+#endif // ROTATION_MOVEMENT_REQUEST_HPP

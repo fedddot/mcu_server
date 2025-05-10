@@ -12,5 +12,9 @@ add_library(linear_movement_request INTERFACE)
 target_include_directories(linear_movement_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(linear_movement_request INTERFACE movement_manager_request movement_manager_vector)
 
+add_library(rotation_movement_request INTERFACE)
+target_include_directories(rotation_movement_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(rotation_movement_request INTERFACE movement_manager_request movement_manager_vector)
+
 add_library(movement_manager_response INTERFACE)
 target_include_directories(movement_manager_response INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
