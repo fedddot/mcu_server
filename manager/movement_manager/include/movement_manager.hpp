@@ -12,9 +12,10 @@
 #include "movement_manager_data.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
-#include "movement_manager_vector.hpp"
+#include "linear_movement_request.hpp"
 
 namespace manager {
+	template <typename AxisControllerConfig>
 	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse>, public Clonable<Manager<MovementManagerRequest, MovementManagerResponse>> {
 	public:
 		class AxesController {
@@ -37,30 +38,25 @@ namespace manager {
 	private:
 		std::shared_ptr<AxesController> m_axes_controller;
 		AxesProperties m_axes_properties;
-		MovementManagerResponse linear_movement(const Vector<double>& destination, const double speed) const;
-		MovementManagerResponse circular_movement(const Vector<double>& rotation_center, const double angle, const double speed) const;
+		MovementManagerResponse linear_movement(const MovementManagerRequest& request) const;
+		MovementManagerResponse circular_movement(const MovementManagerRequest& request) const;
 	};
 
-	inline MovementManager::MovementManager(
+	template <typename AxisControllerConfig>
+	inline MovementManager<AxisControllerConfig>::MovementManager(
 		const AxesController& axes_controller,
 		const AxesProperties& axes_properties
 	): m_axes_controller(axes_controller.clone()), m_axes_properties(axes_properties) {
 
 	}
 	
-	inline MovementManagerResponse MovementManager::run(const MovementManagerRequest& request) {
-		switch (request.get_movement_type()) {
-		case MovementManagerRequest::MovementType::LINEAR:
-			return linear_movement(
-				request.get_movement_data<MovementManagerRequest::LinearMovementData>().destination, 
-				request.get_movement_data<MovementManagerRequest::LinearMovementData>().speed
-			);
-		case MovementManagerRequest::MovementType::ROTATIONAL:
-			return circular_movement(
-				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().rotation_center,
-				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().angle,
-				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().speed
-			);
+	template <typename AxisControllerConfig>
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::run(const MovementManagerRequest& request) {
+		switch (request.type()) {
+		case MovementManagerRequest::RequestType::LINEAR_MOVEMENT:
+			return linear_movement(request);
+		case MovementManagerRequest::RequestType::ROTATIONAL_MOVEMENT:
+			return circular_movement(request);
 		default:
 			return MovementManagerResponse {
 				.code = MovementManagerResponse::ResultCode::BAD_REQUEST,
@@ -69,15 +65,16 @@ namespace manager {
 		}
 	}
 
-	inline Manager<MovementManagerRequest, MovementManagerResponse> *MovementManager::clone() const {
+	template <typename AxisControllerConfig>
+	inline Manager<MovementManagerRequest, MovementManagerResponse> *MovementManager<AxisControllerConfig>::clone() const {
 		return new MovementManager(*this);
 	}
 
-	inline MovementManagerResponse MovementManager::linear_movement(const Vector<double>& destination, const double speed) const {
-		if (speed <= 0) {
-			throw std::invalid_argument("speed must be a positive non-zero number");
-		}
-
+	template <typename AxisControllerConfig>
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::linear_movement(const MovementManagerRequest& request) const {
+		const auto& request_casted = dynamic_cast<const LinearMovementRequest&>(request);
+		const auto speed = request_casted.speed();
+		const auto destination = request_casted.destination();
 		auto movement = LinearMovement(
 			destination,
 			m_axes_properties,
@@ -98,7 +95,8 @@ namespace manager {
 		};
 	}
 	
-	inline MovementManagerResponse MovementManager::circular_movement(const Vector<double>& rotation_center, const double angle, const double speed) const {
+	template <typename AxisControllerConfig>
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::circular_movement(const MovementManagerRequest& request) const {
 		throw std::runtime_error("not implemented");
 	}
 }
