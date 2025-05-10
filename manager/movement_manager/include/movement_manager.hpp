@@ -6,6 +6,7 @@
 #include <optional>
 #include <stdexcept>
 
+#include "axes_controller.hpp"
 #include "manager_clonable.hpp"
 #include "linear_movement.hpp"
 #include "manager.hpp"
@@ -18,14 +19,6 @@ namespace manager {
 	template <typename AxisControllerConfig>
 	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse>, public Clonable<Manager<MovementManagerRequest, MovementManagerResponse>> {
 	public:
-		class AxesController {
-		public:
-			virtual ~AxesController() noexcept = default;
-			virtual void step(const AxisStep& step) = 0;
-			virtual void enable() = 0;
-			virtual void disable() = 0;
-			virtual AxesController *clone() const = 0;
-		};
 		MovementManager(
 			const AxesController& axes_controller,
 			const AxesProperties& axes_properties
