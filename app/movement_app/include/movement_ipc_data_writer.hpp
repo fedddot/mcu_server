@@ -12,7 +12,9 @@
 namespace ipc {
 	class MovementIpcDataWriter: public IpcDataWriter<manager::MovementManagerResponse>, public Clonable<IpcDataWriter<manager::MovementManagerResponse>> {
 	public:
-		using RawData = std::vector<char>;
+		using AxisControllerConfigToJsonTransformer = typename DefaultMovementDataTransformers<AxisControllerConfig>::AxisControllerConfigToJsonTransformer;
+		using JsonToAxisControllerConfigTransformer = typename DefaultMovementDataTransformers<AxisControllerConfig>::JsonToAxisControllerConfigTransformer;
+	
 		MovementIpcDataWriter(const Clonable<IpcDataWriter<RawData>>& raw_data_writer);
 		MovementIpcDataWriter(const MovementIpcDataWriter&) = default;
 		MovementIpcDataWriter& operator=(const MovementIpcDataWriter&) = default;

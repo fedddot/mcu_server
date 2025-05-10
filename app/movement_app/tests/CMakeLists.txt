@@ -2,9 +2,10 @@ add_executable(
 	movement_app_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_reader.cpp
-	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_writer.cpp
-	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host.cpp
-	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_infra.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_writer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_request_json_transformer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_infra.cpp
 )
 
 target_link_libraries(
@@ -14,12 +15,13 @@ target_link_libraries(
 	test_ipc_data_reader
 	movement_ipc_data_infra
 	
-	# movement_ipc_data_writer
-	# test_ipc_data_writer
+	movement_ipc_data_writer
+	test_ipc_data_writer
 
-	# movement_host
+	request_json_transformer
+	movement_host
 
-	# test_axes_controller
+	test_axes_controller
 	
 	gtest
 )
