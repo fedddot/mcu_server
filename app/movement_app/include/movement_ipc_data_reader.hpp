@@ -1,7 +1,6 @@
 #ifndef	MOVEMENT_IPC_DATA_READER_HPP
 #define	MOVEMENT_IPC_DATA_READER_HPP
 
-#include <memory>
 #include <optional>
 
 #include "json/value.h"
