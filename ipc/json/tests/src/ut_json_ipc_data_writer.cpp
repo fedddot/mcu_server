@@ -8,7 +8,6 @@
 
 #include "ipc_data_writer.hpp"
 #include "ipc_data.hpp"
-#include "ipc_clonable.hpp"
 #include "json_ipc_data_writer.hpp"
 
 using namespace ipc;

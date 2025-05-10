@@ -19,24 +19,24 @@ using TestIpcData = std::string;
 
 class TestRawReader: public IpcDataReader<RawData>, public Clonable<IpcDataReader<RawData>> {
 public:
-	TestRawReader(const std::optional<Result<RawData>>& data_opt): m_data_option(data_opt) {
+	TestRawReader(const std::optional<Instance<RawData>>& data_opt): m_data_option(data_opt) {
 
 	}
 	TestRawReader(const TestRawReader&) = default;
 	TestRawReader& operator=(const TestRawReader&) = default;
 	
-	std::optional<Result<RawData>> read() override {
+	std::optional<Instance<RawData>> read() override {
 		return m_data_option;
 	}
 	IpcDataReader<RawData> *clone() const override {
 		return new TestRawReader(*this);
 	}
 private:
-	std::optional<Result<RawData>> m_data_option;
+	std::optional<Instance<RawData>> m_data_option;
 };
 
 static RawData serialize_ipc_data(const TestIpcData& ipc_data);
-static Result<TestIpcData> parse_ipc_data(const Json::Value& json_data);
+static Instance<TestIpcData> parse_ipc_data(const Json::Value& json_data);
 
 TEST(ut_json_ipc_data_reader, ctor_dtor_sanity) {
 	// GIVEN
@@ -56,10 +56,10 @@ TEST(ut_json_ipc_data_reader, read_sanity) {
 	const auto test_ipc_data = TestIpcData("test_ipc_data");
 	
 	// WHEN
-	const auto raw_test_ipc_data = Result<RawData>(new RawData(serialize_ipc_data(test_ipc_data)));
+	const auto raw_test_ipc_data = Instance<RawData>(new RawData(serialize_ipc_data(test_ipc_data)));
 	const auto raw_data_reader = TestRawReader(raw_test_ipc_data);
 	auto instance = JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data);
-	auto read_result = std::optional<Result<TestIpcData>>();
+	auto read_result = std::optional<Instance<TestIpcData>>();
 
 	// THEN
 	ASSERT_NO_THROW(read_result = instance.read());
@@ -69,9 +69,9 @@ TEST(ut_json_ipc_data_reader, read_sanity) {
 
 TEST(ut_json_ipc_data_reader, read_missing_raw_data_negative) {
 	// WHEN
-	const auto raw_data_reader = TestRawReader(std::optional<Result<RawData>>());
+	const auto raw_data_reader = TestRawReader(std::optional<Instance<RawData>>());
 	auto instance = JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data);
-	auto read_result = std::optional<Result<TestIpcData>>();
+	auto read_result = std::optional<Instance<TestIpcData>>();
 
 	// THEN
 	ASSERT_NO_THROW(read_result = instance.read());
@@ -85,9 +85,9 @@ inline RawData serialize_ipc_data(const TestIpcData& ipc_data) {
     return RawData(serial_str.begin(), serial_str.end());
 }
 
-inline Result<TestIpcData> parse_ipc_data(const Json::Value& json_data) {
+inline Instance<TestIpcData> parse_ipc_data(const Json::Value& json_data) {
 	if (!json_data.isString()) {
 		throw std::invalid_argument("json data is expected to be a string");
 	}
-	return Result<TestIpcData>(new TestIpcData(json_data.asString()));
+	return Instance<TestIpcData>(new TestIpcData(json_data.asString()));
 }

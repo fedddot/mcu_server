@@ -6,11 +6,11 @@
 
 namespace ipc {
 	template <typename T>
-	class Result {
+	class Instance {
 	public:
-		Result(T *instance_ptr);
-		Result(const Result&) = default;
-		virtual ~Result() noexcept = default;
+		Instance(T *instance_ptr);
+		Instance(const Instance&) = default;
+		virtual ~Instance() noexcept = default;
 		const T& get() const;
 		T& get();
 	private:
@@ -18,19 +18,19 @@ namespace ipc {
 	};
 
 	template <typename T>
-	inline Result<T>::Result(T *instance_ptr): m_instance_ptr(instance_ptr) {
+	inline Instance<T>::Instance(T *instance_ptr): m_instance_ptr(instance_ptr) {
 		if (!m_instance_ptr) {
 			throw std::invalid_argument("invalid instance ptr received");
 		}
 	}
 
 	template <typename T>
-	inline const T& Result<T>::get() const {
+	inline const T& Instance<T>::get() const {
 		return std::ref(*m_instance_ptr);
 	}
 
 	template <typename T>
-	inline T& Result<T>::get() {
+	inline T& Instance<T>::get() {
 		return std::ref(*m_instance_ptr);
 	}
 }

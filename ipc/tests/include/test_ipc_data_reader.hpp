@@ -12,14 +12,14 @@ namespace ipc {
 	template <typename IpcData>
 	class TestIpcDataReader: public IpcDataReader<IpcData>, public Clonable<IpcDataReader<IpcData>> {
 	public:
-		using Action = std::function<std::optional<Result<IpcData>>(void)>;
+		using Action = std::function<std::optional<Instance<IpcData>>(void)>;
 		TestIpcDataReader(const Action& action): m_action(action) {
 			
 		}
 		TestIpcDataReader(const TestIpcDataReader&) = default;
 		TestIpcDataReader& operator=(const TestIpcDataReader&) = default;
 		
-		std::optional<Result<IpcData>> read() override {
+		std::optional<Instance<IpcData>> read() override {
 			return m_action();
 		}
 		IpcDataReader<IpcData> *clone() const override {

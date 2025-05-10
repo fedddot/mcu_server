@@ -55,7 +55,7 @@ TEST(ut_raw_data_package_reader, read_sanity) {
 		descriptor,
 		parse_package_size
 	);
-	auto result = std::optional<Result<RawData>>();
+	auto result = std::optional<Instance<RawData>>();
 
 	// THEN
 	// empty buffer

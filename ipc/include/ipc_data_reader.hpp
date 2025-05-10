@@ -10,7 +10,7 @@ namespace ipc {
 	class IpcDataReader {
 	public:
 		virtual ~IpcDataReader() noexcept = default;
-		virtual std::optional<Result<IpcData>> read() = 0;
+		virtual std::optional<Instance<IpcData>> read() = 0;
 	};
 }
 
