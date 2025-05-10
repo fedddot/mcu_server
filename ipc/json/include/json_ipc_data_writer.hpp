@@ -24,7 +24,6 @@ namespace ipc {
 		JsonIpcDataWriter(const JsonIpcDataWriter&) = default;
 		JsonIpcDataWriter& operator=(const JsonIpcDataWriter&) = default;
 		void write(const IpcData& ipc_data) const override;
-		IpcDataWriter<IpcData> *clone() const override;
 	private:
 		Instance<IpcDataWriter<RawData>> m_raw_data_writer;
 		IpcDataToJsonDataTransformer m_ipc_data_transformer;
@@ -47,11 +46,6 @@ namespace ipc {
 		const auto serial_str = Json::writeString(writer_builder, json_val);
 		const auto raw_serial_data = RawData(serial_str.begin(), serial_str.end());
 		m_raw_data_writer.get().write(raw_serial_data);
-	}
-
-	template <typename IpcData>
-	inline IpcDataWriter<IpcData> *JsonIpcDataWriter<IpcData>::clone() const {
-		return new JsonIpcDataWriter(*this);
 	}
 }
 
