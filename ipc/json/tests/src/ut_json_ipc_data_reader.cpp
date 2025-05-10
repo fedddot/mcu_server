@@ -7,7 +7,6 @@
 #include "json/writer.h"
 #include "json/value.h"
 
-#include "ipc_clonable.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data.hpp"
 #include "ipc_instance.hpp"
@@ -17,7 +16,7 @@ using namespace ipc;
 
 using TestIpcData = std::string;
 
-class TestRawReader: public IpcDataReader<RawData>, public Clonable<IpcDataReader<RawData>> {
+class TestRawReader: public IpcDataReader<RawData> {
 public:
 	TestRawReader(const std::optional<Instance<RawData>>& data_opt): m_data_option(data_opt) {
 
@@ -28,9 +27,6 @@ public:
 	std::optional<Instance<RawData>> read() override {
 		return m_data_option;
 	}
-	IpcDataReader<RawData> *clone() const override {
-		return new TestRawReader(*this);
-	}
 private:
 	std::optional<Instance<RawData>> m_data_option;
 };
@@ -40,13 +36,18 @@ static Instance<TestIpcData> parse_ipc_data(const Json::Value& json_data);
 
 TEST(ut_json_ipc_data_reader, ctor_dtor_sanity) {
 	// GIVEN
-	const auto raw_data_reader = TestRawReader(std::nullopt);
-	
+	const auto test_raw_data_reader_instance = Instance<IpcDataReader<RawData>>(new TestRawReader(std::nullopt));
+
 	// WHEN
 	JsonIpcDataReader<TestIpcData> *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data));
+	ASSERT_NO_THROW(
+		instance = new JsonIpcDataReader<TestIpcData>(
+			test_raw_data_reader_instance,
+			parse_ipc_data
+		)
+	);
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -54,11 +55,13 @@ TEST(ut_json_ipc_data_reader, ctor_dtor_sanity) {
 TEST(ut_json_ipc_data_reader, read_sanity) {
 	// GIVEN
 	const auto test_ipc_data = TestIpcData("test_ipc_data");
-	
-	// WHEN
 	const auto raw_test_ipc_data = Instance<RawData>(new RawData(serialize_ipc_data(test_ipc_data)));
-	const auto raw_data_reader = TestRawReader(raw_test_ipc_data);
-	auto instance = JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data);
+	const auto test_raw_data_reader_instance = Instance<IpcDataReader<RawData>>(new TestRawReader(raw_test_ipc_data));
+	// WHEN
+	JsonIpcDataReader<TestIpcData> instance(
+		test_raw_data_reader_instance,
+		parse_ipc_data
+	);
 	auto read_result = std::optional<Instance<TestIpcData>>();
 
 	// THEN
@@ -67,10 +70,10 @@ TEST(ut_json_ipc_data_reader, read_sanity) {
 	ASSERT_EQ(test_ipc_data, read_result->get());
 }
 
-TEST(ut_json_ipc_data_reader, read_missing_raw_data_negative) {
+TEST(ut_json_ipc_data_reader, read_missing_raw_data_sanity) {
 	// WHEN
-	const auto raw_data_reader = TestRawReader(std::optional<Instance<RawData>>());
-	auto instance = JsonIpcDataReader<TestIpcData>(raw_data_reader, parse_ipc_data);
+	const auto test_raw_data_reader_instance = Instance<IpcDataReader<RawData>>(new TestRawReader(std::nullopt));
+	JsonIpcDataReader<TestIpcData> instance(test_raw_data_reader_instance, parse_ipc_data);
 	auto read_result = std::optional<Instance<TestIpcData>>();
 
 	// THEN
