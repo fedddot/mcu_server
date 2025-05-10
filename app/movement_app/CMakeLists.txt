@@ -11,6 +11,19 @@ target_link_libraries(
     jsoncpp_static
 )
 
+add_library(request_json_transformer INTERFACE)
+target_include_directories(request_json_transformer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    request_json_transformer
+    INTERFACE
+    movement_manager_data
+    movement_manager_request
+    movement_manager_response
+    movement_manager_vector
+    ipc_result
+    jsoncpp_static
+)
+
 add_library(movement_ipc_data_reader INTERFACE)
 target_include_directories(movement_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
