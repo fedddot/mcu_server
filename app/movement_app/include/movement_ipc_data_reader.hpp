@@ -10,15 +10,15 @@
 #include "ipc_data_reader.hpp"
 #include "ipc_instance.hpp"
 #include "json_ipc_data_reader.hpp"
-#include "movement_ipc_data_infra.hpp"
+#include "request_json_transformer.hpp"
 #include "movement_manager_request.hpp"
 
 namespace ipc {
 	template <typename AxisControllerConfig>
 	class MovementIpcDataReader: public IpcDataReader<manager::MovementManagerRequest> {
 	public:
-		using AxisControllerConfigToJsonTransformer = typename DefaultMovementDataTransformers<AxisControllerConfig>::AxisControllerConfigToJsonTransformer;
-		using JsonToAxisControllerConfigTransformer = typename DefaultMovementDataTransformers<AxisControllerConfig>::JsonToAxisControllerConfigTransformer;
+		using AxisControllerConfigToJsonTransformer = typename RequestJsonTransformer<AxisControllerConfig>::AxisControllerConfigToJsonTransformer;
+		using JsonToAxisControllerConfigTransformer = typename RequestJsonTransformer<AxisControllerConfig>::JsonToAxisControllerConfigTransformer;
 		
 		MovementIpcDataReader(
 			const Instance<IpcDataReader<RawData>>& raw_data_reader,
@@ -29,7 +29,7 @@ namespace ipc {
 		MovementIpcDataReader& operator=(const MovementIpcDataReader&) = default;
 		std::optional<Instance<manager::MovementManagerRequest>> read() override;
 	private:
-		DefaultMovementDataTransformers<AxisControllerConfig> m_data_transformers;
+		RequestJsonTransformer<AxisControllerConfig> m_data_transformers;
 		Instance<IpcDataReader<manager::MovementManagerRequest>> m_data_reader;
 	};
 

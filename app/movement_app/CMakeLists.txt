@@ -34,7 +34,7 @@ target_link_libraries(
     ipc_data_reader
     ipc_instance
     json_ipc_data_reader
-    movement_ipc_data_infra
+    request_json_transformer
     movement_manager_request
 )
 
