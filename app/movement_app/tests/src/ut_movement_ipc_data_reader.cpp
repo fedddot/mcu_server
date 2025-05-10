@@ -7,7 +7,7 @@
 
 #include "ipc_instance.hpp"
 #include "linear_movement_request.hpp"
-#include "response_json_transformer.hpp"
+#include "request_json_transformer.hpp"
 #include "movement_ipc_data_reader.hpp"
 #include "movement_manager_request.hpp"
 #include "test_ipc_data_reader.hpp"
@@ -22,10 +22,12 @@ static AxisControllerConfig json2cfg(const Json::Value& cfg);
 
 TEST(ut_movement_ipc_data_reader, ctor_dtor_sanity) {
 	// GIVEN
-	const auto test_raw_data_reader = TestIpcDataReader<RawData>(
-		[]() -> std::optional<Result<RawData>> {
-			return std::nullopt;
-		}
+	const auto test_raw_data_reader = Instance<IpcDataReader<RawData>>(
+		new TestIpcDataReader<RawData>(
+			[]() -> std::optional<Instance<RawData>> {
+				return std::nullopt;
+			}
+		)
 	);
 	
 	// WHEN
@@ -47,19 +49,21 @@ TEST(ut_movement_ipc_data_reader, read_sanity) {
 	// GIVEN
 	const auto axes_properties = AxesProperties(0.1, 0.1, 0.1);
 	const auto request = LinearMovementRequest(Vector<double>(1.0, 2.0, 3.0), 4.0);
-	const auto transformers = ResponseJsonTransformer<AxisControllerConfig>(cfg2json, json2cfg);
+	const auto transformers = RequestJsonTransformer<AxisControllerConfig>(cfg2json, json2cfg);
 	auto json_movement_request = transformers.request_to_json_value(request);
 	const auto serial_json_movement_request = Json::writeString(Json::StreamWriterBuilder(), json_movement_request);
 
-	const auto test_raw_data_reader = TestIpcDataReader<RawData>(
-		[serial_json_movement_request]() -> std::optional<Result<RawData>> {
-			return Result(new RawData(serial_json_movement_request.begin(), serial_json_movement_request.end()));
-		}
+	const auto test_raw_data_reader = Instance<IpcDataReader<RawData>>(
+		new TestIpcDataReader<RawData>(
+			[serial_json_movement_request]() -> std::optional<Instance<RawData>> {
+				return Instance(new RawData(serial_json_movement_request.begin(), serial_json_movement_request.end()));
+			}
+		)
 	);
 	
 	// WHEN
 	MovementIpcDataReader<AxisControllerConfig> instance(test_raw_data_reader, cfg2json, json2cfg);
-	auto read_result = std::optional<Result<MovementManagerRequest>>();
+	auto read_result = std::optional<Instance<MovementManagerRequest>>();
 
 	// THEN
 	ASSERT_NO_THROW(read_result = instance.read());
