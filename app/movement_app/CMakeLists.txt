@@ -17,7 +17,9 @@ target_link_libraries(
     movement_ipc_data_reader
     INTERFACE
     ipc_clonable
+    ipc_data
     ipc_data_reader
+    ipc_result
     json_ipc_data_reader
     movement_ipc_data_infra
     movement_manager_request
