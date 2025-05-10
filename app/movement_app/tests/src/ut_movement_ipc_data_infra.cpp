@@ -95,6 +95,7 @@ TEST(ut_movement_ipc_data_infra, json2response_sanity) {
 	// THEN
 	ASSERT_NO_THROW(result = instance.json_value_to_response(test_response_json));
 	ASSERT_EQ(test_response.code, result.code);
+	ASSERT_EQ(test_response.message, result.message);
 }
 
 inline Json::Value cfg2json(const AxisControllerConfig& cfg) {
