@@ -12,12 +12,13 @@
 #include "ipc_clonable.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data.hpp"
+#include "ipc_result.hpp"
 
 namespace ipc {
 	template <typename IpcData>
 	class JsonIpcDataReader: public IpcDataReader<IpcData>, public Clonable<IpcDataReader<IpcData>> {
 	public:
-		using JsonDataToIpcDataTransformer = std::function<IpcData(const Json::Value&)>;
+		using JsonDataToIpcDataTransformer = std::function<Result<IpcData>(const Json::Value&)>;
 		using ClonableRawDataReader = Clonable<IpcDataReader<RawData>>;
 
 		JsonIpcDataReader(
@@ -26,7 +27,7 @@ namespace ipc {
 		);
 		JsonIpcDataReader(const JsonIpcDataReader&) = default;
 		JsonIpcDataReader& operator=(const JsonIpcDataReader&) = default;
-		std::optional<IpcData> read() override;
+		std::optional<Result<IpcData>> read() override;
 		IpcDataReader<IpcData> *clone() const override;
 	private:
 		std::shared_ptr<IpcDataReader<RawData>> m_raw_data_reader;
@@ -46,14 +47,14 @@ namespace ipc {
 	}
 
 	template <typename IpcData>
-	inline std::optional<IpcData> JsonIpcDataReader<IpcData>::read() {
+	inline std::optional<Result<IpcData>> JsonIpcDataReader<IpcData>::read() {
 		const auto raw_data = m_raw_data_reader->read();
 		if (!raw_data) {
-			return std::optional<IpcData>();
+			return std::nullopt;
 		}
-		const auto json_data = parse_raw_data(*raw_data);
+		const auto json_data = parse_raw_data(raw_data->get());
 		const auto parsed_ipc_data = m_ipc_data_transformer(json_data);
-		return std::optional<IpcData>(parsed_ipc_data);
+		return parsed_ipc_data;
 	}
 
 	template <typename IpcData>

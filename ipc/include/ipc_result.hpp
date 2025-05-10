@@ -11,8 +11,8 @@ namespace ipc {
 		Result(T *instance_ptr);
 		Result(const Result&) = default;
 		virtual ~Result() noexcept = default;
-		const T& get() const = 0;
-		T& get() = 0;
+		const T& get() const;
+		T& get();
 	private:
 		std::shared_ptr<T> m_instance_ptr;
 	};
