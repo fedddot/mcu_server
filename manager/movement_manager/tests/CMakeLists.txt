@@ -1,6 +1,6 @@
 add_library(test_axes_controller INTERFACE)
 target_include_directories(test_axes_controller INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(test_axes_controller INTERFACE movement_manager_data movement_manager)
+target_link_libraries(test_axes_controller INTERFACE movement_manager_data axes_controller)
 
 add_executable(
 	movement_manager_tests
