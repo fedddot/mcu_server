@@ -5,9 +5,12 @@
 #include "gtest/gtest.h"
 
 #include "ipc_data.hpp"
+#include "ipc_data_reader.hpp"
+#include "ipc_instance.hpp"
 #include "raw_data_package_writer.hpp"
 #include "raw_data_package_descriptor.hpp"
 #include "raw_data_package_utils.hpp"
+#include "test_ipc_data_writer.hpp"
 
 using namespace ipc;
 
@@ -26,7 +29,11 @@ TEST(ut_raw_data_package_writer, ctor_dtor_sanity) {
 		instance = new RawDataPackageWriter(
 			descriptor,
 			serialize_package_size,
-			[](const RawData&) {}
+			Instance<IpcDataReader<RawData>>(
+				new TestIpcDataWriter<RawData>(
+					[](const RawData&) {}
+				)
+			)
 		)
 	);
 	ASSERT_NO_THROW(delete instance);
