@@ -11,6 +11,8 @@
 #include "json/writer.h"
 
 #include "host.hpp"
+#include "ipc_data.hpp"
+#include "ipc_data_writer.hpp"
 #include "ipc_instance.hpp"
 #include "json_ipc_data_reader.hpp"
 #include "json_ipc_data_writer.hpp"
@@ -19,6 +21,7 @@
 #include "raw_data_package_utils.hpp"
 #include "raw_data_package_writer.hpp"
 #include "custom_manager.hpp"
+#include "test_ipc_data_writer.hpp"
 
 using namespace manager;
 using namespace host;
@@ -29,8 +32,8 @@ using Response = int;
 
 using TestHost = Host<Request, Response>;
 
-static std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc);
-static std::shared_ptr<ipc::Clonable<IpcDataWriter<Response>>> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer);
+static Instance<IpcDataReader<Request>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc);
+static Instance<IpcDataWriter<Response>> create_ipc_writer(const RawDataPackageDescriptor& desc, const Instance<IpcDataWriter<RawData>>& raw_data_writer);
 
 static RawData generate_serial_request(const RawDataPackageDescriptor& desc, const Request& request);
 
@@ -47,20 +50,24 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 	const auto expected_response = Response(4);
 	const auto junk_before_str = std::string("junk");
 	const auto junk_before = RawData(junk_before_str.begin(), junk_before_str.end());
-	
+	const auto raw_data_writer = Instance<IpcDataWriter<RawData>>(
+		new TestIpcDataWriter<RawData>(
+			[expected_response, package_descriptor](const RawData& response_raw_data) {
+				const auto received_preamble = RawData(
+					response_raw_data.begin(),
+					response_raw_data.begin() + package_descriptor.preamble().size()
+				);
+				ASSERT_EQ(package_descriptor.preamble(), received_preamble);
+			}
+		)
+	);
 	// WHEN
 	auto buff = RawData();
 	
 	auto ipc_reader = create_ipc_reader(&buff, package_descriptor);
 	auto ipc_writer = create_ipc_writer(
 		package_descriptor,
-		[expected_response, package_descriptor](const RawData& response_raw_data) {
-			const auto received_preamble = RawData(
-				response_raw_data.begin(),
-				response_raw_data.begin() + package_descriptor.preamble().size()
-			);
-			ASSERT_EQ(package_descriptor.preamble(), received_preamble);
-		}
+		raw_data_writer
 	);
 	const auto manager = CustomManager<Request, Response> (
 		[expected_response, test_request](const Request& request) {
@@ -73,8 +80,8 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 		}
 	);
 	TestHost instance(
-		*ipc_reader,
-		*ipc_writer,
+		ipc_reader,
+		ipc_writer,
 		manager,
 		[](const std::exception&) -> Response {
 			return -1;
@@ -104,17 +111,17 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 	ASSERT_TRUE(buff.empty());
 }
 
-inline std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc) {
+inline Instance<IpcDataReader<Request>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc) {
 	const auto ipc_data_reader = RawDataPackageReader(
 		buffer,
 		desc,
 		parse_package_size
 	);
-	auto request_retriever = [](const Json::Value& json_data) -> Result<Request> {
+	auto request_retriever = [](const Json::Value& json_data) -> Instance<Request> {
 		const auto request_data = json_data["request"].asString();
-		return Result<Request>(new Request(request_data));
+		return Instance<Request>(new Request(request_data));
 	};
-	return std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>>(
+	return Instance<IpcDataReader<Request>>>(
 		new JsonIpcDataReader<Request>(
 			ipc_data_reader,
 			request_retriever
@@ -122,7 +129,7 @@ inline std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>> create_ipc_reader(
 	);
 }
 
-inline std::shared_ptr<ipc::Clonable<IpcDataWriter<Response>>> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer) {
+inline Instance<IpcDataWriter<Response>>> create_ipc_writer(const RawDataPackageDescriptor& desc, const RawDataPackageWriter::RawDataWriter& raw_data_writer) {
 	const auto ipc_data_writer = RawDataPackageWriter(
 		desc,
 		serialize_package_size,
@@ -131,7 +138,7 @@ inline std::shared_ptr<ipc::Clonable<IpcDataWriter<Response>>> create_ipc_writer
 	auto response_serializer = [](const Response& resp) -> Json::Value {
 		return Json::Value(resp);
 	};
-	return std::shared_ptr<ipc::Clonable<IpcDataWriter<Response>>>(
+	return Instance<IpcDataWriter<Response>>>(
 		new JsonIpcDataWriter<Response>(
 			ipc_data_writer,
 			response_serializer
