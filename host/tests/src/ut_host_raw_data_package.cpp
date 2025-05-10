@@ -110,9 +110,9 @@ inline std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>> create_ipc_reader(
 		desc,
 		parse_package_size
 	);
-	auto request_retriever = [](const Json::Value& json_data) -> Request {
+	auto request_retriever = [](const Json::Value& json_data) -> Result<Request> {
 		const auto request_data = json_data["request"].asString();
-		return Request(request_data);
+		return Result<Request>(new Request(request_data));
 	};
 	return std::shared_ptr<ipc::Clonable<IpcDataReader<Request>>>(
 		new JsonIpcDataReader<Request>(
