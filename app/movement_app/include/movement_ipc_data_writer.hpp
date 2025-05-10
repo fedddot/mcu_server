@@ -13,8 +13,8 @@ namespace ipc {
 	template <typename AxisControllerConfig>
 	class MovementIpcDataWriter: public IpcDataWriter<manager::MovementManagerResponse> {
 	public:
-		using AxisControllerConfigToJsonTransformer = typename DefaultMovementDataTransformers<AxisControllerConfig>::AxisControllerConfigToJsonTransformer;
-		using JsonToAxisControllerConfigTransformer = typename DefaultMovementDataTransformers<AxisControllerConfig>::JsonToAxisControllerConfigTransformer;
+		using AxisControllerConfigToJsonTransformer = typename ResponseJsonTransformer<AxisControllerConfig>::AxisControllerConfigToJsonTransformer;
+		using JsonToAxisControllerConfigTransformer = typename ResponseJsonTransformer<AxisControllerConfig>::JsonToAxisControllerConfigTransformer;
 	
 		MovementIpcDataWriter(const Clonable<IpcDataWriter<RawData>>& raw_data_writer);
 		MovementIpcDataWriter(const MovementIpcDataWriter&) = default;

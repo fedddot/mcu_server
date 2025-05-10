@@ -4,8 +4,8 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_reader.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_writer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_request_json_transformer.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_response_json_transformer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host.cpp
 )
 
 target_link_libraries(

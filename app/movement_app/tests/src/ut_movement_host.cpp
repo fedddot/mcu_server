@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 #include "json/value.h"
 
+#include "ipc_instance.hpp"
 #include "movement_host.hpp"
 #include "response_json_transformer.hpp"
 #include "movement_manager_data.hpp"
@@ -23,15 +24,19 @@ using namespace host;
 
 TEST(ut_movement_host, ctor_dtor_sanity) {
 	// GIVEN
-	const auto raw_data_writer = TestIpcDataWriter<RawData>(
-		[](const RawData& raw_data) {
-			throw std::runtime_error("NOT IMPLEMENTED");
-		}
+	const auto raw_data_writer = Instance(
+		new TestIpcDataWriter<RawData>(
+			[](const RawData& raw_data) {
+				throw std::runtime_error("NOT IMPLEMENTED");
+			}
+		)
 	);
-	const auto raw_data_reader = TestIpcDataReader<RawData>(
-		[]() -> std::optional<RawData> {
-			throw std::runtime_error("NOT IMPLEMENTED");
-		}
+	const auto raw_data_reader = Instance(
+		new TestIpcDataReader<RawData>(
+			[]() -> std::optional<Instance<RawData>> {
+				throw std::runtime_error("NOT IMPLEMENTED");
+			}
+		)
 	);
 	auto axes_controller = TestAxesController(
 		[](const AxisStep& step) {

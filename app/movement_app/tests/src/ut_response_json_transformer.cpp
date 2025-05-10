@@ -24,10 +24,10 @@ static bool doubles_equal(const double one, const double other, const double tol
 
 TEST(ut_response_json_transformer, ctor_dtor_sanity) {
 	// WHEN
-	DefaultMovementDataTransformers<AxisControllerConfig> *instance = nullptr;
+	ResponseJsonTransformer<AxisControllerConfig> *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new DefaultMovementDataTransformers<AxisControllerConfig>(cfg2json, json2cfg));
+	ASSERT_NO_THROW(instance = new ResponseJsonTransformer<AxisControllerConfig>(cfg2json, json2cfg));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -37,7 +37,7 @@ TEST(ut_response_json_transformer, linear_request2json_sanity) {
 	const auto request = LinearMovementRequest(Vector<double>(0.1, 0.2, 0.3), 0.4);
 	
 	// WHEN
-	DefaultMovementDataTransformers<AxisControllerConfig> instance(cfg2json, json2cfg);
+	ResponseJsonTransformer<AxisControllerConfig> instance(cfg2json, json2cfg);
 	auto result = Json::Value();
 
 	// THEN
@@ -50,9 +50,9 @@ TEST(ut_response_json_transformer, json2linear_request_sanity) {
 	const auto doubles_equality_tolerance = double(0.0001);
 	
 	// WHEN
-	DefaultMovementDataTransformers<AxisControllerConfig> instance(cfg2json, json2cfg);
+	ResponseJsonTransformer<AxisControllerConfig> instance(cfg2json, json2cfg);
 	const auto test_request_json = instance.request_to_json_value(test_request);
-	auto result = Result<MovementManagerRequest>(new LinearMovementRequest(test_request));
+	auto result = Instance<MovementManagerRequest>(new LinearMovementRequest(test_request));
 	const LinearMovementRequest *casted_result_ptr(nullptr);
 
 	// THEN
@@ -73,7 +73,7 @@ TEST(ut_response_json_transformer, response2json_sanity) {
 	};
 	
 	// WHEN
-	DefaultMovementDataTransformers<AxisControllerConfig> instance(cfg2json, json2cfg);
+	ResponseJsonTransformer<AxisControllerConfig> instance(cfg2json, json2cfg);
 	auto result = Json::Value();
 
 	// THEN
@@ -88,7 +88,7 @@ TEST(ut_response_json_transformer, json2response_sanity) {
 	};
 	
 	// WHEN
-	DefaultMovementDataTransformers<AxisControllerConfig> instance(cfg2json, json2cfg);
+	ResponseJsonTransformer<AxisControllerConfig> instance(cfg2json, json2cfg);
 	const auto test_response_json = instance.response_to_json_value(test_response);
 	auto result = MovementManagerResponse(test_response);
 

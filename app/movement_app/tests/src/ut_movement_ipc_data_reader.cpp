@@ -47,7 +47,7 @@ TEST(ut_movement_ipc_data_reader, read_sanity) {
 	// GIVEN
 	const auto axes_properties = AxesProperties(0.1, 0.1, 0.1);
 	const auto request = LinearMovementRequest(Vector<double>(1.0, 2.0, 3.0), 4.0);
-	const auto transformers = DefaultMovementDataTransformers<AxisControllerConfig>(cfg2json, json2cfg);
+	const auto transformers = ResponseJsonTransformer<AxisControllerConfig>(cfg2json, json2cfg);
 	auto json_movement_request = transformers.request_to_json_value(request);
 	const auto serial_json_movement_request = Json::writeString(Json::StreamWriterBuilder(), json_movement_request);
 

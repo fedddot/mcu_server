@@ -17,8 +17,8 @@ namespace host {
 	class MovementHost: public Host<manager::MovementManagerRequest, manager::MovementManagerResponse> {
 	public:
 		MovementHost(
-			const ipc::Clonable<ipc::IpcDataReader<ipc::RawData>>& ipc_data_reader,
-			const ipc::Clonable<ipc::IpcDataWriter<ipc::RawData>>& ipc_data_writer,
+			const ipc::Instance<ipc::IpcDataReader<ipc::RawData>>& ipc_data_reader,
+			const ipc::Instance<ipc::IpcDataWriter<ipc::RawData>>& ipc_data_writer,
 			const manager::MovementManager::AxesController& axes_controller,
 			const manager::AxesProperties& axes_properties
 		);
@@ -27,8 +27,8 @@ namespace host {
 	};
 
 	inline MovementHost::MovementHost(
-		const ipc::Clonable<ipc::IpcDataReader<ipc::RawData>>& ipc_data_reader,
-		const ipc::Clonable<ipc::IpcDataWriter<ipc::RawData>>& ipc_data_writer,
+		const ipc::Instance<ipc::IpcDataReader<ipc::RawData>>& ipc_data_reader,
+		const ipc::Instance<ipc::IpcDataWriter<ipc::RawData>>& ipc_data_writer,
 		const manager::MovementManager::AxesController& axes_controller,
 		const manager::AxesProperties& axes_properties
 	): Host(
