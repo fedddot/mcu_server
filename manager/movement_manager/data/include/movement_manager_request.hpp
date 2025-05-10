@@ -1,7 +1,6 @@
 #ifndef	MOVEMENT_MANAGER_REQUEST_HPP
 #define	MOVEMENT_MANAGER_REQUEST_HPP
 
-#include <optional>
 #include <stdexcept>
 
 #include "movement_manager_vector.hpp"
@@ -9,61 +8,98 @@
 namespace manager {
 	class MovementManagerRequest {
 	public:
-		enum class MovementType: int {
-			LINEAR,
-			ROTATIONAL,
+		enum class RequestType: int {
+			INIT,
+			UNINIT,
+			LINEAR_MOVEMENT,
+			ROTATIONAL_MOVEMENT,
 		};		
-		struct LinearMovementData {
-			Vector<double> destination;
-			double speed;
-		};
-		struct RotationalMovementData {
-			Vector<double> rotation_center;
-			double angle;
-			double speed;
-		};
-		MovementManagerRequest(const LinearMovementData& linear_movement_data);
-		MovementManagerRequest(const RotationalMovementData& rotational_movement_data);
-		MovementManagerRequest(const MovementManagerRequest&) = default;
-		MovementManagerRequest& operator=(const MovementManagerRequest&) = default;
-		~MovementManagerRequest() noexcept = default;
-
-		MovementType get_movement_type() const;
-
-		template <typename T>
-		T get_movement_data() const;
-	private:
-		MovementType m_type;
-		std::optional<LinearMovementData> m_linear_movement_data;
-		std::optional<RotationalMovementData> m_rotational_movement_data;
+		virtual ~MovementManagerRequest() noexcept = default;
+		virtual RequestType type() const = 0;
 	};
 
-	inline MovementManagerRequest::MovementManagerRequest(const LinearMovementData& linear_movement_data): m_type(MovementType::LINEAR), m_linear_movement_data(linear_movement_data), m_rotational_movement_data(std::nullopt) {
+	class LinearMovementRequest: public MovementManagerRequest {
+	public:
+		LinearMovementRequest(const Vector<double>& destination, const double speed);
+		LinearMovementRequest(const LinearMovementRequest&) = default;
+		LinearMovementRequest& operator=(const LinearMovementRequest&) = default;
+		RequestType type() const override;
+		Vector<double> destination() const;
+		double speed() const;
+	private:
+		Vector<double> m_destination;
+		double m_speed;
+	};
 
-	}
-
-	inline MovementManagerRequest::MovementManagerRequest(const RotationalMovementData& rotational_movement_data): m_type(MovementType::ROTATIONAL), m_linear_movement_data(std::nullopt), m_rotational_movement_data(rotational_movement_data) {
-
-	}
-
-	inline MovementManagerRequest::MovementType MovementManagerRequest::get_movement_type() const {
-		return m_type;
-	}
-
-	template <>
-	inline MovementManagerRequest::LinearMovementData MovementManagerRequest::get_movement_data<MovementManagerRequest::LinearMovementData>() const {
-		if (!m_linear_movement_data) {
-			throw std::runtime_error("attempt to get linear movement data from a non-linear movement request");
+	inline LinearMovementRequest::LinearMovementRequest(const Vector<double>& destination, const double speed): m_destination(destination), m_speed(speed) {
+		if (m_speed <= 0.0) {
+			throw std::invalid_argument("speed should be greater than 0.0");
 		}
-		return *m_linear_movement_data;
 	}
 
-	template <>
-	inline MovementManagerRequest::RotationalMovementData MovementManagerRequest::get_movement_data<MovementManagerRequest::RotationalMovementData>() const {
-		if (!m_rotational_movement_data) {
-			throw std::runtime_error("attempt to get rotational movement data from a non-rotational movement request");
+	inline MovementManagerRequest::RequestType LinearMovementRequest::type() const {
+		return RequestType::LINEAR_MOVEMENT;
+	}
+
+	inline Vector<double> LinearMovementRequest::destination() const {
+		return m_destination;
+	}
+
+	inline double LinearMovementRequest::speed() const {
+		return m_speed;
+	}
+
+	class RotationMovementRequest: public MovementManagerRequest {
+	public:
+		RotationMovementRequest(
+			const Vector<double>& destination,
+			const Vector<double>& rotation_center,
+			const double angle,
+			const double speed
+		);
+		RotationMovementRequest(const RotationMovementRequest&) = default;
+		RotationMovementRequest& operator=(const RotationMovementRequest&) = default;
+		RequestType type() const override;
+		Vector<double> destination() const;
+		Vector<double> rotation_center() const;
+		double angle() const;
+		double speed() const;
+	private:
+		Vector<double> m_destination;
+		Vector<double> m_rotation_center;
+		double m_angle;
+		double m_speed;
+	};
+
+	inline RotationMovementRequest::RotationMovementRequest(
+		const Vector<double>& destination,
+		const Vector<double>& rotation_center,
+		const double angle,
+		const double speed
+	): m_destination(destination), m_rotation_center(rotation_center), m_angle(angle), m_speed(speed) {
+		if (m_speed <= 0.0) {
+			throw std::invalid_argument("speed must be greater than 0.0");
 		}
-		return *m_rotational_movement_data;
+	}
+
+	inline MovementManagerRequest::RequestType RotationMovementRequest::type() const {
+		return RequestType::ROTATIONAL_MOVEMENT;
+	}
+
+	inline Vector<double> RotationMovementRequest::destination() const {
+		return m_destination;
+	}
+
+	inline Vector<double> RotationMovementRequest::rotation_center() const {
+		return m_rotation_center;
+	}
+
+	inline double RotationMovementRequest::angle() const {
+		return m_angle;
+	}
+
+	inline double RotationMovementRequest::speed() const {
+		return m_speed;
 	}
 }
 
