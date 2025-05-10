@@ -6,6 +6,7 @@
 
 #include "gtest/gtest.h"
 
+#include "ipc_instance.hpp"
 #include "response_json_transformer.hpp"
 #include "movement_ipc_data_writer.hpp"
 #include "movement_manager_response.hpp"
@@ -16,10 +17,12 @@ using namespace manager;
 
 TEST(ut_movement_ipc_data_writer, ctor_dtor_sanity) {
 	// GIVEN
-	const auto raw_data_writer = TestIpcDataWriter<RawData>(
-		[](const RawData&) {
-			throw std::runtime_error("NOT IMPLEMENTED");
-		}
+	const auto raw_data_writer = Instance<IpcDataWriter<RawData>>(
+		new TestIpcDataWriter<RawData>(
+			[](const RawData&) {
+				throw std::runtime_error("NOT IMPLEMENTED");
+			}
+		)
 	);
 
 	// WHEN
@@ -37,17 +40,20 @@ TEST(ut_movement_ipc_data_writer, write_sanity) {
 		MovementManagerResponse::ResultCode::EXCEPTION,
 		"test message"
 	};
-
-	const auto raw_data_writer = TestIpcDataWriter<RawData>(
-		[test_response](const RawData& raw_data) {
-			Json::Value root;
-	    	Json::Reader reader;
-			ASSERT_TRUE(reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(root), true));
-			const auto received_response = json_value_to_movement_response(root);
-			ASSERT_EQ(test_response.code, received_response.code);
-			ASSERT_TRUE(received_response.message.has_value());
-			ASSERT_EQ(test_response.message.value(), received_response.message.value());
-		}
+	
+	const auto raw_data_writer = Instance<IpcDataWriter<RawData>>(
+		new TestIpcDataWriter<RawData>(
+			[test_response](const RawData& raw_data) {
+				const auto response_transformer = ResponseJsonTransformer();
+				Json::Value root;
+				Json::Reader reader;
+				ASSERT_TRUE(reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(root), true));
+				const auto received_response = response_transformer.json_value_to_response(root);
+				ASSERT_EQ(test_response.code, received_response.code);
+				ASSERT_TRUE(received_response.message.has_value());
+				ASSERT_EQ(test_response.message.value(), received_response.message.value());
+			}
+		)
 	);
 	
 	// WHEN
