@@ -7,6 +7,7 @@ target_link_libraries(
     movement_manager_request
     movement_manager_response
     movement_manager_vector
+    ipc_result
     jsoncpp_static
 )
 
