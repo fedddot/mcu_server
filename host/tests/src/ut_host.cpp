@@ -9,6 +9,7 @@
 #include "host.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_instance.hpp"
+#include "manager_instance.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 #include "custom_manager.hpp"
@@ -24,26 +25,28 @@ using TestHost = Host<Request, Response>;
 
 TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	const auto ipc_data_reader = Instance<IpcDataReader<Request>>(
+	const auto ipc_data_reader = ipc::Instance<IpcDataReader<Request>>(
 		new TestIpcDataReader<Request>(
-			[]()-> std::optional<Instance<Request>> {
+			[]()-> std::optional<ipc::Instance<Request>> {
 				throw std::runtime_error("NOT IMPLEMENTED");
 			}
 		)
 	);
-	const auto ipc_data_writer = Instance<IpcDataWriter<Response>>(
+	const auto ipc_data_writer = ipc::Instance<IpcDataWriter<Response>>(
 		new TestIpcDataWriter<Response>(
 			[](const Response&){
 				throw std::runtime_error("NOT IMPLEMENTED");
 			}
 		)
 	);
-	const auto manager = CustomManager<Request, Response>(
+	const auto manager = manager::Instance<Manager<Request, Response>>(
+		new CustomManager<Request, Response>(
 			[](const Request& request) {
 				std::cout << "received request: " << request;
 				return 0;
 			}
-		);
+		)
+	);
 
 	// WHEN:
 	TestHost *instance(nullptr);
@@ -68,26 +71,28 @@ TEST(ut_host, run_once_sanity) {
 	// GIVEN
 	const auto test_request = Request("test_request");
 	const auto expected_response = Response(4);
-	const auto ipc_data_reader = Instance<IpcDataReader<Request>>(
+	const auto ipc_data_reader = ipc::Instance<IpcDataReader<Request>>(
 		new TestIpcDataReader<Request>(
-			[test_request]()-> std::optional<Instance<Request>> {
-				return Instance<Request>(new Request(test_request));
+			[test_request]()-> std::optional<ipc::Instance<Request>> {
+				return ipc::Instance<Request>(new Request(test_request));
 			}
 		)
 	);
-	const auto ipc_data_writer = Instance<IpcDataWriter<Response>>(
+	const auto ipc_data_writer = ipc::Instance<IpcDataWriter<Response>>(
 		new TestIpcDataWriter<Response>(
 			[expected_response](const Response& response){
 				ASSERT_EQ(expected_response, response);
 			}
 		)
 	);
-	const auto manager = CustomManager<Request, Response>(
-		[expected_response](const Request& request) {
-			std::cout << "received request: " << request << std::endl;
-			std::cout << "returning response: " << expected_response << std::endl;
-			return expected_response;
-		}
+	const auto manager = manager::Instance<Manager<Request, Response>>(
+		new CustomManager<Request, Response>(
+			[expected_response](const Request& request) {
+				std::cout << "received request: " << request << std::endl;
+				std::cout << "returning response: " << expected_response << std::endl;
+				return expected_response;
+			}
+		)
 	);
 
 	// WHEN:
