@@ -1,6 +1,9 @@
 #ifndef	MOVEMENT_HOST_BUILDER_HPP
 #define	MOVEMENT_HOST_BUILDER_HPP
 
+#include <optional>
+#include <stdexcept>
+
 #include "host.hpp"
 #include "host_instance.hpp"
 #include "ipc_instance.hpp"
@@ -13,8 +16,6 @@
 #include "movement_manager_data.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
-#include <optional>
-#include <stdexcept>
 
 namespace host {
 	template <typename AxisControllerConfig>
