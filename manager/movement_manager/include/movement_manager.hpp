@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include <functional>
-#include <memory>
 #include <optional>
 #include <stdexcept>
 
