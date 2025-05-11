@@ -4,7 +4,7 @@ target_link_libraries(
     host
     INTERFACE
     manager
-    manager_clonable
+    manager_instance
     ipc_instance
     ipc_data_reader
     ipc_data_writer

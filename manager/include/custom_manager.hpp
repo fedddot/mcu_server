@@ -5,11 +5,10 @@
 #include <stdexcept>
 
 #include "manager.hpp"
-#include "manager_clonable.hpp"
 
 namespace manager {
 	template <typename Request, typename Response>
-	class CustomManager: public Manager<Request, Response>, public Clonable<Manager<Request, Response>> {
+	class CustomManager: public Manager<Request, Response> {
 	public:
 		using CustomAction = std::function<Response(const Request&)>;
 		CustomManager(const CustomAction& custom_action);
@@ -17,7 +16,6 @@ namespace manager {
 		CustomManager& operator=(const CustomManager&) = default;
 
 		Response run(const Request& request) override;
-		Manager<Request, Response> *clone() const override;
 	private:
 		CustomAction m_custom_action;
 	};
@@ -32,11 +30,6 @@ namespace manager {
 	template <typename Request, typename Response>
 	inline Response CustomManager<Request, Response>::run(const Request& request) {
 		return m_custom_action(request);
-	}
-
-	template <typename Request, typename Response>
-	inline Manager<Request, Response> *CustomManager<Request, Response>::clone() const {
-		return new CustomManager<Request, Response>(*this);
 	}
 }
 

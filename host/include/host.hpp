@@ -3,11 +3,10 @@
 
 #include <exception>
 #include <functional>
-#include <memory>
 #include <stdexcept>
 
 #include "manager.hpp"
-#include "manager_clonable.hpp"
+#include "manager_instance.hpp"
 #include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
@@ -20,7 +19,7 @@ namespace host {
 		Host(
 			const ipc::Instance<ipc::IpcDataReader<Request>>& ipc_data_reader,
 			const ipc::Instance<ipc::IpcDataWriter<Response>>& ipc_data_writer,
-			const manager::Clonable<manager::Manager<Request, Response>>& manager,
+			const manager::Instance<manager::Manager<Request, Response>>& manager,
 			const FailureReporter& failure_reporter
 		);
 		Host(const Host&) = delete;
@@ -31,7 +30,7 @@ namespace host {
 	private:
 		ipc::Instance<ipc::IpcDataReader<Request>> m_ipc_data_reader;
 		const ipc::Instance<ipc::IpcDataWriter<Response>> m_ipc_data_writer;
-		const std::unique_ptr<manager::Manager<Request, Response>> m_manager;
+		manager::Instance<manager::Manager<Request, Response>> m_manager;
 		const FailureReporter m_failure_reporter;
 	};
 
@@ -39,9 +38,9 @@ namespace host {
 	inline Host<Request, Response>::Host(
 		const ipc::Instance<ipc::IpcDataReader<Request>>& ipc_data_reader,
 		const ipc::Instance<ipc::IpcDataWriter<Response>>& ipc_data_writer,
-		const manager::Clonable<manager::Manager<Request, Response>>& manager,
+		const manager::Instance<manager::Manager<Request, Response>>& manager,
 		const FailureReporter& failure_reporter
-	): m_ipc_data_reader(ipc_data_reader), m_ipc_data_writer(ipc_data_writer), m_manager(manager.clone()), m_failure_reporter(failure_reporter) {
+	): m_ipc_data_reader(ipc_data_reader), m_ipc_data_writer(ipc_data_writer), m_manager(manager), m_failure_reporter(failure_reporter) {
 		if (!m_failure_reporter) {
 			throw std::invalid_argument("invalid failure reporter received");
 		}
@@ -54,7 +53,7 @@ namespace host {
 			if (!request) {
 				return;
 			}
-			const auto response = m_manager->run(request->get());
+			const auto response = m_manager.get().run(request->get());
 			m_ipc_data_writer.get().write(response);
 		} catch (const std::exception& e) {
 			const auto response = m_failure_reporter(e);

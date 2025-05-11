@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "manager_clonable.hpp"
+#include "manager_instance.hpp"
 #include "manager.hpp"
 #include "stepper_motor.hpp"
 #include "stepper_motor_request.hpp"

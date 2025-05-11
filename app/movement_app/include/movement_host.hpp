@@ -5,6 +5,7 @@
 #include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
+#include "manager_instance.hpp"
 #include "movement_ipc_data_reader.hpp"
 #include "movement_ipc_data_writer.hpp"
 #include "movement_manager.hpp"
@@ -47,7 +48,9 @@ namespace host {
 		ipc::Instance<ipc::IpcDataWriter<manager::MovementManagerResponse>>(
 			new ipc::MovementIpcDataWriter(ipc_data_writer)
 		),
-		manager::MovementManager<AxisControllerConfig>(axes_controller_ctor, axes_properties),
+		manager::Instance<manager::Manager<manager::MovementManagerRequest, manager::MovementManagerResponse>>(
+			new manager::MovementManager<AxisControllerConfig>(axes_controller_ctor, axes_properties)
+		),
 		[](const std::exception& e) {
 			return manager::MovementManagerResponse {
 				manager::MovementManagerResponse::ResultCode::EXCEPTION,
