@@ -6,6 +6,7 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_request_json_transformer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_response_json_transformer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host_builder.cpp
 )
 
 target_link_libraries(
@@ -19,6 +20,7 @@ target_link_libraries(
 	request_json_transformer
 	movement_host
 	test_axes_controller
+	movement_host_builder
 	
 	gtest
 )

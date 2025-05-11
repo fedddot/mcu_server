@@ -65,4 +65,19 @@ target_link_libraries(
     movement_manager_response
 )
 
+add_library(movement_host_builder INTERFACE)
+target_include_directories(movement_host_builder INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    movement_host_builder
+    INTERFACE
+    host
+    response_json_transformer
+    movement_ipc_data_reader
+    movement_ipc_data_writer
+    movement_manager
+    movement_manager_data
+    movement_manager_request
+    movement_manager_response
+)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)
