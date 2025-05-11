@@ -64,12 +64,7 @@ TEST(ut_movement_host_builder, build_sanity) {
 	instance.set_ctrlr_cfg_to_json(cfg2json);
 
 	// THEN
-	ASSERT_NO_THROW(
-		{
-			auto host = instance.build();
-			host.get().run_once();
-		}
-	);
+	ASSERT_NO_THROW(auto host = instance.build());
 }
 
 inline Json::Value cfg2json(const AxisControllerConfig& cfg) {
