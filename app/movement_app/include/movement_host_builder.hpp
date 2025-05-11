@@ -71,7 +71,7 @@ namespace host {
 					std::string(e.what()),
 				};
 			}
-		)
+		);
 	}
 }
 
