@@ -3,7 +3,6 @@
 
 #include <functional>
 
-#include "ipc_instance.hpp"
 #include "ipc_data.hpp"
 #include "ipc_data_writer.hpp"
 #include "raw_data_package_descriptor.hpp"
@@ -12,11 +11,12 @@ namespace ipc {
 	class RawDataPackageWriter: public IpcDataWriter<RawData> {
 	public:
 		using PackageSizeSerializer = std::function<RawData(const RawDataPackageDescriptor&, const std::size_t&)>;
+		using RawDataWriter = std::function<void(const RawData&)>;
 		
 		RawDataPackageWriter(
 			const RawDataPackageDescriptor& descriptor,
 			const PackageSizeSerializer& size_serializer,
-			const Instance<IpcDataWriter<RawData>>& raw_data_writer
+			const RawDataWriter& raw_data_writer
 		);
 		RawDataPackageWriter(const RawDataPackageWriter&) = default;
 		RawDataPackageWriter& operator=(const RawDataPackageWriter&) = default;
@@ -24,16 +24,19 @@ namespace ipc {
 	private:
 		RawDataPackageDescriptor m_descriptor;
 		PackageSizeSerializer m_size_serializer;
-		Instance<IpcDataWriter<RawData>> m_raw_data_writer;
+		RawDataWriter m_raw_data_writer;
 	};
 
 	inline RawDataPackageWriter::RawDataPackageWriter(
 		const RawDataPackageDescriptor& descriptor,
 		const PackageSizeSerializer& size_serializer,
-		const Instance<IpcDataWriter<RawData>>& raw_data_writer
+		const RawDataWriter& raw_data_writer
 	): m_descriptor(descriptor), m_size_serializer(size_serializer), m_raw_data_writer(raw_data_writer) {
 		if (!m_size_serializer) {
 			throw std::invalid_argument("invalid size serializer received");
+		}
+		if (!m_raw_data_writer) {
+			throw std::invalid_argument("invalid raw data writer received");
 		}
 	}
 
@@ -57,7 +60,7 @@ namespace ipc {
 			data.begin(),
 			data.end()
 		);
-		m_raw_data_writer.get().write(raw_data);
+		m_raw_data_writer(raw_data);
 	}
 }
 
