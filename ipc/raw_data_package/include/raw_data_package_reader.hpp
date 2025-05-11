@@ -5,15 +5,13 @@
 #include <functional>
 #include <optional>
 #include <stdexcept>
-#include <vector>
 
-#include "ipc_clonable.hpp"
 #include "ipc_data.hpp"
 #include "ipc_data_reader.hpp"
 #include "raw_data_package_descriptor.hpp"
 
 namespace ipc {
-	class RawDataPackageReader: public IpcDataReader<RawData>, public Clonable<IpcDataReader<RawData>> {
+	class RawDataPackageReader: public IpcDataReader<RawData> {
 	public:
 		using PackageSizeParser = std::function<std::size_t(const RawDataPackageDescriptor&, const RawData&)>;
 		RawDataPackageReader(
@@ -23,8 +21,7 @@ namespace ipc {
 		);
 		RawDataPackageReader(const RawDataPackageReader&) = default;
 		RawDataPackageReader& operator=(const RawDataPackageReader&) = default;
-		std::optional<RawData> read() override;
-		IpcDataReader<RawData> *clone() const override;
+		std::optional<Instance<RawData>> read() override;
 	private:
 		RawData *m_buffer;
 		RawDataPackageDescriptor m_descriptor;
@@ -46,11 +43,11 @@ namespace ipc {
 		}
 	}
 
-	inline std::optional<RawData> RawDataPackageReader::read() {
+	inline std::optional<Instance<RawData>> RawDataPackageReader::read() {
 		const auto preamble_size = m_descriptor.preamble().size();
 		const auto encoded_size_len = m_descriptor.encoded_size_length();
 		if (!validate_preamble()) {
-			return std::optional<RawData>();
+			return std::nullopt;
 		}
 		const auto package_size = m_size_parser(
 			m_descriptor,
@@ -60,7 +57,7 @@ namespace ipc {
 			)
 		);
 		if (m_buffer->size() < preamble_size + encoded_size_len + package_size) {
-			return std::optional<RawData>();
+			return std::nullopt;
 		}
 		const auto package_data = RawData(
 			m_buffer->begin() + preamble_size + encoded_size_len,
@@ -70,7 +67,7 @@ namespace ipc {
 			m_buffer->begin(),
 			m_buffer->begin() + preamble_size + encoded_size_len + package_size
 		);
-		return std::optional<RawData>(package_data);
+		return Instance<RawData>(new RawData(package_data));
 	}
 
 	inline bool RawDataPackageReader::validate_preamble() {
@@ -87,10 +84,6 @@ namespace ipc {
 			m_buffer->erase(m_buffer->begin());
 		}
 		return false;
-	}
-
-	inline IpcDataReader<RawData> *RawDataPackageReader::clone() const {
-		return new RawDataPackageReader(*this);
 	}
 }
 

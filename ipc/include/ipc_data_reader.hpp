@@ -3,12 +3,14 @@
 
 #include <optional>
 
+#include "ipc_instance.hpp"
+
 namespace ipc {
 	template <typename IpcData>
 	class IpcDataReader {
 	public:
 		virtual ~IpcDataReader() noexcept = default;
-		virtual std::optional<IpcData> read() = 0;
+		virtual std::optional<Instance<IpcData>> read() = 0;
 	};
 }
 

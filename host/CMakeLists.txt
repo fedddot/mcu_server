@@ -3,12 +3,11 @@ target_include_directories(host INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     host
     INTERFACE
-    ipc_data_reader
-    ipc_data_reader
-    ipc_clonable
-    
     manager
     manager_clonable
+    ipc_instance
+    ipc_data_reader
+    ipc_data_writer
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

@@ -55,7 +55,7 @@ TEST(ut_raw_data_package_reader, read_sanity) {
 		descriptor,
 		parse_package_size
 	);
-	auto result = std::optional<RawData>();
+	auto result = std::optional<Instance<RawData>>();
 
 	// THEN
 	// empty buffer
@@ -94,7 +94,7 @@ TEST(ut_raw_data_package_reader, read_sanity) {
 	);
 	ASSERT_NO_THROW(result = instance.read());
 	ASSERT_TRUE(result);
-	ASSERT_EQ(msg, *result);
+	ASSERT_EQ(msg, result->get());
 
 	ASSERT_TRUE(buff.empty());
 }

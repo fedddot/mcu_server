@@ -2,31 +2,28 @@
 #define	STEPPER_MOTOR_MANAGER_HPP
 
 #include <cmath>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 
+#include "axes_controller.hpp"
+#include "init_request.hpp"
 #include "manager_clonable.hpp"
 #include "linear_movement.hpp"
 #include "manager.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
-#include "movement_manager_vector.hpp"
+#include "linear_movement_request.hpp"
 
 namespace manager {
+	template <typename AxisControllerConfig>
 	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse>, public Clonable<Manager<MovementManagerRequest, MovementManagerResponse>> {
 	public:
-		class AxesController {
-		public:
-			virtual ~AxesController() noexcept = default;
-			virtual void step(const AxisStep& step) = 0;
-			virtual void enable() = 0;
-			virtual void disable() = 0;
-			virtual AxesController *clone() const = 0;
-		};
+		using AxesControllerCreator = std::function<AxesController *(const AxisControllerConfig&)>;
 		MovementManager(
-			const AxesController& axes_controller,
+			const AxesControllerCreator& axes_controller_ctor,
 			const AxesProperties& axes_properties
 		);
 		MovementManager(const MovementManager& other) = default;
@@ -35,32 +32,36 @@ namespace manager {
 		MovementManagerResponse run(const MovementManagerRequest& request) override;
 		Manager<MovementManagerRequest, MovementManagerResponse> *clone() const override;
 	private:
+		AxesControllerCreator m_axes_controller_ctor;
 		std::shared_ptr<AxesController> m_axes_controller;
 		AxesProperties m_axes_properties;
-		MovementManagerResponse linear_movement(const Vector<double>& destination, const double speed) const;
-		MovementManagerResponse circular_movement(const Vector<double>& rotation_center, const double angle, const double speed) const;
+		MovementManagerResponse init(const MovementManagerRequest& request);
+		MovementManagerResponse linear_movement(const MovementManagerRequest& request) const;
+		MovementManagerResponse circular_movement(const MovementManagerRequest& request) const;
+
+		template <typename T> 
+		static const T& downcast_request(const MovementManagerRequest& request);
 	};
 
-	inline MovementManager::MovementManager(
-		const AxesController& axes_controller,
+	template <typename AxisControllerConfig>
+	inline MovementManager<AxisControllerConfig>::MovementManager(
+		const AxesControllerCreator& axes_controller_ctor,
 		const AxesProperties& axes_properties
-	): m_axes_controller(axes_controller.clone()), m_axes_properties(axes_properties) {
-
+	): m_axes_controller_ctor(axes_controller_ctor), m_axes_controller(nullptr), m_axes_properties(axes_properties) {
+		if (!m_axes_controller_ctor) {
+			throw std::invalid_argument("invalid axes_controller_ctor received");
+		}
 	}
 	
-	inline MovementManagerResponse MovementManager::run(const MovementManagerRequest& request) {
-		switch (request.get_movement_type()) {
-		case MovementManagerRequest::MovementType::LINEAR:
-			return linear_movement(
-				request.get_movement_data<MovementManagerRequest::LinearMovementData>().destination, 
-				request.get_movement_data<MovementManagerRequest::LinearMovementData>().speed
-			);
-		case MovementManagerRequest::MovementType::ROTATIONAL:
-			return circular_movement(
-				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().rotation_center,
-				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().angle,
-				request.get_movement_data<MovementManagerRequest::RotationalMovementData>().speed
-			);
+	template <typename AxisControllerConfig>
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::run(const MovementManagerRequest& request) {
+		switch (request.type()) {
+		case MovementManagerRequest::RequestType::INIT:
+			return init(request);
+		case MovementManagerRequest::RequestType::LINEAR_MOVEMENT:
+			return linear_movement(request);
+		case MovementManagerRequest::RequestType::ROTATIONAL_MOVEMENT:
+			return circular_movement(request);
 		default:
 			return MovementManagerResponse {
 				.code = MovementManagerResponse::ResultCode::BAD_REQUEST,
@@ -69,15 +70,32 @@ namespace manager {
 		}
 	}
 
-	inline Manager<MovementManagerRequest, MovementManagerResponse> *MovementManager::clone() const {
+	template <typename AxisControllerConfig>
+	inline Manager<MovementManagerRequest, MovementManagerResponse> *MovementManager<AxisControllerConfig>::clone() const {
 		return new MovementManager(*this);
 	}
 
-	inline MovementManagerResponse MovementManager::linear_movement(const Vector<double>& destination, const double speed) const {
-		if (speed <= 0) {
-			throw std::invalid_argument("speed must be a positive non-zero number");
-		}
+	template <typename AxisControllerConfig>
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::init(const MovementManagerRequest& request) {
+		const auto& request_casted = downcast_request<InitRequest<AxisControllerConfig>>(request);
+		m_axes_controller = std::shared_ptr<AxesController>(m_axes_controller_ctor(request_casted.axis_controller_config()));
+		return MovementManagerResponse {
+			.code = MovementManagerResponse::ResultCode::OK,
+			.message = std::nullopt,
+		};
+	}
 
+	template <typename AxisControllerConfig>
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::linear_movement(const MovementManagerRequest& request) const {
+		if (!m_axes_controller) {
+			return MovementManagerResponse {
+				.code = MovementManagerResponse::ResultCode::EXCEPTION,
+				.message = "axes controller is not initialized",
+			};
+		}
+		const auto& request_casted = downcast_request<LinearMovementRequest>(request);
+		const auto speed = request_casted.speed();
+		const auto destination = request_casted.destination();
 		auto movement = LinearMovement(
 			destination,
 			m_axes_properties,
@@ -98,8 +116,19 @@ namespace manager {
 		};
 	}
 	
-	inline MovementManagerResponse MovementManager::circular_movement(const Vector<double>& rotation_center, const double angle, const double speed) const {
+	template <typename AxisControllerConfig>
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::circular_movement(const MovementManagerRequest& request) const {
 		throw std::runtime_error("not implemented");
+	}
+
+	template <typename AxisControllerConfig>
+	template <typename T>
+	inline const T& MovementManager<AxisControllerConfig>::downcast_request(const MovementManagerRequest& request) {
+		try {
+			return dynamic_cast<const T&>(request);
+		} catch (...) {
+			throw std::invalid_argument("failed to cast received request into target type");
+		}
 	}
 }
 
