@@ -34,6 +34,12 @@ namespace host {
 		virtual ~MovementHostBuilder() noexcept = default;
 		
 		host::Instance<Host<Request, Response>> build() const;
+		void set_raw_data_reader(const ipc::Instance<RawDataReader>& raw_data_reader);
+		void set_raw_data_writer(const ipc::Instance<RawDataWriter>& raw_data_writer);
+		void set_axes_controller_ctor(const AxesControllerCreator& axes_controller_ctor);
+		void set_axes_properties(const manager::AxesProperties axes_properties);
+		void set_ctrlr_cfg_to_json(const AxisControllerConfigToJsonTransformer& ctrlr_cfg_to_json);
+		void set_json_cfg_to_ctrlr(const JsonToAxisControllerConfigTransformer& json_cfg_to_ctrlr);
 	private:
 		std::optional<ipc::Instance<RawDataReader>> m_raw_data_reader;
 		std::optional<ipc::Instance<RawDataWriter>> m_raw_data_writer;
@@ -76,6 +82,36 @@ namespace host {
 				}
 			)
 		);
+	}
+
+	template <typename AxisControllerConfig>
+	inline void MovementHostBuilder<AxisControllerConfig>::set_axes_properties(const manager::AxesProperties axes_properties) {
+		m_axes_properties = axes_properties;
+	}
+
+	template <typename AxisControllerConfig>
+	inline void MovementHostBuilder<AxisControllerConfig>::set_raw_data_reader(const ipc::Instance<RawDataReader>& raw_data_reader) {
+		m_raw_data_reader = raw_data_reader;
+	}
+
+	template <typename AxisControllerConfig>
+	inline void MovementHostBuilder<AxisControllerConfig>::set_raw_data_writer(const ipc::Instance<RawDataWriter>& raw_data_writer) {
+		m_raw_data_writer = raw_data_writer;
+	}
+
+	template <typename AxisControllerConfig>
+	inline void MovementHostBuilder<AxisControllerConfig>::set_axes_controller_ctor(const AxesControllerCreator& axes_controller_ctor) {
+		m_axes_controller_ctor = axes_controller_ctor;
+	}
+
+	template <typename AxisControllerConfig>
+	inline void MovementHostBuilder<AxisControllerConfig>::set_ctrlr_cfg_to_json(const AxisControllerConfigToJsonTransformer& ctrlr_cfg_to_json) {
+		m_ctrlr_cfg_to_json = ctrlr_cfg_to_json;
+	}
+
+	template <typename AxisControllerConfig>
+	inline void MovementHostBuilder<AxisControllerConfig>::set_json_cfg_to_ctrlr(const JsonToAxisControllerConfigTransformer& json_cfg_to_ctrlr) {
+		m_json_cfg_to_ctrlr = json_cfg_to_ctrlr;
 	}
 
 	template <typename AxisControllerConfig>
