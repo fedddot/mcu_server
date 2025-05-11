@@ -9,13 +9,15 @@
 #include "json/value.h"
 
 #include "axes_controller.hpp"
+#include "init_request.hpp"
 #include "ipc_instance.hpp"
 #include "linear_movement_request.hpp"
 #include "movement_host.hpp"
+#include "movement_manager_data.hpp"
+#include "movement_manager_request.hpp"
+#include "movement_manager_response.hpp"
 #include "request_json_transformer.hpp"
 #include "response_json_transformer.hpp"
-#include "movement_manager_data.hpp"
-#include "movement_manager_response.hpp"
 #include "test_axes_controller.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
@@ -67,9 +69,10 @@ TEST(ut_movement_host, run_sanity) {
 	// GIVEN
 	const auto axes_properties = AxesProperties(0.1, 0.1, 0.1);
 	const auto test_requests = {
-		LinearMovementRequest(Vector<double>(1.0, 2.0, 3.0), 4.0),
-		LinearMovementRequest(Vector<double>(-1.0, 2.0, 3.0), 4.0),
-		LinearMovementRequest(Vector<double>(0.0, 0.0, -3.0), 4.0),
+		Instance<MovementManagerRequest>(new InitRequest<AxisControllerConfig>(AxisControllerConfig())),
+		Instance<MovementManagerRequest>(new LinearMovementRequest(Vector<double>(1.0, 2.0, 3.0), 4.0)),
+		Instance<MovementManagerRequest>(new LinearMovementRequest(Vector<double>(-1.0, 2.0, 3.0), 4.0)),
+		Instance<MovementManagerRequest>(new LinearMovementRequest(Vector<double>(0.0, 0.0, -3.0), 4.0)),
 	};
 	const auto raw_data_writer = Instance<IpcDataWriter<RawData>>(
 		new TestIpcDataWriter<RawData>(
@@ -92,10 +95,9 @@ TEST(ut_movement_host, run_sanity) {
 					return std::nullopt;
 				}
 				const auto request_transformer = RequestJsonTransformer<AxisControllerConfig>(cfg2json, json2cfg);
-				const auto json_request = request_transformer.request_to_json_value(*test_requests_iter);
+				const auto json_request = request_transformer.request_to_json_value(test_requests_iter->get());
 				const auto serial_request = Json::FastWriter().write(json_request);
 				std::cout << "test raw data reader generated the following raw request data:" << std::endl << serial_request << std::endl;
-				++test_requests_iter;
 				return Instance(new RawData(serial_request.begin(), serial_request.end()));
 			}
 		)
@@ -131,13 +133,14 @@ TEST(ut_movement_host, run_sanity) {
 	// THEN
 	while (test_requests_iter != test_requests.end()) {
 		ASSERT_NO_THROW(instance.run_once());
+		++test_requests_iter;
 	}
 }
 
 inline Json::Value cfg2json(const AxisControllerConfig& cfg) {
-	throw std::runtime_error("NOT IMPLEMENTED");
+	return Json::Value(cfg);
 }
 
 inline AxisControllerConfig json2cfg(const Json::Value& cfg) {
-	throw std::runtime_error("NOT IMPLEMENTED");
+	return AxisControllerConfig(cfg.asString());
 }
