@@ -9,7 +9,7 @@
 
 #include "axes_controller.hpp"
 #include "init_request.hpp"
-#include "manager_clonable.hpp"
+#include "manager_instance.hpp"
 #include "linear_movement.hpp"
 #include "manager.hpp"
 #include "movement_manager_data.hpp"
@@ -19,9 +19,9 @@
 
 namespace manager {
 	template <typename AxisControllerConfig>
-	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse>, public Clonable<Manager<MovementManagerRequest, MovementManagerResponse>> {
+	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse> {
 	public:
-		using AxesControllerCreator = std::function<AxesController *(const AxisControllerConfig&)>;
+		using AxesControllerCreator = std::function<Instance<AxesController>(const AxisControllerConfig&)>;
 		MovementManager(
 			const AxesControllerCreator& axes_controller_ctor,
 			const AxesProperties& axes_properties
@@ -30,13 +30,12 @@ namespace manager {
 		MovementManager& operator=(const MovementManager&) = delete;
 
 		MovementManagerResponse run(const MovementManagerRequest& request) override;
-		Manager<MovementManagerRequest, MovementManagerResponse> *clone() const override;
 	private:
 		AxesControllerCreator m_axes_controller_ctor;
-		std::shared_ptr<AxesController> m_axes_controller;
+		std::optional<Instance<AxesController>> m_axes_controller;
 		AxesProperties m_axes_properties;
 		MovementManagerResponse init(const MovementManagerRequest& request);
-		MovementManagerResponse linear_movement(const MovementManagerRequest& request) const;
+		MovementManagerResponse linear_movement(const MovementManagerRequest& request);
 		MovementManagerResponse circular_movement(const MovementManagerRequest& request) const;
 
 		template <typename T> 
@@ -47,7 +46,7 @@ namespace manager {
 	inline MovementManager<AxisControllerConfig>::MovementManager(
 		const AxesControllerCreator& axes_controller_ctor,
 		const AxesProperties& axes_properties
-	): m_axes_controller_ctor(axes_controller_ctor), m_axes_controller(nullptr), m_axes_properties(axes_properties) {
+	): m_axes_controller_ctor(axes_controller_ctor), m_axes_controller(std::nullopt), m_axes_properties(axes_properties) {
 		if (!m_axes_controller_ctor) {
 			throw std::invalid_argument("invalid axes_controller_ctor received");
 		}
@@ -71,14 +70,9 @@ namespace manager {
 	}
 
 	template <typename AxisControllerConfig>
-	inline Manager<MovementManagerRequest, MovementManagerResponse> *MovementManager<AxisControllerConfig>::clone() const {
-		return new MovementManager(*this);
-	}
-
-	template <typename AxisControllerConfig>
 	inline MovementManagerResponse MovementManager<AxisControllerConfig>::init(const MovementManagerRequest& request) {
 		const auto& request_casted = downcast_request<InitRequest<AxisControllerConfig>>(request);
-		m_axes_controller = std::shared_ptr<AxesController>(m_axes_controller_ctor(request_casted.axis_controller_config()));
+		m_axes_controller = m_axes_controller_ctor(request_casted.axis_controller_config());
 		return MovementManagerResponse {
 			.code = MovementManagerResponse::ResultCode::OK,
 			.message = std::nullopt,
@@ -86,7 +80,7 @@ namespace manager {
 	}
 
 	template <typename AxisControllerConfig>
-	inline MovementManagerResponse MovementManager<AxisControllerConfig>::linear_movement(const MovementManagerRequest& request) const {
+	inline MovementManagerResponse MovementManager<AxisControllerConfig>::linear_movement(const MovementManagerRequest& request) {
 		if (!m_axes_controller) {
 			return MovementManagerResponse {
 				.code = MovementManagerResponse::ResultCode::EXCEPTION,
@@ -101,15 +95,15 @@ namespace manager {
 			m_axes_properties,
 			speed
 		);
-		m_axes_controller->enable();
+		m_axes_controller->get().enable();
 		while (true) {
 			const auto step = movement.next_step();
 			if (!step) {
 				break;
 			}
-			m_axes_controller->step(*step);
+			m_axes_controller->get().step(*step);
 		}
-		m_axes_controller->disable();
+		m_axes_controller->get().disable();
 		return MovementManagerResponse {
 			.code = MovementManagerResponse::ResultCode::OK,
 			.message = std::nullopt,
