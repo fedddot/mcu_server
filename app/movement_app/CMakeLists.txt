@@ -50,13 +50,17 @@ target_link_libraries(
     movement_manager_response
 )
 
-add_library(movement_host INTERFACE)
-target_include_directories(movement_host INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(movement_host_builder INTERFACE)
+target_include_directories(movement_host_builder INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-    movement_host
+    movement_host_builder
     INTERFACE
     host
-    response_json_transformer
+    host_instance
+    ipc_instance
+    ipc_data_reader
+    ipc_data_writer
+    manager_instance
     movement_ipc_data_reader
     movement_ipc_data_writer
     movement_manager

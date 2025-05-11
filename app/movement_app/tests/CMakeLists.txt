@@ -5,7 +5,8 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_ipc_data_writer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_request_json_transformer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_response_json_transformer.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host.cpp
+	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host_builder.cpp
 )
 
 target_link_libraries(
@@ -17,8 +18,8 @@ target_link_libraries(
 	movement_ipc_data_writer
 	test_ipc_data_writer
 	request_json_transformer
-	movement_host
 	test_axes_controller
+	movement_host_builder
 	
 	gtest
 )
