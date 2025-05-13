@@ -7,18 +7,18 @@
 
 #include "ipc_data_reader.hpp"
 #include "ipc_instance.hpp"
+#include "ipc_reader_builder.hpp"
 
 namespace ipc {
 	template <typename ApiRequest, typename RawData>
-	class ApiRequestReaderBuilder {
+	class ApiRequestReaderBuilder: public IpcReaderBuilder<ApiRequest> {
 	public:
 		using ApiRequestParser = std::function<Instance<ApiRequest>(const RawData&)>;
 
 		ApiRequestReaderBuilder() = default;
 		ApiRequestReaderBuilder(const ApiRequestReaderBuilder&) = default;
 		ApiRequestReaderBuilder& operator=(const ApiRequestReaderBuilder&) = default;
-		virtual ~ApiRequestReaderBuilder() noexcept = default;
-		Instance<IpcDataReader<ApiRequest>> build() const;
+		Instance<IpcDataReader<ApiRequest>> build() const override;
 		void set_api_request_parser(const ApiRequestParser& api_request_parser);
 		void set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader);
 	private:
