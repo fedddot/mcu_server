@@ -45,7 +45,7 @@ namespace ipc {
 		if (!m_api_request_parser || !m_raw_data_reader) {
 			throw std::runtime_error("Builder is not properly initialized: missing required components.");
 		}
-		return Instance<IpcDataReader<ApiRequest>>(new ApiRequestReader(this));
+		return Instance<IpcDataReader<ApiRequest>>(new ApiRequestReader(*m_api_request_parser, *m_raw_data_reader));
 	}
 
 	template <typename ApiRequest, typename RawData>
@@ -70,7 +70,7 @@ namespace ipc {
 
 	template <typename ApiRequest, typename RawData>
 	inline std::optional<Instance<ApiRequest>> ApiRequestReaderBuilder<ApiRequest, RawData>::ApiRequestReader::read() {
-	    const auto raw_data_opt = m_raw_data_reader->read();
+	    const auto raw_data_opt = m_raw_data_reader.get().read();
 	    if (!raw_data_opt) {
 	        return std::nullopt;
 	    }
