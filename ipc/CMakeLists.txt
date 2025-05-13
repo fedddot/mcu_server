@@ -13,7 +13,13 @@ target_link_libraries(ipc_data_reader_builder INTERFACE ipc_data_reader ipc_inst
 
 add_library(api_request_reader_builder INTERFACE)
 target_include_directories(api_request_reader_builder INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(api_request_reader_builder INTERFACE ipc_data_reader)
+target_link_libraries(
+    api_request_reader_builder
+    INTERFACE
+    ipc_data_reader
+    ipc_data_reader_builder
+    ipc_instance
+)
 
 add_library(ipc_data_writer INTERFACE)
 target_include_directories(ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
