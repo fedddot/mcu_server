@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <optional>
+#include <stdexcept>
 
 #include "ipc_data_reader.hpp"
 #include "ipc_instance.hpp"
@@ -26,7 +27,10 @@ namespace ipc {
 
 		class ApiRequestReader: public IpcDataReader<ApiRequest> {
 		public:
-			ApiRequestReader(const ApiRequestReaderBuilder *builder_ptr);
+			ApiRequestReader(
+				const ApiRequestParser& api_request_parser,
+				const Instance<IpcDataReader<RawData>>& raw_data_reader
+			);
 			ApiRequestReader(const ApiRequestReader&) = delete;
 			ApiRequestReader& operator=(const ApiRequestReader&) = delete;
 			std::optional<Instance<ApiRequest>> read() override;
@@ -38,7 +42,10 @@ namespace ipc {
 
 	template <typename ApiRequest, typename RawData>
 	inline Instance<IpcDataReader<ApiRequest>> ApiRequestReaderBuilder<ApiRequest, RawData>::build() const {
-		return Instance(new ApiRequestReader(this));
+		if (!m_api_request_parser || !m_raw_data_reader) {
+			throw std::runtime_error("Builder is not properly initialized: missing required components.");
+		}
+		return Instance<IpcDataReader<ApiRequest>>(new ApiRequestReader(this));
 	}
 
 	template <typename ApiRequest, typename RawData>
@@ -49,6 +56,21 @@ namespace ipc {
 	template <typename ApiRequest, typename RawData>
 	inline void ApiRequestReaderBuilder<ApiRequest, RawData>::set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader) {
 		m_raw_data_reader = reader;
+	}
+
+	template <typename ApiRequest, typename RawData>
+	inline ApiRequestReaderBuilder<ApiRequest, RawData>::ApiRequestReader::ApiRequestReader(
+		const ApiRequestParser& api_request_parser,
+		const Instance<IpcDataReader<RawData>>& raw_data_reader
+	): m_api_request_parser(api_request_parser), m_raw_data_reader(raw_data_reader) {
+		if (!m_api_request_parser) {
+			throw std::invalid_argument("ApiRequestParser is invalid: a valid parser must be provided.");
+		}
+	}
+
+	template <typename ApiRequest, typename RawData>
+	inline std::optional<Instance<ApiRequest>> ApiRequestReaderBuilder<ApiRequest, RawData>::ApiRequestReader::read() {
+		throw std::runtime_error("The 'read' method is not implemented.");
 	}
 }
 

@@ -16,6 +16,7 @@ target_link_libraries(
 	ipc_tests
 	PRIVATE
     api_request_reader_builder
+    test_ipc_data_reader
 
 	jsoncpp_static
 	gtest
