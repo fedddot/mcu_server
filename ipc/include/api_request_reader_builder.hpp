@@ -70,7 +70,11 @@ namespace ipc {
 
 	template <typename ApiRequest, typename RawData>
 	inline std::optional<Instance<ApiRequest>> ApiRequestReaderBuilder<ApiRequest, RawData>::ApiRequestReader::read() {
-		throw std::runtime_error("The 'read' method is not implemented.");
+	    const auto raw_data_opt = m_raw_data_reader->read();
+	    if (!raw_data_opt) {
+	        return std::nullopt;
+	    }
+	    return m_api_request_parser(raw_data_opt->get());
 	}
 }
 
