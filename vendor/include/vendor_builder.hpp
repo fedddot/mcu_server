@@ -1,12 +1,14 @@
 #ifndef	VENDOR_BUILDER_HPP
 #define	VENDOR_BUILDER_HPP
 
+#include "vendor.hpp"
+#include "vendor_instance.hpp"
+
 namespace vendor {
-	template <typename ApiRequest, typename ApiResponse>
 	class VendorBuilder {
 	public:
 		virtual ~VendorBuilder() noexcept = default;
-		virtual ApiResponse run_api_request(const ApiRequest& request) = 0;
+		virtual Instance<Vendor> build() const = 0;
 	};
 }
 
