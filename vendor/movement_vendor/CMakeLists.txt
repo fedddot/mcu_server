@@ -27,8 +27,8 @@ target_link_libraries(
     manager
     movement_manager_request
     movement_manager_response
-    movement_vendor_api_request
     movement_vendor_api_response
+    movement_vendor_manager_id
     vendor
     vendor_api_response
 )
