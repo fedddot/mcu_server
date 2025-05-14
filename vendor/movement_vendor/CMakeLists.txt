@@ -1,3 +1,6 @@
+add_library(movement_vendor_manager_id INTERFACE)
+target_include_directories(movement_vendor_manager_id INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
 add_library(movement_vendor_api_request INTERFACE)
 target_include_directories(movement_vendor_api_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
