@@ -1,12 +1,16 @@
 #include "gtest/gtest.h"
+#include <optional>
 #include <stdexcept>
 
+#include "linear_movement_request.hpp"
 #include "manager.hpp"
 #include "manager_instance.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
+#include "movement_manager_vector.hpp"
 #include "movement_vendor.hpp"
 #include "custom_manager.hpp"
+#include "movement_vendor_api_request.hpp"
 
 using namespace vendor;
 using namespace manager;
@@ -29,4 +33,31 @@ TEST(ut_movement_vendor, ctor_dtor_sanity) {
 	// THEN
 	ASSERT_NO_THROW(instance_ptr = new MovementVendor<AxisControllerConfig>(manager_instance));
 	ASSERT_NO_THROW(delete instance_ptr);
+}
+
+TEST(ut_movement_vendor, run_api_request_sanity) {
+	// GIVEN
+	const auto manager_instance = manager::Instance<Manager<MovementManagerRequest, MovementManagerResponse>>(
+		new CustomManager<MovementManagerRequest, MovementManagerResponse>(
+			[](const MovementManagerRequest&) -> MovementManagerResponse {
+				return MovementManagerResponse { .code = MovementManagerResponse::ResultCode::OK, .message = std::nullopt };
+			}
+		)
+	);
+	const auto test_request = MovementVendorApiRequest(
+		new LinearMovementRequest(
+			Vector<double>(0.0, 0.0, 0.0),
+			4.0
+		)
+	);
+
+	// WHEN
+	MovementVendor<AxisControllerConfig> instance(manager_instance);
+
+	// THEN
+	ASSERT_NO_THROW(
+		{
+			const auto response = instance.run_api_request(test_request);
+		}
+	);
 }

@@ -2,14 +2,11 @@
 #define	MOVEMENT_VENDOR_API_REQUEST_HPP
 
 #include "movement_manager_request.hpp"
+#include "movement_vendor_manager_id.hpp"
 #include "vendor_api_request.hpp"
 #include "vendor_instance.hpp"
 
 namespace vendor {
-	enum class MovementManagerId: int {
-		MOVEMENT_MANAGER,
-	};
-
 	class MovementVendorApiRequest: public ApiRequest<MovementManagerId, manager::MovementManagerRequest> {
 	public:
 		MovementVendorApiRequest(const Instance<manager::MovementManagerRequest>& manager_request);
