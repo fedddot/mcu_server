@@ -6,10 +6,11 @@
 #include "vendor_instance.hpp"
 
 namespace vendor {
+	template <typename ManagerId, typename Payload>
 	class Vendor {
 	public:
 		virtual ~Vendor() noexcept = default;
-		virtual Instance<ApiResponse> run_api_request(const ApiRequest& request) = 0;
+		virtual Instance<ApiResponse> run_api_request(const ApiRequest<ManagerId, Payload>& request) = 0;
 	};
 }
 
