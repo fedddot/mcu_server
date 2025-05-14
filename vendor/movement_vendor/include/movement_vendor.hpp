@@ -7,6 +7,7 @@
 #include "manager.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
+#include "movement_vendor_api_request.hpp"
 #include "vendor.hpp"
 #include "vendor_api_response.hpp"
 
@@ -44,7 +45,12 @@ namespace vendor {
 
 	template <typename AxisControllerConfig>
 	inline Instance<manager::MovementManagerRequest> MovementVendor<AxisControllerConfig>::cast_request(const ApiRequest& request) {
-		throw std::runtime_error("NOT IMPLEMENTED");
+		try {
+			const auto& movement_request = dynamic_cast<const MovementVendorApiRequest&>(request);
+			return movement_request.manager_request();
+		} catch (...) {
+			throw std::runtime_error("failed to cast api request to movement api request");
+		}
 	}
 
 	template <typename AxisControllerConfig>
