@@ -1,5 +1,5 @@
-#ifndef	STEPPER_MOTOR_MANAGER_HPP
-#define	STEPPER_MOTOR_MANAGER_HPP
+#ifndef	MOVEMENT_MANAGER_HPP
+#define	MOVEMENT_MANAGER_HPP
 
 #include <cmath>
 #include <functional>
@@ -125,4 +125,4 @@ namespace manager {
 	}
 }
 
-#endif // STEPPER_MOTOR_MANAGER_HPP
+#endif // MOVEMENT_MANAGER_HPP
