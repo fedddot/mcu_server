@@ -1,0 +1,5 @@
+add_library(movement_vendor INTERFACE)
+target_include_directories(movement_vendor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(movement_vendor INTERFACE vendor manager movement_manager)
+
+add_subdirectory(tests EXCLUDE_FROM_ALL)
