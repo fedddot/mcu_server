@@ -6,25 +6,29 @@
 #include "vendor_instance.hpp"
 
 namespace vendor {
-	class MovementVendorApiRequest: public ApiRequest {
+	enum class MovementManagerId: int {
+		MOVEMENT_MANAGER,
+	};
+
+	class MovementVendorApiRequest: public ApiRequest<MovementManagerId, manager::MovementManagerRequest> {
 	public:
-		MovementVendorApiRequest(manager::MovementManagerRequest *manager_request_ptr);
+		MovementVendorApiRequest(const Instance<manager::MovementManagerRequest>& manager_request);
 		MovementVendorApiRequest(const MovementVendorApiRequest& other) = default;
 		MovementVendorApiRequest& operator=(const MovementVendorApiRequest&) = default;
 
-		std::string route() const override;
-		Instance<manager::MovementManagerRequest> manager_request() const;
+		MovementManagerId manager_id() const override;
+		Instance<manager::MovementManagerRequest> payload() const override;
 	private:
 		Instance<manager::MovementManagerRequest> m_movement_request;
 	};
 
-	inline MovementVendorApiRequest::MovementVendorApiRequest(manager::MovementManagerRequest *manager_request_ptr): m_movement_request(manager_request_ptr) {}
+	inline MovementVendorApiRequest::MovementVendorApiRequest(const Instance<manager::MovementManagerRequest>& manager_request): m_movement_request(manager_request) {}
 	
-	inline std::string MovementVendorApiRequest::route() const {
-		return "movement";
+	inline MovementManagerId MovementVendorApiRequest::manager_id() const {
+		return MovementManagerId::MOVEMENT_MANAGER;
 	}
 
-	inline Instance<manager::MovementManagerRequest> MovementVendorApiRequest::manager_request() const {
+	inline Instance<manager::MovementManagerRequest> MovementVendorApiRequest::payload() const {
 		return m_movement_request;
 	}
 }
