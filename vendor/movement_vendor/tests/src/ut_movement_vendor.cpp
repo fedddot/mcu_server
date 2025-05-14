@@ -1,6 +1,7 @@
-#include "gtest/gtest.h"
 #include <optional>
 #include <stdexcept>
+
+#include "gtest/gtest.h"
 
 #include "linear_movement_request.hpp"
 #include "manager.hpp"
