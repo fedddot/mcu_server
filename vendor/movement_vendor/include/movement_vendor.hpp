@@ -4,14 +4,16 @@
 #include <stdexcept>
 
 #include "manager_instance.hpp"
-#include "movement_manager.hpp"
+#include "manager.hpp"
+#include "movement_manager_request.hpp"
+#include "movement_manager_response.hpp"
 #include "vendor.hpp"
 
 namespace vendor {
 	template <typename AxisControllerConfig>
 	class MovementVendor: public Vendor {
 	public:
-		using MovementManagerInstance = manager::Instance<manager::MovementManager<AxisControllerConfig>>;
+		using MovementManagerInstance = manager::Instance<manager::Manager<manager::MovementManagerRequest, manager::MovementManagerResponse>>;
 		MovementVendor(
 			const MovementManagerInstance& movement_manager
 		);

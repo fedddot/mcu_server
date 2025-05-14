@@ -8,5 +8,6 @@ target_link_libraries(
 	movement_vendor_tests
 	PRIVATE
     movement_vendor
+	custom_manager
     gtest
 )
