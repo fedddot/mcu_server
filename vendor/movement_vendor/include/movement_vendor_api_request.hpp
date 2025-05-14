@@ -18,7 +18,6 @@ namespace vendor {
 		Instance<manager::MovementManagerRequest> m_movement_request;
 	};
 
-	
 	inline MovementVendorApiRequest::MovementVendorApiRequest(manager::MovementManagerRequest *manager_request_ptr): m_movement_request(manager_request_ptr) {}
 	
 	inline std::string MovementVendorApiRequest::route() const {
