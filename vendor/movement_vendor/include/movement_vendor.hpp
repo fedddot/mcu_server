@@ -8,12 +8,14 @@
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
 #include "vendor.hpp"
+#include "vendor_api_response.hpp"
 
 namespace vendor {
 	template <typename AxisControllerConfig>
 	class MovementVendor: public Vendor {
 	public:
 		using MovementManagerInstance = manager::Instance<manager::Manager<manager::MovementManagerRequest, manager::MovementManagerResponse>>;
+
 		MovementVendor(
 			const MovementManagerInstance& movement_manager
 		);
@@ -23,6 +25,8 @@ namespace vendor {
 		Instance<ApiResponse> run_api_request(const ApiRequest& request) override;
 	private:
 		MovementManagerInstance m_movement_manager;
+		static Instance<manager::MovementManagerRequest> cast_request(const ApiRequest& request);
+		static Instance<ApiResponse> cast_response(const manager::MovementManagerResponse& response);
 	};
 
 	template <typename AxisControllerConfig>
@@ -32,7 +36,20 @@ namespace vendor {
 	
 	template <typename AxisControllerConfig>
 	inline Instance<ApiResponse> MovementVendor<AxisControllerConfig>::run_api_request(const ApiRequest& request) {
-		throw std::invalid_argument("NOT IMPLEMENTED");
+		const auto movement_api_request = cast_request(request);
+		const auto manager_response = m_movement_manager.get().run(movement_api_request.get());
+		const auto api_response = cast_response(manager_response);
+		return api_response;
+	}
+
+	template <typename AxisControllerConfig>
+	inline Instance<manager::MovementManagerRequest> MovementVendor<AxisControllerConfig>::cast_request(const ApiRequest& request) {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	}
+
+	template <typename AxisControllerConfig>
+	inline Instance<ApiResponse> MovementVendor<AxisControllerConfig>::cast_response(const manager::MovementManagerResponse& response) {
+		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 }
 
