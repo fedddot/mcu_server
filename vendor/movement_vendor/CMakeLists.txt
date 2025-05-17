@@ -26,7 +26,6 @@ target_include_directories(movement_vendor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/i
 target_link_libraries(
     movement_vendor
     INTERFACE
-    manager_instance
     manager
     movement_manager_request
     movement_manager_response
@@ -34,6 +33,7 @@ target_link_libraries(
     movement_vendor_manager_id
     vendor
     vendor_api_response
+    vendor_instance
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

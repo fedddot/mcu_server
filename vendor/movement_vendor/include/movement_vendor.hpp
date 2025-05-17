@@ -1,7 +1,6 @@
 #ifndef	MOVEMENT_VENDOR_HPP
 #define	MOVEMENT_VENDOR_HPP
 
-#include "manager_instance.hpp"
 #include "manager.hpp"
 #include "movement_manager_request.hpp"
 #include "movement_manager_response.hpp"
@@ -9,12 +8,13 @@
 #include "movement_vendor_manager_id.hpp"
 #include "vendor.hpp"
 #include "vendor_api_response.hpp"
+#include "vendor_instance.hpp"
 
 namespace vendor {
 	template <typename AxisControllerConfig>
 	class MovementVendor: public Vendor<MovementManagerId, manager::MovementManagerRequest> {
 	public:
-		using MovementManagerInstance = manager::Instance<manager::Manager<manager::MovementManagerRequest, manager::MovementManagerResponse>>;
+		using MovementManagerInstance = vendor::Instance<manager::Manager<manager::MovementManagerRequest, manager::MovementManagerResponse>>;
 
 		MovementVendor(
 			const MovementManagerInstance& movement_manager
