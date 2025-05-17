@@ -29,8 +29,8 @@ namespace host {
 			const VendorInstance& vendor,
 			const FailureReporter& failure_reporter
 		);
-		Host(const Host&) = delete;
-		Host& operator=(const Host&) = delete;
+		Host(const Host&) = default;
+		Host& operator=(const Host&) = default;
 		virtual ~Host() noexcept = default;
 		
 		void run_once();
