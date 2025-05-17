@@ -8,8 +8,6 @@
 
 #include "host.hpp"
 #include "ipc_data_reader.hpp"
-#include "ipc_instance.hpp"
-#include "vendor_instance.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 
@@ -23,14 +21,14 @@ using TestHost = Host<ManagerId, Payload>;
 
 TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	const auto ipc_data_reader = ipc::Instance<IpcDataReader<TestHost::ApiRequest>>(
+	const auto ipc_data_reader = host::Instance<IpcDataReader<TestHost::ApiRequest>>(
 		new TestIpcDataReader<TestHost::ApiRequest>(
 			[]()-> std::optional<ipc::Instance<TestHost::ApiRequest>> {
 				throw std::runtime_error("NOT IMPLEMENTED");
 			}
 		)
 	);
-	const auto ipc_data_writer = ipc::Instance<IpcDataWriter<TestHost::ApiResponse>>(
+	const auto ipc_data_writer = host::Instance<IpcDataWriter<TestHost::ApiResponse>>(
 		new TestIpcDataWriter<TestHost::ApiResponse>(
 			[](const TestHost::ApiResponse&){
 				throw std::runtime_error("NOT IMPLEMENTED");
