@@ -28,15 +28,15 @@ using namespace manager;
 using namespace host;
 using namespace ipc;
 
-using Request = std::string;
-using Response = int;
+using ManagerId = std::string;
+using Payload = int;
 
-using TestHost = Host<Request, Response>;
+using TestHost = Host<ManagerId, Payload>;
 
-static ipc::Instance<IpcDataReader<Request>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc);
-static ipc::Instance<IpcDataWriter<Response>> create_ipc_writer(const RawDataPackageDescriptor& desc, const ipc::Instance<IpcDataWriter<RawData>>& raw_data_writer);
+static ipc::Instance<IpcDataReader<ManagerId>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc);
+static ipc::Instance<IpcDataWriter<Payload>> create_ipc_writer(const RawDataPackageDescriptor& desc, const ipc::Instance<IpcDataWriter<RawData>>& raw_data_writer);
 
-static RawData generate_serial_request(const RawDataPackageDescriptor& desc, const Request& request);
+static RawData generate_serial_request(const RawDataPackageDescriptor& desc, const ManagerId& request);
 
 TEST(ut_host_raw_data_packages, run_once_sanity) {
 	// GIVEN
@@ -47,8 +47,8 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 		4UL
 	);
 
-	const auto test_request = Request("test_request");
-	const auto expected_response = Response(4);
+	const auto test_request = ManagerId("test_request");
+	const auto expected_response = Payload(4);
 	const auto junk_before_str = std::string("junk");
 	const auto junk_before = RawData(junk_before_str.begin(), junk_before_str.end());
 	const auto raw_data_writer = ipc::Instance<IpcDataWriter<RawData>>(
@@ -70,9 +70,9 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 		package_descriptor,
 		raw_data_writer
 	);
-	const auto manager = manager::Instance<Manager<Request, Response>>(
-		new CustomManager<Request, Response> (
-			[expected_response, test_request](const Request& request) {
+	const auto manager = manager::Instance<Manager<ManagerId, Payload>>(
+		new CustomManager<ManagerId, Payload> (
+			[expected_response, test_request](const ManagerId& request) {
 				std::cout << "test manager received request: " << request << std::endl;
 				std::cout << "test manager is sending response: " << expected_response << std::endl;
 				if (test_request != request) {
@@ -86,7 +86,7 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 		ipc_reader,
 		ipc_writer,
 		manager,
-		[](const std::exception&) -> Response {
+		[](const std::exception&) -> Payload {
 			return -1;
 		}
 	);
@@ -114,25 +114,25 @@ TEST(ut_host_raw_data_packages, run_once_sanity) {
 	ASSERT_TRUE(buff.empty());
 }
 
-inline ipc::Instance<IpcDataReader<Request>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc) {
+inline ipc::Instance<IpcDataReader<ManagerId>> create_ipc_reader(RawData *buffer, const RawDataPackageDescriptor& desc) {
 	const auto ipc_data_reader = ipc::Instance<IpcDataReader<RawData>>(new RawDataPackageReader(
 		buffer,
 		desc,
 		parse_package_size
 	));
-	auto request_retriever = [](const Json::Value& json_data) -> ipc::Instance<Request> {
+	auto request_retriever = [](const Json::Value& json_data) -> ipc::Instance<ManagerId> {
 		const auto request_data = json_data["request"].asString();
-		return ipc::Instance<Request>(new Request(request_data));
+		return ipc::Instance<ManagerId>(new ManagerId(request_data));
 	};
-	return ipc::Instance<IpcDataReader<Request>>(
-		new JsonIpcDataReader<Request>(
+	return ipc::Instance<IpcDataReader<ManagerId>>(
+		new JsonIpcDataReader<ManagerId>(
 			ipc_data_reader,
 			request_retriever
 		)
 	);
 }
 
-inline ipc::Instance<IpcDataWriter<Response>> create_ipc_writer(const RawDataPackageDescriptor& desc, const ipc::Instance<IpcDataWriter<RawData>>& raw_data_writer) {
+inline ipc::Instance<IpcDataWriter<Payload>> create_ipc_writer(const RawDataPackageDescriptor& desc, const ipc::Instance<IpcDataWriter<RawData>>& raw_data_writer) {
 	const auto ipc_data_writer = ipc::Instance<IpcDataWriter<RawData>>(
 		new RawDataPackageWriter(
 			desc,
@@ -140,18 +140,18 @@ inline ipc::Instance<IpcDataWriter<Response>> create_ipc_writer(const RawDataPac
 			raw_data_writer
 		)
 	);
-	auto response_serializer = [](const Response& resp) -> Json::Value {
+	auto response_serializer = [](const Payload& resp) -> Json::Value {
 		return Json::Value(resp);
 	};
-	return ipc::Instance<IpcDataWriter<Response>>(
-		new JsonIpcDataWriter<Response>(
+	return ipc::Instance<IpcDataWriter<Payload>>(
+		new JsonIpcDataWriter<Payload>(
 			ipc_data_writer,
 			response_serializer
 		)
 	);
 }
 
-inline RawData generate_serial_request(const RawDataPackageDescriptor& desc, const Request& request) {
+inline RawData generate_serial_request(const RawDataPackageDescriptor& desc, const ManagerId& request) {
 	auto request_json_data = Json::Value();
 	request_json_data["request"] = Json::String(request);
     const auto request_serial_data = Json::writeString(

@@ -6,8 +6,8 @@ target_include_directories(host INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     host
     INTERFACE
-    manager
-    manager_instance
+    vendor
+    vendor_instance
     ipc_instance
     ipc_data_reader
     ipc_data_writer

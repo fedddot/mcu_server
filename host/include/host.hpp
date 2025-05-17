@@ -5,21 +5,25 @@
 #include <functional>
 #include <stdexcept>
 
-#include "manager.hpp"
-#include "manager_instance.hpp"
+#include "vendor.hpp"
+#include "vendor_api_request.hpp"
+#include "vendor_api_response.hpp"
+#include "vendor_instance.hpp"
 #include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
 
 namespace host {
-	template <typename Request, typename Response>
+	template <typename ManagerId, typename Payload>
 	class Host {
 	public:
-		using FailureReporter = std::function<Response(const std::exception&)>;
+		using ApiRequest = vendor::ApiRequest<ManagerId, Payload>;
+		using ApiResponse = vendor::ApiResponse;
+		using FailureReporter = std::function<vendor::Instance<ApiResponse>(const std::exception&)>;
 		Host(
-			const ipc::Instance<ipc::IpcDataReader<Request>>& ipc_data_reader,
-			const ipc::Instance<ipc::IpcDataWriter<Response>>& ipc_data_writer,
-			const manager::Instance<manager::Manager<Request, Response>>& manager,
+			const ipc::Instance<ipc::IpcDataReader<ApiRequest>>& ipc_data_reader,
+			const ipc::Instance<ipc::IpcDataWriter<ApiResponse>>& ipc_data_writer,
+			const vendor::Instance<vendor::Vendor<ManagerId, Payload>>& vendor,
 			const FailureReporter& failure_reporter
 		);
 		Host(const Host&) = delete;
@@ -28,36 +32,36 @@ namespace host {
 		
 		void run_once();
 	private:
-		ipc::Instance<ipc::IpcDataReader<Request>> m_ipc_data_reader;
-		const ipc::Instance<ipc::IpcDataWriter<Response>> m_ipc_data_writer;
-		manager::Instance<manager::Manager<Request, Response>> m_manager;
-		const FailureReporter m_failure_reporter;
+		ipc::Instance<ipc::IpcDataReader<ApiRequest>> m_ipc_data_reader;
+		ipc::Instance<ipc::IpcDataWriter<ApiResponse>> m_ipc_data_writer;
+		vendor::Instance<vendor::Vendor<ManagerId, Payload>> m_vendor;
+		FailureReporter m_failure_reporter;
 	};
 
-	template <typename Request, typename Response>
-	inline Host<Request, Response>::Host(
-		const ipc::Instance<ipc::IpcDataReader<Request>>& ipc_data_reader,
-		const ipc::Instance<ipc::IpcDataWriter<Response>>& ipc_data_writer,
-		const manager::Instance<manager::Manager<Request, Response>>& manager,
+	template <typename ManagerId, typename Payload>
+	inline Host<ManagerId, Payload>::Host(
+		const ipc::Instance<ipc::IpcDataReader<ApiRequest>>& ipc_data_reader,
+		const ipc::Instance<ipc::IpcDataWriter<ApiResponse>>& ipc_data_writer,
+		const vendor::Instance<vendor::Vendor<ManagerId, Payload>>& vendor,
 		const FailureReporter& failure_reporter
-	): m_ipc_data_reader(ipc_data_reader), m_ipc_data_writer(ipc_data_writer), m_manager(manager), m_failure_reporter(failure_reporter) {
+	): m_ipc_data_reader(ipc_data_reader), m_ipc_data_writer(ipc_data_writer), m_vendor(vendor), m_failure_reporter(failure_reporter) {
 		if (!m_failure_reporter) {
 			throw std::invalid_argument("invalid failure reporter received");
 		}
 	}
 
-	template <typename Request, typename Response>
-	inline void Host<Request, Response>::run_once() {
+	template <typename ManagerId, typename Payload>
+	inline void Host<ManagerId, Payload>::run_once() {
 		try {
 			const auto request = m_ipc_data_reader.get().read();
 			if (!request) {
 				return;
 			}
-			const auto response = m_manager.get().run(request->get());
+			const auto response = m_vendor.get().run(request->get());
 			m_ipc_data_writer.get().write(response);
 		} catch (const std::exception& e) {
 			const auto response = m_failure_reporter(e);
-			m_ipc_data_writer.get().write(response);
+			m_ipc_data_writer.get().write(response.get());
 		}
 	}
 }

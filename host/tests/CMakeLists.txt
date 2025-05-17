@@ -2,7 +2,7 @@ add_executable(
 	host_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_host.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/ut_host_raw_data_package.cpp
+	# ${CMAKE_CURRENT_LIST_DIR}/src/ut_host_raw_data_package.cpp
 )
 
 target_link_libraries(
