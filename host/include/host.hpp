@@ -60,8 +60,8 @@ namespace host {
 			if (!request) {
 				return;
 			}
-			const auto response = m_vendor.get().run(request->get());
-			m_api_response_writer.get().write(response);
+			const auto response = m_vendor.get().run_api_request(request->get());
+			m_api_response_writer.get().write(response.get());
 		} catch (const std::exception& e) {
 			const auto response = m_failure_reporter(e);
 			m_api_response_writer.get().write(response.get());
