@@ -26,10 +26,10 @@ using namespace ipc;
 using namespace manager;
 using namespace host;
 
-using AxisControllerConfig = std::string;
+using AxesConfig = std::string;
 
-static Json::Value cfg2json(const AxisControllerConfig& cfg);
-static AxisControllerConfig json2cfg(const Json::Value& cfg);
+static Json::Value cfg2json(const AxesConfig& cfg);
+static AxesConfig json2cfg(const Json::Value& cfg);
 
 TEST(ut_movement_host, ctor_dtor_sanity) {
 	// GIVEN
@@ -47,7 +47,7 @@ TEST(ut_movement_host, ctor_dtor_sanity) {
 			}
 		)
 	);
-	auto axes_controller_ctor = [](const AxisControllerConfig& cfg) -> AxesController * {
+	auto axes_controller_ctor = [](const AxesConfig& cfg) -> AxesController * {
 		return new TestAxesController(
 			[](const AxisStep& step) {
 				throw std::runtime_error("NOT IMPLEMENTED");
@@ -57,10 +57,10 @@ TEST(ut_movement_host, ctor_dtor_sanity) {
 	const auto axes_properties = AxesProperties(0.1, 0.1, 0.1);
 
 	// WHEN
-	MovementHost<AxisControllerConfig> *instance = nullptr;
+	MovementHost<AxesConfig> *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new MovementHost<AxisControllerConfig>(raw_data_reader, raw_data_writer, axes_controller_ctor, axes_properties, cfg2json, json2cfg));
+	ASSERT_NO_THROW(instance = new MovementHost<AxesConfig>(raw_data_reader, raw_data_writer, axes_controller_ctor, axes_properties, cfg2json, json2cfg));
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
@@ -69,7 +69,7 @@ TEST(ut_movement_host, run_sanity) {
 	// GIVEN
 	const auto axes_properties = AxesProperties(0.1, 0.1, 0.1);
 	const auto test_requests = {
-		ipc::Instance<MovementManagerRequest>(new InitRequest<AxisControllerConfig>(AxisControllerConfig())),
+		ipc::Instance<MovementManagerRequest>(new InitRequest<AxesConfig>(AxesConfig())),
 		ipc::Instance<MovementManagerRequest>(new LinearMovementRequest(Vector<double>(1.0, 2.0, 3.0), 4.0)),
 		ipc::Instance<MovementManagerRequest>(new LinearMovementRequest(Vector<double>(-1.0, 2.0, 3.0), 4.0)),
 		ipc::Instance<MovementManagerRequest>(new LinearMovementRequest(Vector<double>(0.0, 0.0, -3.0), 4.0)),
@@ -94,7 +94,7 @@ TEST(ut_movement_host, run_sanity) {
 				if (test_requests.end() == test_requests_iter) {
 					return std::nullopt;
 				}
-				const auto request_transformer = RequestJsonTransformer<AxisControllerConfig>(cfg2json, json2cfg);
+				const auto request_transformer = RequestJsonTransformer<AxesConfig>(cfg2json, json2cfg);
 				const auto json_request = request_transformer.request_to_json_value(test_requests_iter->get());
 				const auto serial_request = Json::FastWriter().write(json_request);
 				std::cout << "test raw data reader generated the following raw request data:" << std::endl << serial_request << std::endl;
@@ -119,7 +119,7 @@ TEST(ut_movement_host, run_sanity) {
 			<< "step duration " << step.duration << "; ";
 		return stream.str();
 	};
-	auto axes_controller_ctor = [step_to_str](const AxisControllerConfig& cfg) -> AxesController * {
+	auto axes_controller_ctor = [step_to_str](const AxesConfig& cfg) -> AxesController * {
 		return new TestAxesController(
 			[step_to_str](const AxisStep& step) {
 				std::cout << "axes_controller makes step: " << step_to_str(step) << std::endl;
@@ -128,7 +128,7 @@ TEST(ut_movement_host, run_sanity) {
 	};
 
 	// WHEN
-	MovementHost<AxisControllerConfig> instance(raw_data_reader, raw_data_writer, axes_controller_ctor, axes_properties, cfg2json, json2cfg);
+	MovementHost<AxesConfig> instance(raw_data_reader, raw_data_writer, axes_controller_ctor, axes_properties, cfg2json, json2cfg);
 
 	// THEN
 	while (test_requests_iter != test_requests.end()) {
@@ -137,10 +137,10 @@ TEST(ut_movement_host, run_sanity) {
 	}
 }
 
-inline Json::Value cfg2json(const AxisControllerConfig& cfg) {
+inline Json::Value cfg2json(const AxesConfig& cfg) {
 	return Json::Value(cfg);
 }
 
-inline AxisControllerConfig json2cfg(const Json::Value& cfg) {
-	return AxisControllerConfig(cfg.asString());
+inline AxesConfig json2cfg(const Json::Value& cfg) {
+	return AxesConfig(cfg.asString());
 }

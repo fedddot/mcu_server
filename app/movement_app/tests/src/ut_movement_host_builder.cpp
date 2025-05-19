@@ -18,27 +18,27 @@ using namespace ipc;
 using namespace manager;
 using namespace host;
 
-using AxisControllerConfig = std::string;
+using AxesConfig = std::string;
 
-static Json::Value cfg2json(const AxisControllerConfig& cfg);
-static AxisControllerConfig json2cfg(const Json::Value& cfg);
+static Json::Value cfg2json(const AxesConfig& cfg);
+static AxesConfig json2cfg(const Json::Value& cfg);
 
 TEST(ut_movement_host_builder, ctor_dtor_sanity) {
 	// WHEN
-	MovementHostBuilder<AxisControllerConfig> *instance = nullptr;
+	MovementHostBuilder<AxesConfig> *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new MovementHostBuilder<AxisControllerConfig>());
+	ASSERT_NO_THROW(instance = new MovementHostBuilder<AxesConfig>());
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
 
 TEST(ut_movement_host_builder, build_sanity) {
 	// WHEN
-	MovementHostBuilder<AxisControllerConfig> instance;
+	MovementHostBuilder<AxesConfig> instance;
 	instance.set_axes_properties(AxesProperties(0.1, 0.1, 0.1));
 	instance.set_axes_controller_ctor(
-		[](const AxisControllerConfig&) -> manager::Instance<AxesController> {
+		[](const AxesConfig&) -> manager::Instance<AxesController> {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
@@ -67,10 +67,10 @@ TEST(ut_movement_host_builder, build_sanity) {
 	ASSERT_NO_THROW(auto host = instance.build());
 }
 
-inline Json::Value cfg2json(const AxisControllerConfig& cfg) {
+inline Json::Value cfg2json(const AxesConfig& cfg) {
 	return Json::Value(cfg);
 }
 
-inline AxisControllerConfig json2cfg(const Json::Value& cfg) {
+inline AxesConfig json2cfg(const Json::Value& cfg) {
 	return cfg.asString();
 }

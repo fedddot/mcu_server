@@ -13,10 +13,10 @@
 #include "movement_manager_data.hpp"
 
 namespace manager {
-	template <typename AxisControllerConfig>
+	template <typename AxesConfig>
 	class MovementManager: public Manager {
 	public:
-		using AxesControllerCreator = std::function<Instance<AxesController>(const AxisControllerConfig&)>;
+		using AxesControllerCreator = std::function<Instance<AxesController>(const AxesConfig&)>;
 		MovementManager(
 			const AxesControllerCreator& axes_controller_ctor,
 			const AxesProperties& axes_properties
@@ -24,7 +24,7 @@ namespace manager {
 		MovementManager(const MovementManager& other) = default;
 		MovementManager& operator=(const MovementManager&) = delete;
 
-		void init(const AxisControllerConfig& axes_config);
+		void init(const AxesConfig& axes_config);
 		void linear_movement(const Vector<double>& destination, const double speed);
 		void circular_movement(const Vector<double>& destination, const Vector<double>& rotation_center, const double speed);
 	private:
@@ -33,8 +33,8 @@ namespace manager {
 		AxesProperties m_axes_properties;
 	};
 
-	template <typename AxisControllerConfig>
-	inline MovementManager<AxisControllerConfig>::MovementManager(
+	template <typename AxesConfig>
+	inline MovementManager<AxesConfig>::MovementManager(
 		const AxesControllerCreator& axes_controller_ctor,
 		const AxesProperties& axes_properties
 	): m_axes_controller_ctor(axes_controller_ctor), m_axes_controller(std::nullopt), m_axes_properties(axes_properties) {
@@ -43,13 +43,13 @@ namespace manager {
 		}
 	}
 
-	template <typename AxisControllerConfig>
-	inline void MovementManager<AxisControllerConfig>::init(const AxisControllerConfig& axes_config) {
+	template <typename AxesConfig>
+	inline void MovementManager<AxesConfig>::init(const AxesConfig& axes_config) {
 		m_axes_controller = m_axes_controller_ctor(axes_config);
 	}
 
-	template <typename AxisControllerConfig>
-	inline void MovementManager<AxisControllerConfig>::linear_movement(const Vector<double>& destination, const double speed) {
+	template <typename AxesConfig>
+	inline void MovementManager<AxesConfig>::linear_movement(const Vector<double>& destination, const double speed) {
 		if (!m_axes_controller) {
 			throw std::runtime_error("axes controller is not initialized");
 		}
@@ -69,8 +69,8 @@ namespace manager {
 		m_axes_controller->get().disable();
 	}
 	
-	template <typename AxisControllerConfig>
-	inline void MovementManager<AxisControllerConfig>::circular_movement(const Vector<double>& destination, const Vector<double>& rotation_center, const double speed) {
+	template <typename AxesConfig>
+	inline void MovementManager<AxesConfig>::circular_movement(const Vector<double>& destination, const Vector<double>& rotation_center, const double speed) {
 		throw std::runtime_error("not implemented");
 	}
 }

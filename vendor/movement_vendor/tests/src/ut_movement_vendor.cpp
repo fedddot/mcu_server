@@ -16,7 +16,7 @@
 using namespace vendor;
 using namespace manager;
 
-using AxisControllerConfig = std::string;
+using AxesConfig = std::string;
 
 TEST(ut_movement_vendor, ctor_dtor_sanity) {
 	// GIVEN
@@ -29,10 +29,10 @@ TEST(ut_movement_vendor, ctor_dtor_sanity) {
 	);
 
 	// WHEN
-	MovementVendor<AxisControllerConfig> *instance_ptr(nullptr);
+	MovementVendor<AxesConfig> *instance_ptr(nullptr);
 
 	// THEN
-	ASSERT_NO_THROW(instance_ptr = new MovementVendor<AxisControllerConfig>(manager_instance));
+	ASSERT_NO_THROW(instance_ptr = new MovementVendor<AxesConfig>(manager_instance));
 	ASSERT_NO_THROW(delete instance_ptr);
 }
 
@@ -53,7 +53,7 @@ TEST(ut_movement_vendor, run_api_request_sanity) {
 	);
 
 	// WHEN
-	MovementVendor<AxisControllerConfig> instance(manager_instance);
+	MovementVendor<AxesConfig> instance(manager_instance);
 
 	// THEN
 	ASSERT_NO_THROW(

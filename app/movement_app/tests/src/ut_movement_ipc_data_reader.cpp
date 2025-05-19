@@ -15,10 +15,10 @@
 using namespace ipc;
 using namespace manager;
 
-using AxisControllerConfig = std::string;
+using AxesConfig = std::string;
 
-static Json::Value cfg2json(const AxisControllerConfig& cfg);
-static AxisControllerConfig json2cfg(const Json::Value& cfg);
+static Json::Value cfg2json(const AxesConfig& cfg);
+static AxesConfig json2cfg(const Json::Value& cfg);
 
 TEST(ut_movement_ipc_data_reader, ctor_dtor_sanity) {
 	// GIVEN
@@ -31,11 +31,11 @@ TEST(ut_movement_ipc_data_reader, ctor_dtor_sanity) {
 	);
 	
 	// WHEN
-	MovementIpcDataReader<AxisControllerConfig> *instance = nullptr;
+	MovementIpcDataReader<AxesConfig> *instance = nullptr;
 
 	// THEN
 	ASSERT_NO_THROW(
-		instance = new MovementIpcDataReader<AxisControllerConfig>(
+		instance = new MovementIpcDataReader<AxesConfig>(
 			test_raw_data_reader,
 			cfg2json,
 			json2cfg
@@ -49,7 +49,7 @@ TEST(ut_movement_ipc_data_reader, read_sanity) {
 	// GIVEN
 	const auto axes_properties = AxesProperties(0.1, 0.1, 0.1);
 	const auto request = LinearMovementRequest(Vector<double>(1.0, 2.0, 3.0), 4.0);
-	const auto transformers = RequestJsonTransformer<AxisControllerConfig>(cfg2json, json2cfg);
+	const auto transformers = RequestJsonTransformer<AxesConfig>(cfg2json, json2cfg);
 	auto json_movement_request = transformers.request_to_json_value(request);
 	const auto serial_json_movement_request = Json::writeString(Json::StreamWriterBuilder(), json_movement_request);
 
@@ -62,7 +62,7 @@ TEST(ut_movement_ipc_data_reader, read_sanity) {
 	);
 	
 	// WHEN
-	MovementIpcDataReader<AxisControllerConfig> instance(test_raw_data_reader, cfg2json, json2cfg);
+	MovementIpcDataReader<AxesConfig> instance(test_raw_data_reader, cfg2json, json2cfg);
 	auto read_result = std::optional<Instance<MovementManagerRequest>>();
 
 	// THEN
@@ -71,10 +71,10 @@ TEST(ut_movement_ipc_data_reader, read_sanity) {
 	ASSERT_EQ(request.type(), read_result->get().type());
 }
 
-inline Json::Value cfg2json(const AxisControllerConfig& cfg) {
+inline Json::Value cfg2json(const AxesConfig& cfg) {
 	throw std::runtime_error("NOT IMPLEMENTED");
 }
 
-inline AxisControllerConfig json2cfg(const Json::Value& cfg) {
+inline AxesConfig json2cfg(const Json::Value& cfg) {
 	throw std::runtime_error("NOT IMPLEMENTED");
 }
