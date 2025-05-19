@@ -11,11 +11,11 @@ target_include_directories(movement_manager INTERFACE ${CMAKE_CURRENT_LIST_DIR}/
 target_link_libraries(
     movement_manager
     INTERFACE
-    manager
+    axes_controller
     manager_instance
-    movement_manager_request
-    movement_manager_response
     linear_movement
+    manager
+    movement_manager_data
 )
 
 add_subdirectory(data)
