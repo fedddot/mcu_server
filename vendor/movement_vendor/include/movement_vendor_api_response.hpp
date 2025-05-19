@@ -21,6 +21,10 @@ namespace vendor {
 		Result result() const {
 			return m_result;
 		}
+
+		std::optional<std::string> message() const {
+			return m_message;
+		}
 	private:
 		Result m_result;
 		std::optional<std::string> m_message;
