@@ -10,6 +10,7 @@
 #include "movement_manager.hpp"
 #include "movement_vendor_api_request.hpp"
 #include "movement_vendor_api_response.hpp"
+#include "rotation_movement_request.hpp"
 #include "vendor.hpp"
 #include "vendor_instance.hpp"
 
@@ -28,10 +29,10 @@ namespace vendor {
 		MovementVendorApiResponse run_api_request(const MovementVendorApiRequest& request) override;
 	private:
 		MovementManagerInstance m_movement_manager;
-
 		
 		MovementVendorApiResponse run_cfg_request(const MovementVendorApiRequest& request);
 		MovementVendorApiResponse run_linear_movement_request(const MovementVendorApiRequest& request);
+		MovementVendorApiResponse run_circular_movement_request(const MovementVendorApiRequest& request);
 
 		template <typename T>
 		static const T& cast_request(const MovementVendorApiRequest& request);
@@ -69,6 +70,13 @@ namespace vendor {
 	inline MovementVendorApiResponse MovementVendor<AxesConfig>::run_linear_movement_request(const MovementVendorApiRequest& request) {
 		auto casted_request = cast_request<LinearMovementRequest>(request);
 		m_movement_manager.get().linear_movement(casted_request.destination(), casted_request.speed());
+		return MovementVendorApiResponse(MovementVendorApiResponse::Result::SUCCESS);
+	}
+
+	template <typename AxesConfig>
+	inline MovementVendorApiResponse MovementVendor<AxesConfig>::run_circular_movement_request(const MovementVendorApiRequest& request) {
+		auto casted_request = cast_request<RotationMovementRequest>(request);
+		m_movement_manager.get().circular_movement(casted_request.destination, casted_request.rotation_center, casted_request.speed);
 		return MovementVendorApiResponse(MovementVendorApiResponse::Result::SUCCESS);
 	}
 
