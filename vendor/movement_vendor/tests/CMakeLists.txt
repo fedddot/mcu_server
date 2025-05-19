@@ -8,6 +8,7 @@ target_link_libraries(
 	movement_vendor_tests
 	PRIVATE
     axes_controller
+    axes_controller_config_request
     linear_movement_request
     movement_manager
     movement_manager_data
