@@ -60,10 +60,12 @@ target_link_libraries(
     ipc_instance
     ipc_data_reader
     ipc_data_writer
+    api_request_reader_builder
     manager_instance
     movement_ipc_data_reader
     movement_ipc_data_writer
     movement_manager
+    movement_vendor
     movement_manager_data
     movement_manager_request
     movement_manager_response
