@@ -2,21 +2,33 @@
 
 #include "gtest/gtest.h"
 
+#include "axes_controller.hpp"
 #include "linear_movement_request.hpp"
+#include "movement_manager.hpp"
+#include "movement_manager_data.hpp"
 #include "movement_manager_vector.hpp"
 #include "movement_vendor.hpp"
 #include "movement_vendor_api_response.hpp"
+#include "test_axes_controller.hpp"
 
 using namespace vendor;
 using namespace manager;
 
 using AxesConfig = std::string;
 
-static MovementVendor<AxesConfig>::MovementManagerInstance create_movement_manager();
+static MovementVendor<AxesConfig>::MovementManagerInstance create_movement_manager(const AxesProperties& axes_properties, const TestAxesController::Action& action);
 
 TEST(ut_movement_vendor, ctor_dtor_sanity) {	
+	// GIVEN
+	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
+	
 	// WHEN
-	const auto manager_instance = create_movement_manager();
+	const auto manager_instance = create_movement_manager(
+		axes_properties,
+		[](const AxisStep& step) {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
+	);
 	MovementVendor<AxesConfig> *instance_ptr(nullptr);
 
 	// THEN
@@ -26,13 +38,19 @@ TEST(ut_movement_vendor, ctor_dtor_sanity) {
 
 TEST(ut_movement_vendor, run_api_request_sanity) {
 	// GIVEN
+	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
 	const auto test_request = LinearMovementRequest(
 		Vector<double>(0.0, 0.0, 0.0),
 		4.0
 	);
 	
 	// WHEN
-	const auto manager_instance = create_movement_manager();
+	const auto manager_instance = create_movement_manager(
+		axes_properties,
+		[](const AxisStep& step) {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
+	);
 	MovementVendor<AxesConfig> instance(manager_instance);
 	MovementVendorApiResponse response;
 
@@ -45,6 +63,13 @@ TEST(ut_movement_vendor, run_api_request_sanity) {
 	ASSERT_EQ(MovementVendorApiResponse::Result::SUCCESS, response.result());
 }
 
-MovementVendor<AxesConfig>::MovementManagerInstance create_movement_manager() {
-	throw std::runtime_error("NOT IMPLEMENTED");
+MovementVendor<AxesConfig>::MovementManagerInstance create_movement_manager(const AxesProperties& axes_properties, const TestAxesController::Action& action) {
+	return MovementVendor<AxesConfig>::MovementManagerInstance(
+		new MovementManager<AxesConfig>(
+			[action](const AxesConfig& axes_cfg) {
+				return manager::Instance<manager::AxesController>(new TestAxesController(action));
+			},
+			axes_properties
+		)
+	);
 }
