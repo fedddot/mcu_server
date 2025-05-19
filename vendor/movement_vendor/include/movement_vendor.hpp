@@ -58,6 +58,16 @@ namespace vendor {
 			return MovementVendorApiResponse(MovementVendorApiResponse::Result::FAILURE);
 		}
 	}
+
+	template <typename AxesConfig>
+	template <typename T>
+	inline const T& MovementVendor<AxesConfig>::cast_request(const MovementVendorApiRequest& request) {
+		try {
+			return dynamic_cast<const T&>(request);
+		} catch (...) {
+			throw std::runtime_error("failed to cast a movement vendor api request into target type");
+		}
+	}
 }
 
 #endif // MOVEMENT_VENDOR_HPP
