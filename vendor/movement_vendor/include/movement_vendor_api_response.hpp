@@ -8,7 +8,7 @@ namespace vendor {
 			SUCCESS,
 			FAILURE,
 		};
-		MovementVendorApiResponse(const Result& result): m_result(result) {
+		MovementVendorApiResponse(const Result& result = Result::FAILURE): m_result(result) {
 
 		}
 		MovementVendorApiResponse(const MovementVendorApiResponse& other) = default;
