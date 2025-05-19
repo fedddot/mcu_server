@@ -1,34 +1,22 @@
-#include <optional>
 #include <stdexcept>
 
 #include "gtest/gtest.h"
 
-#include "custom_manager.hpp"
 #include "linear_movement_request.hpp"
-#include "manager.hpp"
-#include "movement_manager_request.hpp"
-#include "movement_manager_response.hpp"
 #include "movement_manager_vector.hpp"
 #include "movement_vendor.hpp"
-#include "movement_vendor_api_request.hpp"
-#include "vendor_instance.hpp"
+#include "movement_vendor_api_response.hpp"
 
 using namespace vendor;
 using namespace manager;
 
 using AxesConfig = std::string;
 
-TEST(ut_movement_vendor, ctor_dtor_sanity) {
-	// GIVEN
-	const auto manager_instance = vendor::Instance<Manager<MovementManagerRequest, MovementManagerResponse>>(
-		new CustomManager<MovementManagerRequest, MovementManagerResponse>(
-			[](const MovementManagerRequest&) -> MovementManagerResponse {
-				throw std::runtime_error("NOT IMPLEMENTED");
-			}
-		)
-	);
+static MovementVendor<AxesConfig>::MovementManagerInstance create_movement_manager();
 
+TEST(ut_movement_vendor, ctor_dtor_sanity) {	
 	// WHEN
+	const auto manager_instance = create_movement_manager();
 	MovementVendor<AxesConfig> *instance_ptr(nullptr);
 
 	// THEN
@@ -38,27 +26,25 @@ TEST(ut_movement_vendor, ctor_dtor_sanity) {
 
 TEST(ut_movement_vendor, run_api_request_sanity) {
 	// GIVEN
-	const auto manager_instance = vendor::Instance<Manager<MovementManagerRequest, MovementManagerResponse>>(
-		new CustomManager<MovementManagerRequest, MovementManagerResponse>(
-			[](const MovementManagerRequest&) -> MovementManagerResponse {
-				return MovementManagerResponse { .code = MovementManagerResponse::ResultCode::OK, .message = std::nullopt };
-			}
-		)
+	const auto test_request = LinearMovementRequest(
+		Vector<double>(0.0, 0.0, 0.0),
+		4.0
 	);
-	const auto test_request = MovementVendorApiRequest(
-		new LinearMovementRequest(
-			Vector<double>(0.0, 0.0, 0.0),
-			4.0
-		)
-	);
-
+	
 	// WHEN
+	const auto manager_instance = create_movement_manager();
 	MovementVendor<AxesConfig> instance(manager_instance);
+	MovementVendorApiResponse response;
 
 	// THEN
 	ASSERT_NO_THROW(
 		{
-			const auto response = instance.run_api_request(test_request);
+			response = instance.run_api_request(test_request);
 		}
 	);
+	ASSERT_EQ(MovementVendorApiResponse::Result::SUCCESS, response.result());
+}
+
+MovementVendor<AxesConfig>::MovementManagerInstance create_movement_manager() {
+	throw std::runtime_error("NOT IMPLEMENTED");
 }
