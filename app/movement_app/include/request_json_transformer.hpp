@@ -17,14 +17,14 @@
 #include "ipc_instance.hpp"
 
 namespace ipc {
-	template <typename AxisControllerConfig>
+	template <typename AxesConfig>
 	class RequestJsonTransformer {
 	public:
-		using AxisControllerConfigToJsonTransformer = std::function<Json::Value(const AxisControllerConfig&)>;
-		using JsonToAxisControllerConfigTransformer = std::function<AxisControllerConfig(const Json::Value&)>;
+		using AxesConfigToJsonTransformer = std::function<Json::Value(const AxesConfig&)>;
+		using JsonToAxesConfigTransformer = std::function<AxesConfig(const Json::Value&)>;
 		RequestJsonTransformer(
-			const AxisControllerConfigToJsonTransformer& ctrlr_cfg_to_json,
-			const JsonToAxisControllerConfigTransformer& json_cfg_to_ctrlr
+			const AxesConfigToJsonTransformer& ctrlr_cfg_to_json,
+			const JsonToAxesConfigTransformer& json_cfg_to_ctrlr
 		);
 		RequestJsonTransformer(const RequestJsonTransformer&) = default;
 		RequestJsonTransformer& operator=(const RequestJsonTransformer&) = default;
@@ -33,12 +33,12 @@ namespace ipc {
 		Json::Value request_to_json_value(const manager::MovementManagerRequest& request) const;
 		Instance<manager::MovementManagerRequest> json_value_to_request(const Json::Value& json_request) const;
 	private:
-		AxisControllerConfigToJsonTransformer m_ctrlr_cfg_to_json;
-		JsonToAxisControllerConfigTransformer m_json_cfg_to_ctrlr;
+		AxesConfigToJsonTransformer m_ctrlr_cfg_to_json;
+		JsonToAxesConfigTransformer m_json_cfg_to_ctrlr;
 		
 		static Json::Value linear_request_to_json_value(const manager::LinearMovementRequest& data);
 		static Json::Value rotational_request_to_json_value(const manager::RotationMovementRequest& data);
-		Json::Value init_request_to_json_value(const manager::InitRequest<AxisControllerConfig>& data) const;
+		Json::Value init_request_to_json_value(const manager::InitRequest<AxesConfig>& data) const;
 		
 		template <typename T>
 		static Json::Value vector_to_json_value(const manager::Vector<T>& data);
@@ -48,22 +48,22 @@ namespace ipc {
 		static Json::Value retrieve_required_field(const Json::Value& json, const std::string& field_name);
 		static manager::MovementManagerRequest::RequestType json_value_to_movement_type(const Json::Value json_value);
 		static manager::LinearMovementRequest json_value_to_linear_movement_request(const Json::Value json_value);
-		manager::InitRequest<AxisControllerConfig> json_value_to_init_request(const Json::Value json_value) const;
+		manager::InitRequest<AxesConfig> json_value_to_init_request(const Json::Value json_value) const;
 		static manager::Vector<double> json_value_to_vector(const Json::Value& json);
 	};
 
-	template <typename AxisControllerConfig>
-	inline RequestJsonTransformer<AxisControllerConfig>::RequestJsonTransformer(
-		const AxisControllerConfigToJsonTransformer& ctrlr_cfg_to_json,
-		const JsonToAxisControllerConfigTransformer& json_cfg_to_ctrlr
+	template <typename AxesConfig>
+	inline RequestJsonTransformer<AxesConfig>::RequestJsonTransformer(
+		const AxesConfigToJsonTransformer& ctrlr_cfg_to_json,
+		const JsonToAxesConfigTransformer& json_cfg_to_ctrlr
 	): m_ctrlr_cfg_to_json(ctrlr_cfg_to_json), m_json_cfg_to_ctrlr(json_cfg_to_ctrlr) {
 		if (!m_ctrlr_cfg_to_json || !m_json_cfg_to_ctrlr) {
 			throw std::invalid_argument("invalid transformer(s) received");
 		}
 	}
 
-	template <typename AxisControllerConfig>
-	inline Json::Value RequestJsonTransformer<AxisControllerConfig>::request_to_json_value(const manager::MovementManagerRequest& request) const {
+	template <typename AxesConfig>
+	inline Json::Value RequestJsonTransformer<AxesConfig>::request_to_json_value(const manager::MovementManagerRequest& request) const {
 		using RequestType = manager::MovementManagerRequest::RequestType;
 		using LinearMovementData = manager::LinearMovementRequest;
 		using RotationalMovementData = manager::RotationMovementRequest;
@@ -73,7 +73,7 @@ namespace ipc {
 		json_data["type"] = Json::Int(static_cast<int>(movement_type));
 		switch (movement_type) {
 		case RequestType::INIT:
-			json_data["init_data"] = init_request_to_json_value(downcast_request<manager::InitRequest<AxisControllerConfig>>(request));
+			json_data["init_data"] = init_request_to_json_value(downcast_request<manager::InitRequest<AxesConfig>>(request));
 			break;
 		case RequestType::LINEAR_MOVEMENT:
 			json_data["movement_data"] = linear_request_to_json_value(downcast_request<manager::LinearMovementRequest>(request));
@@ -87,14 +87,14 @@ namespace ipc {
 		return json_data;
 	}
 
-	template <typename AxisControllerConfig>
-	inline Instance<manager::MovementManagerRequest> RequestJsonTransformer<AxisControllerConfig>::json_value_to_request(const Json::Value& json_request) const {
+	template <typename AxesConfig>
+	inline Instance<manager::MovementManagerRequest> RequestJsonTransformer<AxesConfig>::json_value_to_request(const Json::Value& json_request) const {
 		using RequestType = manager::MovementManagerRequest::RequestType;
 		const auto request_type = json_value_to_movement_type(retrieve_required_field(json_request, "type"));
 		switch (request_type) {
 		case RequestType::INIT:
 			return Instance<manager::MovementManagerRequest>(
-				new manager::InitRequest<AxisControllerConfig>(
+				new manager::InitRequest<AxesConfig>(
 					json_value_to_init_request(
 						retrieve_required_field(
 							json_request,
@@ -119,16 +119,16 @@ namespace ipc {
 		}
 	}
 
-	template <typename AxisControllerConfig>
-	inline Json::Value RequestJsonTransformer<AxisControllerConfig>::linear_request_to_json_value(const manager::LinearMovementRequest& data) {
+	template <typename AxesConfig>
+	inline Json::Value RequestJsonTransformer<AxesConfig>::linear_request_to_json_value(const manager::LinearMovementRequest& data) {
 		Json::Value json_data;
 		json_data["destination"] = vector_to_json_value(data.destination());
 		json_data["speed"] = data.speed();
 		return json_data;
 	}
 
-	template <typename AxisControllerConfig>
-	inline Json::Value RequestJsonTransformer<AxisControllerConfig>::rotational_request_to_json_value(const manager::RotationMovementRequest& data) {
+	template <typename AxesConfig>
+	inline Json::Value RequestJsonTransformer<AxesConfig>::rotational_request_to_json_value(const manager::RotationMovementRequest& data) {
 		Json::Value json_data;
 		json_data["rotation_center"] = vector_to_json_value(data.rotation_center());
 		json_data["angle"] = data.angle();
@@ -136,14 +136,14 @@ namespace ipc {
 		return json_data;
 	}
 
-	template <typename AxisControllerConfig>
-	inline Json::Value RequestJsonTransformer<AxisControllerConfig>::init_request_to_json_value(const manager::InitRequest<AxisControllerConfig>& data) const {
+	template <typename AxesConfig>
+	inline Json::Value RequestJsonTransformer<AxesConfig>::init_request_to_json_value(const manager::InitRequest<AxesConfig>& data) const {
 		return m_ctrlr_cfg_to_json(data.axis_controller_config());
 	}
 
-	template <typename AxisControllerConfig>
+	template <typename AxesConfig>
 	template <typename T>
-	inline Json::Value RequestJsonTransformer<AxisControllerConfig>::vector_to_json_value(const manager::Vector<T>& data) {
+	inline Json::Value RequestJsonTransformer<AxesConfig>::vector_to_json_value(const manager::Vector<T>& data) {
 		Json::Value json_data;
 		json_data["x"] = data.get(manager::Axis::X);
 		json_data["y"] = data.get(manager::Axis::Y);
@@ -151,9 +151,9 @@ namespace ipc {
 		return json_data;
 	}
 
-	template <typename AxisControllerConfig>
+	template <typename AxesConfig>
 	template <typename T>
-	inline const T& RequestJsonTransformer<AxisControllerConfig>::downcast_request(const manager::MovementManagerRequest& request) {
+	inline const T& RequestJsonTransformer<AxesConfig>::downcast_request(const manager::MovementManagerRequest& request) {
 		try {
 			return dynamic_cast<const T&>(request);
 		} catch (...) {
@@ -161,16 +161,16 @@ namespace ipc {
 		}
 	}
 
-	template <typename AxisControllerConfig>
-	inline Json::Value RequestJsonTransformer<AxisControllerConfig>::retrieve_required_field(const Json::Value& json, const std::string& field_name) {
+	template <typename AxesConfig>
+	inline Json::Value RequestJsonTransformer<AxesConfig>::retrieve_required_field(const Json::Value& json, const std::string& field_name) {
 		if (!json.isMember(field_name)) {
 			throw std::runtime_error("missing field: " + std::string(field_name));
 		}
 		return json[field_name];
 	};
 
-	template <typename AxisControllerConfig>
-	inline manager::MovementManagerRequest::RequestType RequestJsonTransformer<AxisControllerConfig>::json_value_to_movement_type(const Json::Value json_value) {
+	template <typename AxesConfig>
+	inline manager::MovementManagerRequest::RequestType RequestJsonTransformer<AxesConfig>::json_value_to_movement_type(const Json::Value json_value) {
 		using RequestType = manager::MovementManagerRequest::RequestType;
 		const auto movement_type_mapping = std::map<int, RequestType>{
 			{static_cast<int>(RequestType::INIT), RequestType::INIT},
@@ -187,21 +187,21 @@ namespace ipc {
 		return iter->second;
 	}
 
-	template <typename AxisControllerConfig>
-	inline manager::LinearMovementRequest RequestJsonTransformer<AxisControllerConfig>::json_value_to_linear_movement_request(const Json::Value json_value) {
+	template <typename AxesConfig>
+	inline manager::LinearMovementRequest RequestJsonTransformer<AxesConfig>::json_value_to_linear_movement_request(const Json::Value json_value) {
 		return manager::LinearMovementRequest {
 			json_value_to_vector(retrieve_required_field(json_value, "destination")),
 			retrieve_required_field(json_value, "speed").asFloat(),
 		};
 	}
 
-	template <typename AxisControllerConfig>
-	inline manager::InitRequest<AxisControllerConfig> RequestJsonTransformer<AxisControllerConfig>::json_value_to_init_request(const Json::Value json_value) const {
-		return manager::InitRequest<AxisControllerConfig>(m_json_cfg_to_ctrlr(json_value));
+	template <typename AxesConfig>
+	inline manager::InitRequest<AxesConfig> RequestJsonTransformer<AxesConfig>::json_value_to_init_request(const Json::Value json_value) const {
+		return manager::InitRequest<AxesConfig>(m_json_cfg_to_ctrlr(json_value));
 	}
 
-	template <typename AxisControllerConfig>
-	inline manager::Vector<double> RequestJsonTransformer<AxisControllerConfig>::json_value_to_vector(const Json::Value& json) {
+	template <typename AxesConfig>
+	inline manager::Vector<double> RequestJsonTransformer<AxesConfig>::json_value_to_vector(const Json::Value& json) {
 		using namespace manager;
 		const auto axis_tags_mapping = std::map<Axis, std::string>{
 			{Axis::X, "x"},

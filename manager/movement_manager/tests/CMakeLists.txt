@@ -14,8 +14,6 @@ target_link_libraries(
 	PRIVATE
     linear_movement
     movement_manager
-    movement_manager_request
-    movement_manager_response
     test_axes_controller
     gtest
 )

@@ -3,35 +3,36 @@
 
 #include <stdexcept>
 
-#include "movement_manager_request.hpp"
 #include "movement_manager_vector.hpp"
+#include "movement_vendor_api_request.hpp"
 
-namespace manager {
-	class RotationMovementRequest: public MovementManagerRequest {
+namespace vendor {
+	class RotationMovementRequest: public MovementVendorApiRequest {
 	public:
+		using Vector = manager::Vector<double>;
 		RotationMovementRequest(
-			const Vector<double>& destination,
-			const Vector<double>& rotation_center,
+			const Vector& destination,
+			const Vector& rotation_center,
 			const double angle,
 			const double speed
 		);
 		RotationMovementRequest(const RotationMovementRequest&) = default;
 		RotationMovementRequest& operator=(const RotationMovementRequest&) = default;
 		RequestType type() const override;
-		Vector<double> destination() const;
-		Vector<double> rotation_center() const;
+		Vector destination() const;
+		Vector rotation_center() const;
 		double angle() const;
 		double speed() const;
 	private:
-		Vector<double> m_destination;
-		Vector<double> m_rotation_center;
+		Vector m_destination;
+		Vector m_rotation_center;
 		double m_angle;
 		double m_speed;
 	};
 
 	inline RotationMovementRequest::RotationMovementRequest(
-		const Vector<double>& destination,
-		const Vector<double>& rotation_center,
+		const Vector& destination,
+		const Vector& rotation_center,
 		const double angle,
 		const double speed
 	): m_destination(destination), m_rotation_center(rotation_center), m_angle(angle), m_speed(speed) {
@@ -40,15 +41,15 @@ namespace manager {
 		}
 	}
 
-	inline MovementManagerRequest::RequestType RotationMovementRequest::type() const {
+	inline MovementVendorApiRequest::RequestType RotationMovementRequest::type() const {
 		return RequestType::ROTATIONAL_MOVEMENT;
 	}
 
-	inline Vector<double> RotationMovementRequest::destination() const {
+	inline RotationMovementRequest::Vector RotationMovementRequest::destination() const {
 		return m_destination;
 	}
 
-	inline Vector<double> RotationMovementRequest::rotation_center() const {
+	inline RotationMovementRequest::Vector RotationMovementRequest::rotation_center() const {
 		return m_rotation_center;
 	}
 

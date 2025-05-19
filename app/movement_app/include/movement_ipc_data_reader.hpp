@@ -14,30 +14,30 @@
 #include "movement_manager_request.hpp"
 
 namespace ipc {
-	template <typename AxisControllerConfig>
+	template <typename AxesConfig>
 	class MovementIpcDataReader: public IpcDataReader<manager::MovementManagerRequest> {
 	public:
-		using AxisControllerConfigToJsonTransformer = typename RequestJsonTransformer<AxisControllerConfig>::AxisControllerConfigToJsonTransformer;
-		using JsonToAxisControllerConfigTransformer = typename RequestJsonTransformer<AxisControllerConfig>::JsonToAxisControllerConfigTransformer;
+		using AxesConfigToJsonTransformer = typename RequestJsonTransformer<AxesConfig>::AxesConfigToJsonTransformer;
+		using JsonToAxesConfigTransformer = typename RequestJsonTransformer<AxesConfig>::JsonToAxesConfigTransformer;
 		
 		MovementIpcDataReader(
 			const Instance<IpcDataReader<RawData>>& raw_data_reader,
-			const AxisControllerConfigToJsonTransformer& ctrlr_cfg_to_json,
-			const JsonToAxisControllerConfigTransformer& json_cfg_to_ctrlr
+			const AxesConfigToJsonTransformer& ctrlr_cfg_to_json,
+			const JsonToAxesConfigTransformer& json_cfg_to_ctrlr
 		);
 		MovementIpcDataReader(const MovementIpcDataReader&) = default;
 		MovementIpcDataReader& operator=(const MovementIpcDataReader&) = default;
 		std::optional<Instance<manager::MovementManagerRequest>> read() override;
 	private:
-		RequestJsonTransformer<AxisControllerConfig> m_data_transformers;
+		RequestJsonTransformer<AxesConfig> m_data_transformers;
 		Instance<IpcDataReader<manager::MovementManagerRequest>> m_data_reader;
 	};
 
-	template <typename AxisControllerConfig>
-	inline MovementIpcDataReader<AxisControllerConfig>::MovementIpcDataReader(
+	template <typename AxesConfig>
+	inline MovementIpcDataReader<AxesConfig>::MovementIpcDataReader(
 		const Instance<IpcDataReader<RawData>>& raw_data_reader,
-		const AxisControllerConfigToJsonTransformer& ctrlr_cfg_to_json,
-		const JsonToAxisControllerConfigTransformer& json_cfg_to_ctrlr
+		const AxesConfigToJsonTransformer& ctrlr_cfg_to_json,
+		const JsonToAxesConfigTransformer& json_cfg_to_ctrlr
 	):
 		m_data_transformers(ctrlr_cfg_to_json, json_cfg_to_ctrlr),
 		m_data_reader(new JsonIpcDataReader<manager::MovementManagerRequest>(
@@ -48,8 +48,8 @@ namespace ipc {
 		)) {
 	}
 
-	template <typename AxisControllerConfig>
-	inline std::optional<Instance<manager::MovementManagerRequest>> MovementIpcDataReader<AxisControllerConfig>::read() {
+	template <typename AxesConfig>
+	inline std::optional<Instance<manager::MovementManagerRequest>> MovementIpcDataReader<AxesConfig>::read() {
 		return m_data_reader.get().read();
 	}
 }

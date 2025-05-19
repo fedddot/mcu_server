@@ -1,5 +1,4 @@
 #include <exception>
-#include <iostream>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -7,43 +6,44 @@
 #include "gtest/gtest.h"
 
 #include "host.hpp"
+#include "host_instance.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_instance.hpp"
-#include "manager_instance.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
-#include "custom_manager.hpp"
+#include "test_vendor.hpp"
+#include "vendor_api_request.hpp"
+#include "vendor_api_response.hpp"
+#include "vendor_instance.hpp"
 
-using namespace manager;
+using namespace vendor;
 using namespace host;
 using namespace ipc;
 
-using Request = std::string;
-using Response = int;
-
-using TestHost = Host<Request, Response>;
+using ManagerId = int;
+using Payload = std::string;
+using TestHost = Host<ManagerId, Payload>;
 
 TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	const auto ipc_data_reader = ipc::Instance<IpcDataReader<Request>>(
-		new TestIpcDataReader<Request>(
-			[]()-> std::optional<ipc::Instance<Request>> {
+	const auto ipc_data_reader = host::Instance<IpcDataReader<TestHost::ApiRequest>>(
+		new TestIpcDataReader<TestHost::ApiRequest>(
+			[]()-> std::optional<ipc::Instance<TestHost::ApiRequest>> {
 				throw std::runtime_error("NOT IMPLEMENTED");
 			}
 		)
 	);
-	const auto ipc_data_writer = ipc::Instance<IpcDataWriter<Response>>(
-		new TestIpcDataWriter<Response>(
-			[](const Response&){
+	const auto ipc_data_writer = host::Instance<IpcDataWriter<TestHost::ApiResponse>>(
+		new TestIpcDataWriter<TestHost::ApiResponse>(
+			[](const TestHost::ApiResponse&){
 				throw std::runtime_error("NOT IMPLEMENTED");
 			}
 		)
 	);
-	const auto manager = manager::Instance<Manager<Request, Response>>(
-		new CustomManager<Request, Response>(
-			[](const Request& request) {
-				std::cout << "received request: " << request;
-				return 0;
+	const auto vendor = host::Instance<Vendor<ManagerId, Payload>>(
+		new TestVendor<ManagerId, Payload>(
+			[](const ApiRequest<ManagerId, Payload>&) -> vendor::Instance<ApiResponse> {
+				throw std::runtime_error("NOT IMPLEMENTED");
 			}
 		)
 	);
@@ -51,14 +51,14 @@ TEST(ut_host, ctor_dtor_sanity) {
 	// WHEN:
 	TestHost *instance(nullptr);
 
-	// THEN:
+	THEN:
 	ASSERT_NO_THROW(
 		instance = new TestHost(
 			ipc_data_reader,
 			ipc_data_writer,
-			manager,
-			[](const std::exception& e) -> Response {
-				return Response(-1);
+			vendor,
+			[](const std::exception& e) -> host::Instance<ApiResponse> {
+				throw std::runtime_error("NOT IMPLEMENTED");
 			}
 		)
 	);
@@ -67,30 +67,57 @@ TEST(ut_host, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
+class TestApiRequest: public ApiRequest<ManagerId, Payload> {
+public:
+	TestApiRequest(const ManagerId& id, const Payload& payload): m_id(id), m_payload(payload) {}
+	TestApiRequest(const TestApiRequest&) = default;
+	TestApiRequest& operator=(const TestApiRequest&) = default;
+	ManagerId manager_id() const override {
+		return m_id;
+	}
+	vendor::Instance<Payload> payload() const override {
+		return vendor::Instance(new Payload(m_payload));
+	}
+private:
+	ManagerId m_id;
+	Payload m_payload;
+};
+
+class TestApiResponse: public ApiResponse {
+public:
+	TestApiResponse(const Code& code): m_code(code) {}
+	TestApiResponse(const TestApiResponse&) = default;
+	TestApiResponse& operator=(const TestApiResponse&) = default;
+	
+	Code code() const override {
+		return m_code;
+	}
+private:
+	Code m_code;
+};
+
 TEST(ut_host, run_once_sanity) {
 	// GIVEN
-	const auto test_request = Request("test_request");
-	const auto expected_response = Response(4);
-	const auto ipc_data_reader = ipc::Instance<IpcDataReader<Request>>(
-		new TestIpcDataReader<Request>(
-			[test_request]()-> std::optional<ipc::Instance<Request>> {
-				return ipc::Instance<Request>(new Request(test_request));
+	const auto test_api_request = TestApiRequest(10, "test_payload");
+	const auto test_api_response = TestApiResponse(ApiResponse::Code::OK);
+	const auto ipc_data_reader = host::Instance<IpcDataReader<TestHost::ApiRequest>>(
+		new TestIpcDataReader<TestHost::ApiRequest>(
+			[test_api_request]()-> std::optional<ipc::Instance<TestHost::ApiRequest>> {
+				return ipc::Instance<ApiRequest<ManagerId, Payload>>(new TestApiRequest(test_api_request));
 			}
 		)
 	);
-	const auto ipc_data_writer = ipc::Instance<IpcDataWriter<Response>>(
-		new TestIpcDataWriter<Response>(
-			[expected_response](const Response& response){
-				ASSERT_EQ(expected_response, response);
+	const auto ipc_data_writer = host::Instance<IpcDataWriter<TestHost::ApiResponse>>(
+		new TestIpcDataWriter<TestHost::ApiResponse>(
+			[test_api_response](const TestHost::ApiResponse& response){
+				ASSERT_EQ(test_api_response.code(), response.code());
 			}
 		)
 	);
-	const auto manager = manager::Instance<Manager<Request, Response>>(
-		new CustomManager<Request, Response>(
-			[expected_response](const Request& request) {
-				std::cout << "received request: " << request << std::endl;
-				std::cout << "returning response: " << expected_response << std::endl;
-				return expected_response;
+	const auto vendor = host::Instance<Vendor<ManagerId, Payload>>(
+		new TestVendor<ManagerId, Payload>(
+			[test_api_response](const ApiRequest<ManagerId, Payload>&) -> vendor::Instance<ApiResponse> {
+				return vendor::Instance<ApiResponse>(new TestApiResponse(test_api_response));
 			}
 		)
 	);
@@ -99,10 +126,10 @@ TEST(ut_host, run_once_sanity) {
 	TestHost instance(
 		ipc_data_reader,
 		ipc_data_writer,
-		manager,
-		[](const std::exception& e) -> Response {
-			return Response(-1);
-		}	
+		vendor,
+		[](const std::exception& e) -> host::Instance<ApiResponse> {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
 	);
 
 	// THEN:
