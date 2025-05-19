@@ -3,11 +3,11 @@
 
 #include <stdexcept>
 
-#include "movement_manager_request.hpp"
 #include "movement_manager_vector.hpp"
+#include "movement_vendor_api_request.hpp"
 
-namespace manager {
-	class LinearMovementRequest: public MovementManagerRequest {
+namespace vendor {
+	class LinearMovementRequest: public MovementVendorApiRequest {
 	public:
 		LinearMovementRequest(const Vector<double>& destination, const double speed);
 		LinearMovementRequest(const LinearMovementRequest&) = default;
