@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "axes_controller_config_request.hpp"
+#include "linear_movement_request.hpp"
 #include "movement_manager.hpp"
 #include "movement_vendor_api_request.hpp"
 #include "movement_vendor_api_response.hpp"
@@ -28,6 +29,7 @@ namespace vendor {
 
 		
 		MovementVendorApiResponse run_cfg_request(const MovementVendorApiRequest& request);
+		MovementVendorApiResponse run_linear_movement_request(const MovementVendorApiRequest& request);
 
 		template <typename T>
 		static const T& cast_request(const MovementVendorApiRequest& request);
@@ -43,6 +45,8 @@ namespace vendor {
 		switch (request.type()) {
 		case MovementVendorApiRequest::RequestType::CONFIG:
 			return run_cfg_request(request);
+		case MovementVendorApiRequest::RequestType::LINEAR_MOVEMENT:
+			return run_linear_movement_request(request);
 		default:
 			throw std::invalid_argument("unsupported api request received");
 		}
@@ -53,6 +57,17 @@ namespace vendor {
 		try {
 			auto casted_request = cast_request<AxesControllerConfigApiRequest<AxesConfig>>(request);
 			m_movement_manager.get().init(casted_request.axes_cfg());
+			return MovementVendorApiResponse(MovementVendorApiResponse::Result::SUCCESS);
+		} catch (...) {
+			return MovementVendorApiResponse(MovementVendorApiResponse::Result::FAILURE);
+		}
+	}
+
+	template <typename AxesConfig>
+	inline MovementVendorApiResponse MovementVendor<AxesConfig>::run_linear_movement_request(const MovementVendorApiRequest& request) {
+		try {
+			auto casted_request = cast_request<LinearMovementRequest>(request);
+			m_movement_manager.get().linear_movement(casted_request.destination(), casted_request.speed());
 			return MovementVendorApiResponse(MovementVendorApiResponse::Result::SUCCESS);
 		} catch (...) {
 			return MovementVendorApiResponse(MovementVendorApiResponse::Result::FAILURE);
