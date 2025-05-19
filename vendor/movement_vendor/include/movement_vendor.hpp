@@ -1,20 +1,19 @@
 #ifndef	MOVEMENT_VENDOR_HPP
 #define	MOVEMENT_VENDOR_HPP
 
+#include <stdexcept>
+
 #include "manager.hpp"
-#include "movement_manager_request.hpp"
-#include "movement_manager_response.hpp"
+#include "movement_vendor_api_request.hpp"
 #include "movement_vendor_api_response.hpp"
-#include "movement_vendor_manager_id.hpp"
 #include "vendor.hpp"
-#include "vendor_api_response.hpp"
 #include "vendor_instance.hpp"
 
 namespace vendor {
-	template <typename AxisControllerConfig>
-	class MovementVendor: public Vendor<MovementManagerId, manager::MovementManagerRequest> {
+	template <typename AxesConfig>
+	class MovementVendor: public Vendor<MovementVendorApiRequest, MovementVendorApiResponse> {
 	public:
-		using MovementManagerInstance = vendor::Instance<manager::Manager<manager::MovementManagerRequest, manager::MovementManagerResponse>>;
+		using MovementManagerInstance = vendor::Instance<manager::Manager>;
 
 		MovementVendor(
 			const MovementManagerInstance& movement_manager
@@ -22,21 +21,19 @@ namespace vendor {
 		MovementVendor(const MovementVendor& other) = default;
 		MovementVendor& operator=(const MovementVendor&) = delete;
 
-		Instance<ApiResponse> run_api_request(const ApiRequest<MovementManagerId, manager::MovementManagerRequest>& request) override;
+		MovementVendorApiResponse run_api_request(const MovementVendorApiRequest& request) override;
 	private:
 		MovementManagerInstance m_movement_manager;
-		static Instance<ApiResponse> cast_response(const manager::MovementManagerResponse& response);
 	};
 
-	template <typename AxisControllerConfig>
-	inline MovementVendor<AxisControllerConfig>::MovementVendor(
+	template <typename AxesConfig>
+	inline MovementVendor<AxesConfig>::MovementVendor(
 		const MovementManagerInstance& movement_manager
 	): m_movement_manager(movement_manager) {}
 	
-	template <typename AxisControllerConfig>
-	inline Instance<ApiResponse> MovementVendor<AxisControllerConfig>::run_api_request(const ApiRequest<MovementManagerId, manager::MovementManagerRequest>& request) {
-		const auto manager_response = m_movement_manager.get().run(request.payload().get());
-		return Instance<ApiResponse>(new MovementVendorApiResponse(manager_response));
+	template <typename AxesConfig>
+	inline MovementVendorApiResponse MovementVendor<AxesConfig>::run_api_request(const MovementVendorApiRequest& request) {
+		throw std::runtime_error("NOT IMPLEMENTED");
 	}
 }
 
