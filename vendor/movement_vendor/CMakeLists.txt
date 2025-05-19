@@ -9,7 +9,8 @@ target_include_directories(movement_vendor INTERFACE ${CMAKE_CURRENT_LIST_DIR}/i
 target_link_libraries(
     movement_vendor
     INTERFACE
-    manager
+    axes_controller_config_request
+    movement_manager
     movement_vendor_api_request
     movement_vendor_api_response
     vendor
