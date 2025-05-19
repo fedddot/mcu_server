@@ -18,7 +18,7 @@
 
 namespace manager {
 	template <typename AxisControllerConfig>
-	class MovementManager: public Manager<MovementManagerRequest, MovementManagerResponse> {
+	class MovementManager: public Manager {
 	public:
 		using AxesControllerCreator = std::function<Instance<AxesController>(const AxisControllerConfig&)>;
 		MovementManager(
@@ -28,7 +28,7 @@ namespace manager {
 		MovementManager(const MovementManager& other) = default;
 		MovementManager& operator=(const MovementManager&) = delete;
 
-		MovementManagerResponse run(const MovementManagerRequest& request) override;
+		MovementManagerResponse run(const MovementManagerRequest& request);
 	private:
 		AxesControllerCreator m_axes_controller_ctor;
 		std::optional<Instance<AxesController>> m_axes_controller;
