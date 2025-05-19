@@ -6,7 +6,7 @@ namespace vendor {
 	public:
 		enum class RequestType: int {
 			CONFIG,
-			MOVEMENT,
+			LINEAR_MOVEMENT,
 		};
 		virtual RequestType type() const = 0;
 	};
