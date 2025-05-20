@@ -8,7 +8,6 @@
 #include "host.hpp"
 #include "ipc_data.hpp"
 #include "ipc_data_reader.hpp"
-#include "ipc_data_writer.hpp"
 #include "ipc_instance.hpp"
 #include "movement_vendor_api_request.hpp"
 #include "movement_vendor_api_response.hpp"
@@ -23,7 +22,9 @@ namespace host {
 		using RawDataPackageDescriptor = ipc::RawDataPackageDescriptor;
 		using PackageSizeParser = ipc::RawDataPackageReader::PackageSizeParser;
 		
-		MovementHostBuilder(): m_buffer(nullptr) {}
+		MovementHostBuilder(): m_buffer(nullptr) {
+			
+		}
 		MovementHostBuilder(const MovementHostBuilder&) = default;
 		MovementHostBuilder& operator=(const MovementHostBuilder&) = default;
 		virtual ~MovementHostBuilder() noexcept = default;
@@ -65,13 +66,9 @@ namespace host {
 			m_size_parser = size_parser;
 			return std::ref(*this);
 		}
-		MovementHostBuilder& set_raw_data_reader(const RawDataReaderInstance& raw_data_reader);
-		MovementHostBuilder& set_raw_data_writer(const RawDataWriterInstance& raw_data_writer);
 	private:
 		RawData *m_buffer;
 		std::optional<RawDataPackageDescriptor> m_descriptor;
-		std::optional<RawDataReaderInstance> m_raw_data_reader;
-		std::optional<RawDataWriterInstance> m_raw_data_writer;
 		std::optional<PackageSizeParser> m_size_parser;
 
 		template <typename T>
