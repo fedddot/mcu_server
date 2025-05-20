@@ -19,8 +19,8 @@ namespace ipc {
 		ApiRequestReaderBuilder(const ApiRequestReaderBuilder&) = default;
 		ApiRequestReaderBuilder& operator=(const ApiRequestReaderBuilder&) = default;
 		Instance<IpcDataReader<ApiRequest>> build() const override;
-		void set_api_request_parser(const ApiRequestParser& api_request_parser);
-		void set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader);
+		ApiRequestReaderBuilder& set_api_request_parser(const ApiRequestParser& api_request_parser);
+		ApiRequestReaderBuilder& set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader);
 	private:
 		std::optional<ApiRequestParser> m_api_request_parser;
 		std::optional<Instance<IpcDataReader<RawData>>> m_raw_data_reader;
@@ -49,13 +49,15 @@ namespace ipc {
 	}
 
 	template <typename ApiRequest, typename RawData>
-	inline void ApiRequestReaderBuilder<ApiRequest, RawData>::set_api_request_parser(const ApiRequestParser& api_request_parser) {
+	inline ApiRequestReaderBuilder<ApiRequest, RawData>& ApiRequestReaderBuilder<ApiRequest, RawData>::set_api_request_parser(const ApiRequestParser& api_request_parser) {
 		m_api_request_parser = api_request_parser;
+		return std::ref(*this);
 	}
 	
 	template <typename ApiRequest, typename RawData>
-	inline void ApiRequestReaderBuilder<ApiRequest, RawData>::set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader) {
+	inline ApiRequestReaderBuilder<ApiRequest, RawData>& ApiRequestReaderBuilder<ApiRequest, RawData>::set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader) {
 		m_raw_data_reader = reader;
+		return std::ref(*this);
 	}
 
 	template <typename ApiRequest, typename RawData>
