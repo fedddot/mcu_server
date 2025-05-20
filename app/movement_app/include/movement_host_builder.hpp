@@ -24,38 +24,56 @@ namespace host {
 		using RawDataReaderInstance = ipc::Instance<ipc::IpcDataReader<RawData>>;
 		using RawDataWriterInstance = ipc::Instance<ipc::IpcDataWriter<RawData>>;
 		
-		MovementHostBuilder() = default;
+		MovementHostBuilder(): m_buffer(nullptr) {}
 		MovementHostBuilder(const MovementHostBuilder&) = default;
 		MovementHostBuilder& operator=(const MovementHostBuilder&) = default;
 		virtual ~MovementHostBuilder() noexcept = default;
 		
 		Host<vendor::MovementVendorApiRequest, vendor::MovementVendorApiResponse> build() const {
-			// const auto package_reader = ipc::RawDataPackageReader(
-			// 	RawData *buffer, const RawDataPackageDescriptor &descriptor, const PackageSizeParser &size_parser
-			// )
+			if (!m_buffer) {
+				throw std::runtime_error("raw data buffer ptr has not been set");
+			}
+			const auto package_reader = ipc::RawDataPackageReader(
+				m_buffer,
+				retrieve_from_option(m_descriptor, "package descriptor"),
+				retrieve_from_option(m_size_parser, "package size parser")
+			);
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
-		void set_raw_data_buffer_ptr(RawData *buffer);
-		void set_package_descriptor(const RawDataPackageDescriptor& descriptor);
-		void set_package_size_parser(const PackageSizeParser& size_parser);
-		void set_raw_data_reader(const RawDataReaderInstance& raw_data_reader);
-		void set_raw_data_writer(const RawDataWriterInstance& raw_data_writer);
-		// void set_axes_controller_ctor(const AxesControllerCreator& axes_controller_ctor);
-		// void set_axes_properties(const manager::AxesProperties axes_properties);
-		// void set_ctrlr_cfg_to_json(const AxesConfigToJsonTransformer& ctrlr_cfg_to_json);
-		// void set_json_cfg_to_ctrlr(const JsonToAxesConfigTransformer& json_cfg_to_ctrlr);
+		MovementHostBuilder& set_raw_data_buffer_ptr(RawData *buffer) {
+			if (!buffer) {
+				throw std::invalid_argument("invalid buffer ptr received");
+			}
+			m_buffer = buffer;
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_package_descriptor(const RawDataPackageDescriptor& descriptor) {
+			m_descriptor = descriptor;
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_package_size_parser(const PackageSizeParser& size_parser) {
+			if (!size_parser) {
+				throw std::invalid_argument("invalid size parser received");
+			}
+			m_size_parser = size_parser;
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_raw_data_reader(const RawDataReaderInstance& raw_data_reader);
+		MovementHostBuilder& set_raw_data_writer(const RawDataWriterInstance& raw_data_writer);
 	private:
 		RawData *m_buffer;
 		std::optional<RawDataPackageDescriptor> m_descriptor;
 		std::optional<RawDataReaderInstance> m_raw_data_reader;
 		std::optional<RawDataWriterInstance> m_raw_data_writer;
 		std::optional<PackageSizeParser> m_size_parser;
-		// std::optional<manager::AxesProperties> m_axes_properties;
-		// std::optional<AxesConfigToJsonTransformer> m_ctrlr_cfg_to_json;
-		// std::optional<JsonToAxesConfigTransformer> m_json_cfg_to_ctrlr;
 
 		template <typename T>
-		static const T& retrieve_from_option(const std::optional<T>& option, const std::string& option_name);
+		static const T& retrieve_from_option(const std::optional<T>& option, const std::string& option_name) {
+			if (!option) {
+				throw std::runtime_error(option_name + " has not been set");
+			}
+			return std::ref(*option);
+		}
 	};
 }
 
