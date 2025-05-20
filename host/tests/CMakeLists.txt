@@ -15,8 +15,6 @@ target_link_libraries(
     test_ipc_data_reader
     test_ipc_data_writer
     test_vendor
-    vendor_api_request
-    vendor_api_response
     vendor_instance
 	gtest
 )

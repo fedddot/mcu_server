@@ -8,8 +8,6 @@ target_link_libraries(
     INTERFACE
     host_instance
     vendor
-    vendor_api_request
-    vendor_api_response
     ipc_data_reader
     ipc_data_writer
 )
