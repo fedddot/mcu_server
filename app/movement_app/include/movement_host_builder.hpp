@@ -4,6 +4,7 @@
 #include <optional>
 #include <stdexcept>
 
+#include "api_request_reader_builder.hpp"
 #include "host.hpp"
 #include "ipc_data.hpp"
 #include "ipc_data_reader.hpp"
@@ -21,8 +22,6 @@ namespace host {
 		using RawData = ipc::RawData;
 		using RawDataPackageDescriptor = ipc::RawDataPackageDescriptor;
 		using PackageSizeParser = ipc::RawDataPackageReader::PackageSizeParser;
-		using RawDataReaderInstance = ipc::Instance<ipc::IpcDataReader<RawData>>;
-		using RawDataWriterInstance = ipc::Instance<ipc::IpcDataWriter<RawData>>;
 		
 		MovementHostBuilder(): m_buffer(nullptr) {}
 		MovementHostBuilder(const MovementHostBuilder&) = default;
@@ -33,11 +32,19 @@ namespace host {
 			if (!m_buffer) {
 				throw std::runtime_error("raw data buffer ptr has not been set");
 			}
-			const auto package_reader = ipc::RawDataPackageReader(
-				m_buffer,
-				retrieve_from_option(m_descriptor, "package descriptor"),
-				retrieve_from_option(m_size_parser, "package size parser")
+			const auto package_reader = ipc::Instance<ipc::IpcDataReader<RawData>>(
+				new ipc::RawDataPackageReader(
+					m_buffer,
+					retrieve_from_option(m_descriptor, "package descriptor"),
+					retrieve_from_option(m_size_parser, "package size parser")
+				)
 			);
+			ipc::ApiRequestReaderBuilder<vendor::MovementVendorApiRequest, RawData> api_request_reader_builder;
+			api_request_reader_builder
+				.set_raw_data_reader(package_reader);
+
+			const auto api_request_reader = api_request_reader_builder.build();
+
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 		MovementHostBuilder& set_raw_data_buffer_ptr(RawData *buffer) {
