@@ -7,21 +7,17 @@
 
 #include "host_instance.hpp"
 #include "vendor.hpp"
-#include "vendor_api_request.hpp"
-#include "vendor_api_response.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
 
 namespace host {
-	template <typename ManagerId, typename Payload>
+	template <typename ApiRequest, typename ApiResponse>
 	class Host {
 	public:
-		using ApiRequest = vendor::ApiRequest<ManagerId, Payload>;
 		using ApiRequestReaderInstance = host::Instance<ipc::IpcDataReader<ApiRequest>>;
-		using ApiResponse = vendor::ApiResponse;
 		using ApiResponseWriterInstance = host::Instance<ipc::IpcDataWriter<ApiResponse>>;
-		using VendorInstance = host::Instance<vendor::Vendor<ManagerId, Payload>>;
-		using FailureReporter = std::function<host::Instance<ApiResponse>(const std::exception&)>;
+		using VendorInstance = host::Instance<vendor::Vendor<ApiRequest, ApiResponse>>;
+		using FailureReporter = std::function<ApiResponse(const std::exception&)>;
 
 		Host(
 			const ApiRequestReaderInstance& api_request_reader,
@@ -41,8 +37,8 @@ namespace host {
 		FailureReporter m_failure_reporter;
 	};
 
-	template <typename ManagerId, typename Payload>
-	inline Host<ManagerId, Payload>::Host(
+	template <typename ApiRequest, typename ApiResponse>
+	inline Host<ApiRequest, ApiResponse>::Host(
 		const ApiRequestReaderInstance& api_request_reader,
 		const ApiResponseWriterInstance& api_response_writer,
 		const VendorInstance& vendor,
@@ -53,8 +49,8 @@ namespace host {
 		}
 	}
 
-	template <typename ManagerId, typename Payload>
-	inline void Host<ManagerId, Payload>::run_once() {
+	template <typename ApiRequest, typename ApiResponse>
+	inline void Host<ApiRequest, ApiResponse>::run_once() {
 		try {
 			const auto request = m_api_request_reader.get().read();
 			if (!request) {

@@ -12,8 +12,6 @@
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 #include "test_vendor.hpp"
-#include "vendor_api_request.hpp"
-#include "vendor_api_response.hpp"
 #include "vendor_instance.hpp"
 
 using namespace vendor;
