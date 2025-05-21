@@ -71,6 +71,18 @@ namespace host {
 			m_api_response_writer_builder.set_api_response_serializer(api_response_serializer);
 			return std::ref(*this);
 		}
+		MovementHostBuilder& set_axes_controller_creator(const AxesControllerCreator& axes_controller_ctor) {
+			m_axes_controller_ctor = axes_controller_ctor;
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_axes_properties(const AxesProperties& axes_properties) {
+			m_axes_properties = axes_properties;
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_failure_reporter(const FailureReporter& failure_reporter) {
+			m_failure_reporter = failure_reporter;
+			return std::ref(*this);
+		}
 	private:
 		ipc::ApiRequestReaderBuilder<ApiRequest, RawData> m_api_request_reader_builder;
 		ipc::ApiResponseWriterBuilder<ApiResponse, RawData> m_api_response_writer_builder;

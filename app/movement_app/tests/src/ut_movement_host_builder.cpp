@@ -4,8 +4,12 @@
 
 #include "gtest/gtest.h"
 
+#include "axes_controller.hpp"
 #include "ipc_instance.hpp"
+#include "manager_instance.hpp"
 #include "movement_host_builder.hpp"
+#include "movement_manager_data.hpp"
+#include "movement_vendor_api_response.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 
@@ -52,6 +56,13 @@ TEST(ut_movement_host_builder, build_sanity) {
 	const auto api_response_serializer = [](const MovementHostBuilder<AxesConfig, RawData>::ApiResponse&) -> RawData {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
+	const auto axes_controller_ctor = [](const AxesConfig&) -> manager::Instance<manager::AxesController> {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto axes_properties = manager::AxesProperties(0.1, 0.2, 0.3);
+	const auto failure_reporter = [](const std::exception&) -> vendor::MovementVendorApiResponse {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
 	
 	// WHEN
 	MovementHostBuilder<AxesConfig, RawData> instance;
@@ -59,12 +70,16 @@ TEST(ut_movement_host_builder, build_sanity) {
 		.set_raw_data_reader(raw_data_reader)
 		.set_api_request_parser(api_request_parser)
 		.set_raw_data_writer(raw_data_writer)
-		.set_api_response_serializer(api_response_serializer);
+		.set_api_response_serializer(api_response_serializer)
+		.set_axes_controller_creator(axes_controller_ctor)
+		.set_axes_properties(axes_properties)
+		.set_failure_reporter(failure_reporter);
 
 	// THEN
 	ASSERT_NO_THROW(
 		{
-			const auto host = instance.build();
+			auto host = instance.build();
+			host.run_once();
 		}
 	);
 }
