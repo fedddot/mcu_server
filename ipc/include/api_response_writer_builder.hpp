@@ -38,14 +38,19 @@ namespace ipc {
 			ApiResponseSerializer m_api_response_serializer;
 			Instance<IpcDataWriter<RawData>> m_raw_data_writer;
 		};
+
+		template <typename T>
+		static const T& retrieve_from_option(const std::optional<T>& option, const std::string& option_name);
 	};
 
 	template <typename ApiResponse, typename RawData>
 	inline Instance<IpcDataWriter<ApiResponse>> ApiResponseWriterBuilder<ApiResponse, RawData>::build() const {
-		if (!m_api_response_serializer || !m_raw_data_writer) {
-			throw std::runtime_error("Builder is not properly initialized: missing required components.");
-		}
-		return Instance<IpcDataWriter<ApiResponse>>(new ApiResponseWriter(*m_api_response_serializer, *m_raw_data_writer));
+		return Instance<IpcDataWriter<ApiResponse>>(
+			new ApiResponseWriter(
+				retrieve_from_option(m_api_response_serializer, "api response serializer"),
+				retrieve_from_option(m_raw_data_writer, "raw data writer")
+			)
+		);
 	}
 
 	template <typename ApiResponse, typename RawData>
@@ -74,6 +79,15 @@ namespace ipc {
 	inline void ApiResponseWriterBuilder<ApiResponse, RawData>::ApiResponseWriter::write(const ApiResponse& data) const {
 		const auto serialized_response = m_api_response_serializer(data);
 		m_raw_data_writer.get().write(serialized_response);
+	}
+
+	template <typename ApiResponse, typename RawData>
+	template <typename T>
+	inline const T& ApiResponseWriterBuilder<ApiResponse, RawData>::retrieve_from_option(const std::optional<T>& option, const std::string& option_name) {
+		if (!option) {
+			throw std::runtime_error(option_name + " has not been set");
+		}
+		return std::ref(*option);
 	}
 }
 
