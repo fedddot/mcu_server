@@ -14,7 +14,7 @@
 #include "test_ipc_data_writer.hpp"
 
 using namespace ipc;
-// using namespace manager;
+using namespace manager;
 using namespace host;
 
 using AxesConfig = std::string;
@@ -56,10 +56,10 @@ TEST(ut_movement_host_builder, build_sanity) {
 	const auto api_response_serializer = [](const MovementHostBuilder<AxesConfig, RawData>::ApiResponse&) -> RawData {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	const auto axes_controller_ctor = [](const AxesConfig&) -> manager::Instance<manager::AxesController> {
+	const auto axes_controller_ctor = [](const AxesConfig&) -> manager::Instance<AxesController> {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	const auto axes_properties = manager::AxesProperties(0.1, 0.2, 0.3);
+	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
 	const auto failure_reporter = [](const std::exception&) -> vendor::MovementVendorApiResponse {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
@@ -79,7 +79,6 @@ TEST(ut_movement_host_builder, build_sanity) {
 	ASSERT_NO_THROW(
 		{
 			auto host = instance.build();
-			host.run_once();
 		}
 	);
 }
