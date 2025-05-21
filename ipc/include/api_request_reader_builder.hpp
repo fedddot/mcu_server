@@ -19,8 +19,8 @@ namespace ipc {
 		ApiRequestReaderBuilder(const ApiRequestReaderBuilder&) = default;
 		ApiRequestReaderBuilder& operator=(const ApiRequestReaderBuilder&) = default;
 		Instance<IpcDataReader<ApiRequest>> build() const override;
-		void set_api_request_parser(const ApiRequestParser& api_request_parser);
-		void set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader);
+		ApiRequestReaderBuilder& set_api_request_parser(const ApiRequestParser& api_request_parser);
+		ApiRequestReaderBuilder& set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader);
 	private:
 		std::optional<ApiRequestParser> m_api_request_parser;
 		std::optional<Instance<IpcDataReader<RawData>>> m_raw_data_reader;
@@ -38,24 +38,31 @@ namespace ipc {
 			ApiRequestParser m_api_request_parser;
 			Instance<IpcDataReader<RawData>> m_raw_data_reader;
 		};
+
+		template <typename T>
+		static const T& retrieve_from_option(const std::optional<T>& option, const std::string& option_name);
 	};
 
 	template <typename ApiRequest, typename RawData>
 	inline Instance<IpcDataReader<ApiRequest>> ApiRequestReaderBuilder<ApiRequest, RawData>::build() const {
-		if (!m_api_request_parser || !m_raw_data_reader) {
-			throw std::runtime_error("Builder is not properly initialized: missing required components.");
-		}
-		return Instance<IpcDataReader<ApiRequest>>(new ApiRequestReader(*m_api_request_parser, *m_raw_data_reader));
+		return Instance<IpcDataReader<ApiRequest>>(
+			new ApiRequestReader(
+				retrieve_from_option(m_api_request_parser, "api request parser"),
+				retrieve_from_option(m_raw_data_reader, "raw data reader")
+			)
+		);
 	}
 
 	template <typename ApiRequest, typename RawData>
-	inline void ApiRequestReaderBuilder<ApiRequest, RawData>::set_api_request_parser(const ApiRequestParser& api_request_parser) {
+	inline ApiRequestReaderBuilder<ApiRequest, RawData>& ApiRequestReaderBuilder<ApiRequest, RawData>::set_api_request_parser(const ApiRequestParser& api_request_parser) {
 		m_api_request_parser = api_request_parser;
+		return std::ref(*this);
 	}
 	
 	template <typename ApiRequest, typename RawData>
-	inline void ApiRequestReaderBuilder<ApiRequest, RawData>::set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader) {
+	inline ApiRequestReaderBuilder<ApiRequest, RawData>& ApiRequestReaderBuilder<ApiRequest, RawData>::set_raw_data_reader(const Instance<IpcDataReader<RawData>>& reader) {
 		m_raw_data_reader = reader;
+		return std::ref(*this);
 	}
 
 	template <typename ApiRequest, typename RawData>
@@ -75,6 +82,15 @@ namespace ipc {
 	        return std::nullopt;
 	    }
 	    return m_api_request_parser(raw_data_opt->get());
+	}
+
+	template <typename ApiRequest, typename RawData>
+	template <typename T>
+	inline const T& ApiRequestReaderBuilder<ApiRequest, RawData>::retrieve_from_option(const std::optional<T>& option, const std::string& option_name) {
+		if (!option) {
+			throw std::runtime_error(option_name + " has not been set");
+		}
+		return std::ref(*option);
 	}
 }
 

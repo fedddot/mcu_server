@@ -1,12 +1,10 @@
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
-#include "json/value.h"
+
 #include "axes_controller.hpp"
-#include "ipc_data.hpp"
-#include "ipc_data_reader.hpp"
-#include "ipc_data_writer.hpp"
 #include "ipc_instance.hpp"
 #include "manager_instance.hpp"
 #include "movement_host_builder.hpp"
@@ -19,58 +17,63 @@ using namespace manager;
 using namespace host;
 
 using AxesConfig = std::string;
-
-static Json::Value cfg2json(const AxesConfig& cfg);
-static AxesConfig json2cfg(const Json::Value& cfg);
+using RawData = std::vector<char>;
 
 TEST(ut_movement_host_builder, ctor_dtor_sanity) {
 	// WHEN
-	MovementHostBuilder<AxesConfig> *instance = nullptr;
+	MovementHostBuilder<AxesConfig, RawData> *instance = nullptr;
 
 	// THEN
-	ASSERT_NO_THROW(instance = new MovementHostBuilder<AxesConfig>());
+	ASSERT_NO_THROW(
+		(
+			instance = new MovementHostBuilder<AxesConfig, RawData>()
+		)
+	);
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
 
 TEST(ut_movement_host_builder, build_sanity) {
+	// GIVEN
+	const auto raw_data_reader = MovementHostBuilder<AxesConfig, RawData>::RawDataReaderInstance(
+		new TestIpcDataReader<RawData>(
+			[]() -> std::optional<ipc::Instance<RawData>> {
+				throw std::runtime_error("NOT IMPLEMENTED");
+			}
+		)
+	);
+	const auto raw_data_writer = MovementHostBuilder<AxesConfig, RawData>::RawDataWriterInstance(
+		new TestIpcDataWriter<RawData>(
+			[](const RawData&) {
+				throw std::runtime_error("NOT IMPLEMENTED");
+			}
+		)
+	);
+	const auto api_request_parser = [](const RawData&) -> ipc::Instance<MovementHostBuilder<AxesConfig, RawData>::ApiRequest> {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto api_response_serializer = [](const MovementHostBuilder<AxesConfig, RawData>::ApiResponse&) -> RawData {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto axes_controller_ctor = [](const AxesConfig&) -> manager::Instance<AxesController> {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
+	
 	// WHEN
-	MovementHostBuilder<AxesConfig> instance;
-	instance.set_axes_properties(AxesProperties(0.1, 0.1, 0.1));
-	instance.set_axes_controller_ctor(
-		[](const AxesConfig&) -> manager::Instance<AxesController> {
-			throw std::runtime_error("NOT IMPLEMENTED");
-		}
-	);
-	instance.set_raw_data_writer(
-		ipc::Instance<IpcDataWriter<RawData>>(
-			new TestIpcDataWriter<RawData>(
-				[](const RawData&) {
-					throw std::runtime_error("NOT IMPLEMENTED");
-				}
-			)
-		)
-	);
-	instance.set_raw_data_reader(
-		ipc::Instance<IpcDataReader<RawData>>(
-			new TestIpcDataReader<RawData>(
-				[]() -> std::optional<ipc::Instance<RawData>> {
-					throw std::runtime_error("NOT IMPLEMENTED");
-				}
-			)
-		)
-	);
-	instance.set_json_cfg_to_ctrlr(json2cfg);
-	instance.set_ctrlr_cfg_to_json(cfg2json);
+	MovementHostBuilder<AxesConfig, RawData> instance;
+	instance
+		.set_raw_data_reader(raw_data_reader)
+		.set_api_request_parser(api_request_parser)
+		.set_raw_data_writer(raw_data_writer)
+		.set_api_response_serializer(api_response_serializer)
+		.set_axes_controller_creator(axes_controller_ctor)
+		.set_axes_properties(axes_properties);
 
 	// THEN
-	ASSERT_NO_THROW(auto host = instance.build());
-}
-
-inline Json::Value cfg2json(const AxesConfig& cfg) {
-	return Json::Value(cfg);
-}
-
-inline AxesConfig json2cfg(const Json::Value& cfg) {
-	return cfg.asString();
+	ASSERT_NO_THROW(
+		{
+			const auto host = instance.build();
+		}
+	);
 }

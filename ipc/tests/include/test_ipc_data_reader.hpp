@@ -6,7 +6,6 @@
 
 #include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
-#include "ipc_instance.hpp"
 
 namespace ipc {
 	template <typename IpcData>

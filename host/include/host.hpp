@@ -5,18 +5,18 @@
 #include <functional>
 #include <stdexcept>
 
-#include "host_instance.hpp"
-#include "vendor.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
+#include "vendor.hpp"
+#include "vendor_instance.hpp"
 
 namespace host {
 	template <typename ApiRequest, typename ApiResponse>
 	class Host {
 	public:
-		using ApiRequestReaderInstance = host::Instance<ipc::IpcDataReader<ApiRequest>>;
-		using ApiResponseWriterInstance = host::Instance<ipc::IpcDataWriter<ApiResponse>>;
-		using VendorInstance = host::Instance<vendor::Vendor<ApiRequest, ApiResponse>>;
+		using ApiRequestReaderInstance = ipc::Instance<ipc::IpcDataReader<ApiRequest>>;
+		using ApiResponseWriterInstance = ipc::Instance<ipc::IpcDataWriter<ApiResponse>>;
+		using VendorInstance = vendor::Instance<vendor::Vendor<ApiRequest, ApiResponse>>;
 		using FailureReporter = std::function<ApiResponse(const std::exception&)>;
 
 		Host(

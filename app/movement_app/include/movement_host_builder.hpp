@@ -1,120 +1,104 @@
 #ifndef	MOVEMENT_HOST_BUILDER_HPP
 #define	MOVEMENT_HOST_BUILDER_HPP
 
+#include <exception>
 #include <optional>
+#include <stdexcept>
+
 #include "api_request_reader_builder.hpp"
+#include "api_response_writer_builder.hpp"
 #include "host.hpp"
-#include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
-#include "movement_manager_request.hpp"
+#include "ipc_instance.hpp"
+#include "movement_manager.hpp"
+#include "movement_manager_data.hpp"
+#include "movement_vendor.hpp"
 #include "movement_vendor_api_request.hpp"
-#include "movement_vendor_manager_id.hpp"
+#include "movement_vendor_api_response.hpp"
 
 namespace host {
-	using ManagerId = vendor::MovementManagerId;
-	using Payload = manager::MovementManagerRequest;
-
 	template <typename AxesConfig, typename RawData>
 	class MovementHostBuilder {
 	public:
+		using ApiRequest = vendor::MovementVendorApiRequest;
+		using ApiRequestParser = typename ipc::ApiRequestReaderBuilder<ApiRequest, RawData>::ApiRequestParser;
 		using RawDataReaderInstance = ipc::Instance<ipc::IpcDataReader<RawData>>;
+
+		using ApiResponse = vendor::MovementVendorApiResponse;
+		using ApiResponseSerializer = typename ipc::ApiResponseWriterBuilder<ApiResponse, RawData>::ApiResponseSerializer;
 		using RawDataWriterInstance = ipc::Instance<ipc::IpcDataWriter<RawData>>;
+
+		using AxesControllerCreator = typename manager::MovementManager<AxesConfig>::AxesControllerCreator;
+		using AxesProperties = typename manager::AxesProperties;
+
+		using FailureReporter = typename Host<ApiRequest, ApiResponse>::FailureReporter;
 		
 		MovementHostBuilder() = default;
 		MovementHostBuilder(const MovementHostBuilder&) = default;
 		MovementHostBuilder& operator=(const MovementHostBuilder&) = default;
 		virtual ~MovementHostBuilder() noexcept = default;
 		
-		Host<ManagerId, Payload> build() const;
-
-		void set_raw_data_reader(const RawDataReaderInstance& raw_data_reader);
-		void set_raw_data_writer(const RawDataWriterInstance& raw_data_writer);
-		// void set_axes_controller_ctor(const AxesControllerCreator& axes_controller_ctor);
-		// void set_axes_properties(const manager::AxesProperties axes_properties);
-		// void set_ctrlr_cfg_to_json(const AxesConfigToJsonTransformer& ctrlr_cfg_to_json);
-		// void set_json_cfg_to_ctrlr(const JsonToAxesConfigTransformer& json_cfg_to_ctrlr);
+		Host<ApiRequest, ApiResponse> build() const {
+			const auto api_request_reader = m_api_request_reader_builder.build();
+			const auto api_response_writer = m_api_response_writer_builder.build();
+			const auto movement_manager_instance = typename vendor::MovementVendor<AxesConfig>::MovementManagerInstance(
+				new manager::MovementManager<AxesConfig>(
+					retrieve_from_option(m_axes_controller_ctor, "axes controller constructor"),
+					retrieve_from_option(m_axes_properties, "axes properties")
+				)
+			);
+			const auto movement_vendor = Host<ApiRequest, ApiResponse>::VendorInstance(new vendor::MovementVendor<AxesConfig>(movement_manager_instance));
+			return Host<ApiRequest, ApiResponse>(
+				api_request_reader,
+				api_response_writer,
+				movement_vendor,
+				[](const std::exception& e) {
+					return ApiResponse(
+						ApiResponse::Result::FAILURE,
+						std::string("an exception caught at host: ") + std::string(e.what())
+					);
+				}
+			);
+		}
+		MovementHostBuilder& set_api_request_parser(const ApiRequestParser& api_request_parser) {
+			m_api_request_reader_builder.set_api_request_parser(api_request_parser);
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_raw_data_reader(const RawDataReaderInstance& raw_data_reader) {
+			m_api_request_reader_builder.set_raw_data_reader(raw_data_reader);
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_raw_data_writer(const RawDataWriterInstance& raw_data_writer) {
+			m_api_response_writer_builder.set_raw_data_writer(raw_data_writer);
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_api_response_serializer(const ApiResponseSerializer& api_response_serializer) {
+			m_api_response_writer_builder.set_api_response_serializer(api_response_serializer);
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_axes_controller_creator(const AxesControllerCreator& axes_controller_ctor) {
+			m_axes_controller_ctor = axes_controller_ctor;
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_axes_properties(const AxesProperties& axes_properties) {
+			m_axes_properties = axes_properties;
+			return std::ref(*this);
+		}
 	private:
-		ipc::ApiRequestReaderBuilder<vendor::MovementVendorApiRequest, typename RawData>
-		// std::optional<AxesControllerCreator> m_axes_controller_ctor;
-		// std::optional<manager::AxesProperties> m_axes_properties;
-		// std::optional<AxesConfigToJsonTransformer> m_ctrlr_cfg_to_json;
-		// std::optional<JsonToAxesConfigTransformer> m_json_cfg_to_ctrlr;
+		ipc::ApiRequestReaderBuilder<ApiRequest, RawData> m_api_request_reader_builder;
+		ipc::ApiResponseWriterBuilder<ApiResponse, RawData> m_api_response_writer_builder;
+		std::optional<AxesControllerCreator> m_axes_controller_ctor;
+		std::optional<AxesProperties> m_axes_properties;
 
 		template <typename T>
-		static const T& retrieve_from_option(const std::optional<T>& option, const std::string& option_name);
-	};
-
-	template <typename AxesConfig, typename RawData>
-	inline Host<ManagerId, Payload> MovementHostBuilder<AxesConfig, RawData>::build() const {
-		return host::Instance(
-			new Host<Request, Response>(
-				ipc::Instance<ipc::IpcDataReader<manager::MovementManagerRequest>>(
-					new ipc::MovementIpcDataReader<AxesConfig>(
-						retrieve_from_option(m_raw_data_reader, "raw_data_reader"),
-						retrieve_from_option(m_ctrlr_cfg_to_json, "ctrlr_cfg_to_json"),
-						retrieve_from_option(m_json_cfg_to_ctrlr, "json_cfg_to_ctrlr")
-					)
-				),
-				ipc::Instance<ipc::IpcDataWriter<manager::MovementManagerResponse>>(
-					new ipc::MovementIpcDataWriter(
-						retrieve_from_option(m_raw_data_writer, "raw_data_writer")
-					)
-				),
-				manager::Instance<manager::Manager<manager::MovementManagerRequest, manager::MovementManagerResponse>>(
-					new manager::MovementManager<AxesConfig>(
-						retrieve_from_option(m_axes_controller_ctor, "axes_controller_ctor"),
-						retrieve_from_option(m_axes_properties, "axes_properties")
-					)
-				),
-				[](const std::exception& e) {
-					return manager::MovementManagerResponse {
-						manager::MovementManagerResponse::ResultCode::EXCEPTION,
-						std::string(e.what()),
-					};
-				}
-			)
-		);
-	}
-
-	template <typename AxesConfig, typename RawData>
-	inline void MovementHostBuilder<AxesConfig, RawData>::set_axes_properties(const manager::AxesProperties axes_properties) {
-		m_axes_properties = axes_properties;
-	}
-
-	template <typename AxesConfig, typename RawData>
-	inline void MovementHostBuilder<AxesConfig, RawData>::set_raw_data_reader(const RawDataReaderInstance& raw_data_reader) {
-		m_raw_data_reader = raw_data_reader;
-	}
-
-	template <typename AxesConfig, typename RawData>
-	inline void MovementHostBuilder<AxesConfig, RawData>::set_raw_data_writer(const RawDataWriterInstance& raw_data_writer) {
-		m_raw_data_writer = raw_data_writer;
-	}
-
-	template <typename AxesConfig, typename RawData>
-	inline void MovementHostBuilder<AxesConfig, RawData>::set_axes_controller_ctor(const AxesControllerCreator& axes_controller_ctor) {
-		m_axes_controller_ctor = axes_controller_ctor;
-	}
-
-	template <typename AxesConfig, typename RawData>
-	inline void MovementHostBuilder<AxesConfig, RawData>::set_ctrlr_cfg_to_json(const AxesConfigToJsonTransformer& ctrlr_cfg_to_json) {
-		m_ctrlr_cfg_to_json = ctrlr_cfg_to_json;
-	}
-
-	template <typename AxesConfig, typename RawData>
-	inline void MovementHostBuilder<AxesConfig, RawData>::set_json_cfg_to_ctrlr(const JsonToAxesConfigTransformer& json_cfg_to_ctrlr) {
-		m_json_cfg_to_ctrlr = json_cfg_to_ctrlr;
-	}
-
-	template <typename AxesConfig, typename RawData>
-	template <typename T>
-	inline const T& MovementHostBuilder<AxesConfig, RawData>::retrieve_from_option(const std::optional<T>& option, const std::string& option_name) {
-		if (!option) {
-			throw std::runtime_error("builder option " + option_name + " is not initialized");
+		static const T& retrieve_from_option(const std::optional<T>& option, const std::string& option_name) {
+			if (!option) {
+				throw std::runtime_error(option_name + " has not been set");
+			}
+			return std::ref(*option);
 		}
-		return std::ref(*option);
-	}
+	};
 }
 
 #endif // MOVEMENT_HOST_BUILDER_HPP
