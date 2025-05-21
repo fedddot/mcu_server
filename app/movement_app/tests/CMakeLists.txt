@@ -7,9 +7,14 @@ add_executable(
 target_link_libraries(
 	movement_app_tests
 	PRIVATE
-	test_ipc_data_reader
-	test_ipc_data_writer
-	movement_host_builder
+    axes_controller
+    ipc_instance
+    manager_instance
+    movement_host_builder
+    movement_manager_data
+    movement_vendor_api_response
+    test_ipc_data_reader
+    test_ipc_data_writer
 	
 	gtest
 )
