@@ -5,8 +5,10 @@
 #include <stdexcept>
 
 #include "api_request_reader_builder.hpp"
+#include "api_response_writer_builder.hpp"
 #include "host.hpp"
 #include "ipc_data_reader.hpp"
+#include "ipc_data_writer.hpp"
 #include "ipc_instance.hpp"
 #include "movement_vendor_api_request.hpp"
 #include "movement_vendor_api_response.hpp"
@@ -18,14 +20,19 @@ namespace host {
 		using ApiRequest = vendor::MovementVendorApiRequest;
 		using ApiRequestParser = typename ipc::ApiRequestReaderBuilder<ApiRequest, RawData>::ApiRequestParser;
 		using RawDataReaderInstance = ipc::Instance<ipc::IpcDataReader<RawData>>;
+
+		using ApiResponse = vendor::MovementVendorApiResponse;
+		using ApiResponseSerializer = typename ipc::ApiResponseWriterBuilder<ApiResponse, RawData>::ApiResponseSerializer;
+		using RawDataWriterInstance = ipc::Instance<ipc::IpcDataWriter<RawData>>;
 		
 		MovementHostBuilder() = default;
 		MovementHostBuilder(const MovementHostBuilder&) = default;
 		MovementHostBuilder& operator=(const MovementHostBuilder&) = default;
 		virtual ~MovementHostBuilder() noexcept = default;
 		
-		Host<vendor::MovementVendorApiRequest, vendor::MovementVendorApiResponse> build() const {
+		Host<ApiRequest, ApiResponse> build() const {
 			const auto api_request_reader = m_api_request_reader_builder.build();
+			const auto api_response_writer = m_api_response_writer_builder.build();
 			
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
@@ -37,8 +44,17 @@ namespace host {
 			m_api_request_reader_builder.set_raw_data_reader(raw_data_reader);
 			return std::ref(*this);
 		}
+		MovementHostBuilder& set_raw_data_writer(const RawDataWriterInstance& raw_data_writer) {
+			m_api_response_writer_builder.set_raw_data_writer(raw_data_writer);
+			return std::ref(*this);
+		}
+		MovementHostBuilder& set_api_response_serializer(const ApiResponseSerializer& api_response_serializer) {
+			m_api_response_writer_builder.set_api_response_serializer(api_response_serializer);
+			return std::ref(*this);
+		}
 	private:
-		ipc::ApiRequestReaderBuilder<vendor::MovementVendorApiRequest, RawData> m_api_request_reader_builder;
+		ipc::ApiRequestReaderBuilder<ApiRequest, RawData> m_api_request_reader_builder;
+		ipc::ApiResponseWriterBuilder<ApiResponse, RawData> m_api_response_writer_builder;
 
 		template <typename T>
 		static const T& retrieve_from_option(const std::optional<T>& option, const std::string& option_name) {
