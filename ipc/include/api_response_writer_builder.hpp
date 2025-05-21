@@ -33,7 +33,7 @@ namespace ipc {
 			);
 			ApiResponseWriter(const ApiResponseWriter&) = delete;
 			ApiResponseWriter& operator=(const ApiResponseWriter&) = delete;
-			void write(const ApiResponse& data) override;
+			void write(const ApiResponse& data) const override;
 		private:
 			ApiResponseSerializer m_api_response_serializer;
 			Instance<IpcDataWriter<RawData>> m_raw_data_writer;
@@ -71,12 +71,9 @@ namespace ipc {
 	}
 
 	template <typename ApiResponse, typename RawData>
-	inline std::optional<Instance<ApiResponse>> ApiResponseWriterBuilder<ApiResponse, RawData>::ApiResponseWriter::write(const ApiResponse& data) {
-	    const auto raw_data_opt = m_raw_data_writer.get().write(const ApiResponse& data);
-	    if (!raw_data_opt) {
-	        return std::nullopt;
-	    }
-	    return m_api_response_serializer(raw_data_opt->get());
+	inline void ApiResponseWriterBuilder<ApiResponse, RawData>::ApiResponseWriter::write(const ApiResponse& data) const {
+		const auto serialized_response = m_api_response_serializer(data);
+		m_raw_data_writer.get().write(serialized_response);
 	}
 }
 
