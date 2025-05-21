@@ -59,6 +59,7 @@ target_link_libraries(
     host_instance
     ipc_data_reader
     ipc_data_writer
+    movement_manager
     movement_vendor_api_request
     movement_vendor_api_response
     raw_data_package_reader

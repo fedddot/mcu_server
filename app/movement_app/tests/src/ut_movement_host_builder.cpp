@@ -7,6 +7,7 @@
 #include "ipc_instance.hpp"
 #include "movement_host_builder.hpp"
 #include "test_ipc_data_reader.hpp"
+#include "test_ipc_data_writer.hpp"
 
 using namespace ipc;
 // using namespace manager;
@@ -38,7 +39,17 @@ TEST(ut_movement_host_builder, build_sanity) {
 			}
 		)
 	);
+	const auto raw_data_writer = MovementHostBuilder<AxesConfig, RawData>::RawDataWriterInstance(
+		new TestIpcDataWriter<RawData>(
+			[](const RawData&) {
+				throw std::runtime_error("NOT IMPLEMENTED");
+			}
+		)
+	);
 	const auto api_request_parser = [](const RawData&) -> ipc::Instance<MovementHostBuilder<AxesConfig, RawData>::ApiRequest> {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto api_response_serializer = [](const MovementHostBuilder<AxesConfig, RawData>::ApiResponse&) -> RawData {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
 	
@@ -46,7 +57,9 @@ TEST(ut_movement_host_builder, build_sanity) {
 	MovementHostBuilder<AxesConfig, RawData> instance;
 	instance
 		.set_raw_data_reader(raw_data_reader)
-		.set_api_request_parser(api_request_parser);
+		.set_api_request_parser(api_request_parser)
+		.set_raw_data_writer(raw_data_writer)
+		.set_api_response_serializer(api_response_serializer);
 
 	// THEN
 	ASSERT_NO_THROW(
