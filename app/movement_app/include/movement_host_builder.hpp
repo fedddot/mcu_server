@@ -56,7 +56,7 @@ namespace host {
 				[](const std::exception& e) {
 					return ApiResponse(
 						ApiResponse::Result::FAILURE,
-						std::string(e.what())
+						std::string("an exception caught at host: ") + std::string(e.what())
 					);
 				}
 			);
