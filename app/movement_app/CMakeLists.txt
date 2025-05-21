@@ -64,6 +64,7 @@ target_link_libraries(
     raw_data_package_reader
     raw_data_package_writer
     api_request_reader_builder
+    api_response_writer_builder
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
