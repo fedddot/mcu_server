@@ -12,7 +12,6 @@ target_link_libraries(
     manager_instance
     movement_host_builder
     movement_manager_data
-    movement_vendor_api_response
     test_ipc_data_reader
     test_ipc_data_writer
 	

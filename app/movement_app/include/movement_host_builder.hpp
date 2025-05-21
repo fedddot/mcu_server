@@ -1,6 +1,7 @@
 #ifndef	MOVEMENT_HOST_BUILDER_HPP
 #define	MOVEMENT_HOST_BUILDER_HPP
 
+#include <exception>
 #include <optional>
 #include <stdexcept>
 
@@ -52,7 +53,12 @@ namespace host {
 				api_request_reader,
 				api_response_writer,
 				movement_vendor,
-				retrieve_from_option(m_failure_reporter, "failure reporter")
+				[](const std::exception& e) {
+					return ApiResponse(
+						ApiResponse::Result::FAILURE,
+						std::string(e.what())
+					);
+				}
 			);
 		}
 		MovementHostBuilder& set_api_request_parser(const ApiRequestParser& api_request_parser) {
@@ -79,16 +85,11 @@ namespace host {
 			m_axes_properties = axes_properties;
 			return std::ref(*this);
 		}
-		MovementHostBuilder& set_failure_reporter(const FailureReporter& failure_reporter) {
-			m_failure_reporter = failure_reporter;
-			return std::ref(*this);
-		}
 	private:
 		ipc::ApiRequestReaderBuilder<ApiRequest, RawData> m_api_request_reader_builder;
 		ipc::ApiResponseWriterBuilder<ApiResponse, RawData> m_api_response_writer_builder;
 		std::optional<AxesControllerCreator> m_axes_controller_ctor;
 		std::optional<AxesProperties> m_axes_properties;
-		std::optional<FailureReporter> m_failure_reporter;
 
 		template <typename T>
 		static const T& retrieve_from_option(const std::optional<T>& option, const std::string& option_name) {

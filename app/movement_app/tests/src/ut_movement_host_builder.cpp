@@ -9,7 +9,6 @@
 #include "manager_instance.hpp"
 #include "movement_host_builder.hpp"
 #include "movement_manager_data.hpp"
-#include "movement_vendor_api_response.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 
@@ -60,9 +59,6 @@ TEST(ut_movement_host_builder, build_sanity) {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
 	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
-	const auto failure_reporter = [](const std::exception&) -> vendor::MovementVendorApiResponse {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
 	
 	// WHEN
 	MovementHostBuilder<AxesConfig, RawData> instance;
@@ -72,13 +68,12 @@ TEST(ut_movement_host_builder, build_sanity) {
 		.set_raw_data_writer(raw_data_writer)
 		.set_api_response_serializer(api_response_serializer)
 		.set_axes_controller_creator(axes_controller_ctor)
-		.set_axes_properties(axes_properties)
-		.set_failure_reporter(failure_reporter);
+		.set_axes_properties(axes_properties);
 
 	// THEN
 	ASSERT_NO_THROW(
 		{
-			auto host = instance.build();
+			const auto host = instance.build();
 		}
 	);
 }
