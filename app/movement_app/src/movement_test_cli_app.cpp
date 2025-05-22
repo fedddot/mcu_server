@@ -34,7 +34,8 @@ static MovementHostBuilder<AxesConfig, RawData>::ApiRequestParser create_request
 static MovementHostBuilder<AxesConfig, RawData>::ApiResponseSerializer create_response_serializer();
 static MovementHostBuilder<AxesConfig, RawData>::AxesControllerCreator create_axes_controller_creator();
 
-static const char *fake_argv[] = {
+const int fake_argc = 2;
+static const char *fake_argv[fake_argc] = {
     "movement_test_cli_app",
     "{}",
 };
@@ -44,7 +45,7 @@ int main(int argc, char **argv) {
 	MovementHostBuilder<AxesConfig, RawData> host_builder;
 	host_builder
 		.set_raw_data_reader(create_raw_data_reader(
-            2,
+            fake_argc,
             const_cast<char **>(fake_argv)
         ))
 		.set_api_request_parser(create_request_parser())
