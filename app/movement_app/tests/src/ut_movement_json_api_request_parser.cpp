@@ -2,10 +2,12 @@
 
 #include "gtest/gtest.h"
 
+#include "axes_controller_config_request.hpp"
 #include "movement_json_api_request_parser.hpp"
 #include "movement_vendor_api_request.hpp"
 
 using namespace ipc;
+using namespace vendor;
 
 using AxesConfig = std::string;
 
@@ -16,25 +18,35 @@ TEST(ut_movement_json_api_request_parser, ctor_dtor_sanity) {
 	// THEN
 	ASSERT_NO_THROW(
 		(
-			instance = new MovementJsonApiRequestParser<AxesConfig>()
+			instance = new MovementJsonApiRequestParser<AxesConfig>(
+				[](const Json::Value&) -> AxesConfig {
+					return "axes_config";
+				}
+			)
 		)
 	);
 	ASSERT_NO_THROW(delete instance);
 	instance = nullptr;
 }
 
-TEST(ut_movement_json_api_request_parser, parse) {
+TEST(ut_movement_json_api_request_parser, parse_config_request) {
 	// GIVEN
 	Json::Value json_value;
 	json_value["request_type"] = "CONFIG";
+	json_value["axes_config"] = "axes_config";
 	
 	// WHEN
-	MovementJsonApiRequestParser<AxesConfig> instance;
+	MovementJsonApiRequestParser<AxesConfig> instance(
+		[](const Json::Value& json_request) -> AxesConfig {
+			return json_request["axes_config"].asString();
+		}
+	);
 	
 	// THEN
-	try {
-		const auto result = instance.parse(json_value);
-	} catch (const std::exception& e) {
-		FAIL() << "Exception thrown: " << e.what();
-	}
+	ASSERT_NO_THROW({
+		const auto request = instance.parse(json_value);
+		ASSERT_EQ(MovementVendorApiRequest::RequestType::CONFIG, request.get().type());
+		const auto& casted_request = dynamic_cast<const AxesControllerConfigApiRequest<AxesConfig>&>(request.get());
+		ASSERT_EQ("axes_config", casted_request.axes_cfg());
+	});
 }
