@@ -59,12 +59,8 @@ namespace ipc {
 			return iter->second;
 		}
 
-		static AxesConfig parse_axes_config(const Json::Value& json_value) {
-			throw std::runtime_error("NOT IMPLEMENTED");
-		}
-
-		static Instance<vendor::MovementVendorApiRequest> parse_config_request(const Json::Value& json_value) {
-			const auto axes_config = parse_axes_config(json_value);
+		Instance<vendor::MovementVendorApiRequest> parse_config_request(const Json::Value& json_value) const {
+			const auto axes_config = m_axes_config_parser(json_value);
 			return Instance<vendor::MovementVendorApiRequest>(
 				new vendor::AxesControllerConfigApiRequest<AxesConfig>(axes_config)
 			);
