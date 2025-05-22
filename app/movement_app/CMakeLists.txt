@@ -68,4 +68,13 @@ target_link_libraries(
     api_response_writer_builder
 )
 
+add_executable(movement_test_cli_app ${CMAKE_CURRENT_LIST_DIR}/src/movement_test_cli_app.cpp)
+target_link_libraries(
+    movement_test_cli_app
+    PRIVATE
+    movement_host_builder
+    movement_json_api_request_parser
+    movement_json_api_response_serializer
+)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)
