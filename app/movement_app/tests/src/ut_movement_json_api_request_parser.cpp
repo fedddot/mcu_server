@@ -12,8 +12,10 @@
 
 using namespace ipc;
 using namespace vendor;
+using namespace manager;
 
 using AxesConfig = std::string;
+static Json::Value vector_to_json_val(const Vector<double>& vec);
 
 TEST(ut_movement_json_api_request_parser, ctor_dtor_sanity) {
 	// WHEN
@@ -57,18 +59,10 @@ TEST(ut_movement_json_api_request_parser, parse_config_request) {
 	});
 }
 
-static Json::Value vector_to_json_val(const manager::Vector<double>& vec) {
-    Json::Value json;
-    json["x"] = vec.get(manager::Axis::X);
-    json["y"] = vec.get(manager::Axis::Y);
-    json["z"] = vec.get(manager::Axis::Z);
-    return json;
-}
-
 TEST(ut_movement_json_api_request_parser, parse_linear_movement_request) {
     // GIVEN
     const auto expected_request_type = MovementVendorApiRequest::RequestType::LINEAR_MOVEMENT;
-    const auto destination = manager::Vector<double>(0.1, 0.2, 0.3);
+    const auto destination = Vector<double>(0.1, 0.2, 0.3);
     const auto speed = 0.5;
 
     Json::Value json_value;
@@ -94,8 +88,8 @@ TEST(ut_movement_json_api_request_parser, parse_linear_movement_request) {
 TEST(ut_movement_json_api_request_parser, parse_rotational_movement_request) {
     // GIVEN
     const auto expected_request_type = MovementVendorApiRequest::RequestType::ROTATIONAL_MOVEMENT;
-    const auto destination = manager::Vector<double>(1.1, 2.2, 3.3);
-    const auto rotation_center = manager::Vector<double>(4.4, 5.5, 6.6);
+    const auto destination = Vector<double>(1.1, 2.2, 3.3);
+    const auto rotation_center = Vector<double>(4.4, 5.5, 6.6);
     const auto angle = 45.0;
     const auto speed = 1.23;
 
@@ -121,3 +115,10 @@ TEST(ut_movement_json_api_request_parser, parse_rotational_movement_request) {
     });
 }
 
+inline static Json::Value vector_to_json_val(const Vector<double>& vec) {
+    Json::Value json;
+    json["x"] = vec.get(Axis::X);
+    json["y"] = vec.get(Axis::Y);
+    json["z"] = vec.get(Axis::Z);
+    return json;
+}
