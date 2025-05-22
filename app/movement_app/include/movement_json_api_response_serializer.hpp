@@ -6,7 +6,6 @@
 #include "movement_vendor_api_response.hpp"
 
 namespace ipc {
-    template <typename AxesConfig>
     class MovementJsonApiResponseSerializer {
     public:
         using Serializer = std::function<Json::Value(const vendor::MovementVendorApiResponse&)>;
