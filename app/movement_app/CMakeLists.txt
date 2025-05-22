@@ -47,6 +47,7 @@ target_link_libraries(
     movement_host_builder
     movement_json_api_request_parser
     movement_json_api_response_serializer
+    raw_data_package_reader
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
