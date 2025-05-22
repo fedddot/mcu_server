@@ -5,6 +5,7 @@
 
 #include "axes_controller_config_request.hpp"
 #include "linear_movement_request.hpp"
+#include "rotation_movement_request.hpp"
 #include "movement_json_api_request_parser.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_vector.hpp"
