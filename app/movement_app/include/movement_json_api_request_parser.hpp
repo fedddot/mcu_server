@@ -27,7 +27,7 @@ namespace ipc {
         MovementJsonApiRequestParser& operator=(const MovementJsonApiRequestParser&) = default;
         virtual ~MovementJsonApiRequestParser() noexcept = default;
 
-        Instance<vendor::MovementVendorApiRequest> parse(const Json::Value& json_value) const;
+        Instance<vendor::MovementVendorApiRequest> operator()(const Json::Value& json_value) const;
     private:
         using RequestType = typename vendor::MovementVendorApiRequest::RequestType;
         AxesConfigParser m_axes_config_parser;
@@ -49,7 +49,7 @@ namespace ipc {
     }
 
     template <typename AxesConfig>
-    inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse(const Json::Value& json_value) const {
+    inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::operator()(const Json::Value& json_value) const {
         const auto request_type = parse_request_type(json_value);
         switch (request_type) {
         case RequestType::CONFIG:

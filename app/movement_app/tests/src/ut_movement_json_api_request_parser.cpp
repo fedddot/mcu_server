@@ -52,7 +52,7 @@ TEST(ut_movement_json_api_request_parser, parse_config_request) {
 	
 	// THEN
 	ASSERT_NO_THROW({
-		const auto request = instance.parse(json_value);
+		const auto request = instance(json_value);
 		ASSERT_EQ(expected_request_type, request.get().type());
 		const auto& casted_request = dynamic_cast<const AxesControllerConfigApiRequest<AxesConfig>&>(request.get());
 		ASSERT_EQ(expected_axes_config, casted_request.axes_cfg());
@@ -79,7 +79,7 @@ TEST(ut_movement_json_api_request_parser, parse_linear_movement_request) {
     
     // THEN
     ASSERT_NO_THROW({
-        const auto request = instance.parse(json_value);
+        const auto request = instance(json_value);
         ASSERT_EQ(expected_request_type, request.get().type());
         const auto& casted_request = dynamic_cast<const LinearMovementRequest&>(request.get());
     });
@@ -109,7 +109,7 @@ TEST(ut_movement_json_api_request_parser, parse_rotational_movement_request) {
 
     // THEN
     ASSERT_NO_THROW({
-        const auto request = instance.parse(json_value);
+        const auto request = instance(json_value);
         ASSERT_EQ(expected_request_type, request.get().type());
         const auto& casted_request = dynamic_cast<const RotationMovementRequest&>(request.get());
     });
