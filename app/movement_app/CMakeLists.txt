@@ -13,6 +13,15 @@ target_link_libraries(
     jsoncpp_static
 )
 
+add_library(movement_json_api_response_serializer INTERFACE)
+target_include_directories(movement_json_api_response_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    movement_json_api_response_serializer
+    INTERFACE
+    movement_vendor_api_response
+    jsoncpp_static
+)
+
 add_library(movement_host_builder INTERFACE)
 target_include_directories(movement_host_builder INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
