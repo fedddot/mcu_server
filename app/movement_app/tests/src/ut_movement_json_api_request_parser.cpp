@@ -31,9 +31,11 @@ TEST(ut_movement_json_api_request_parser, ctor_dtor_sanity) {
 
 TEST(ut_movement_json_api_request_parser, parse_config_request) {
 	// GIVEN
+	const auto expected_request_type = MovementVendorApiRequest::RequestType::CONFIG;
+	const auto expected_axes_config = "test_axes_config";
 	Json::Value json_value;
 	json_value["request_type"] = "CONFIG";
-	json_value["axes_config"] = "axes_config";
+	json_value["axes_config"] = expected_axes_config;
 	
 	// WHEN
 	MovementJsonApiRequestParser<AxesConfig> instance(
@@ -45,8 +47,8 @@ TEST(ut_movement_json_api_request_parser, parse_config_request) {
 	// THEN
 	ASSERT_NO_THROW({
 		const auto request = instance.parse(json_value);
-		ASSERT_EQ(MovementVendorApiRequest::RequestType::CONFIG, request.get().type());
+		ASSERT_EQ(expected_request_type, request.get().type());
 		const auto& casted_request = dynamic_cast<const AxesControllerConfigApiRequest<AxesConfig>&>(request.get());
-		ASSERT_EQ("axes_config", casted_request.axes_cfg());
+		ASSERT_EQ(expected_axes_config, casted_request.axes_cfg());
 	});
 }
