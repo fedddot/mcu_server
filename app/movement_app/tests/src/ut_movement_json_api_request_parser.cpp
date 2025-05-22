@@ -84,6 +84,46 @@ TEST(ut_movement_json_api_request_parser, parse_linear_movement_request) {
 		const auto request = instance.parse(json_value);
 		ASSERT_EQ(expected_request_type, request.get().type());
 		const auto& casted_request = dynamic_cast<const LinearMovementRequest&>(request.get());
-		// ASSERT_EQ(expected_axes_config, casted_request.axes_cfg());
 	});
 }
+
+TEST(ut_movement_json_api_request_parser, parse_rotational_movement_request) {
+    // GIVEN
+    const auto expected_request_type = MovementVendorApiRequest::RequestType::ROTATIONAL_MOVEMENT;
+    const auto destination = manager::Vector<double>(1.1, 2.2, 3.3);
+    const auto rotation_center = manager::Vector<double>(4.4, 5.5, 6.6);
+    const auto angle = 45.0;
+    const auto speed = 1.23;
+
+    Json::Value destination_json;
+    destination_json["x"] = destination.get(manager::Axis::X);
+    destination_json["y"] = destination.get(manager::Axis::Y);
+    destination_json["z"] = destination.get(manager::Axis::Z);
+
+    Json::Value rotation_center_json;
+    rotation_center_json["x"] = rotation_center.get(manager::Axis::X);
+    rotation_center_json["y"] = rotation_center.get(manager::Axis::Y);
+    rotation_center_json["z"] = rotation_center.get(manager::Axis::Z);
+
+    Json::Value json_value;
+    json_value["request_type"] = "ROTATIONAL_MOVEMENT";
+    json_value["destination"] = destination_json;
+    json_value["rotation_center"] = rotation_center_json;
+    json_value["angle"] = angle;
+    json_value["speed"] = speed;
+
+    // WHEN
+    MovementJsonApiRequestParser<AxesConfig> instance(
+        [](const Json::Value& json_request) -> AxesConfig {
+            return json_request["axes_config"].asString();
+        }
+    );
+
+    // THEN
+    ASSERT_NO_THROW({
+        const auto request = instance.parse(json_value);
+        ASSERT_EQ(expected_request_type, request.get().type());
+        const auto& casted_request = dynamic_cast<const RotationMovementRequest&>(request.get());
+    });
+}
+

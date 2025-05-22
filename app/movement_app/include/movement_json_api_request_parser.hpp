@@ -14,6 +14,7 @@
 #include "movement_manager_data.hpp"
 #include "movement_manager_vector.hpp"
 #include "movement_vendor_api_request.hpp"
+#include "rotation_movement_request.hpp"
 
 namespace ipc {
     template <typename AxesConfig>
@@ -35,7 +36,6 @@ namespace ipc {
         Instance<vendor::MovementVendorApiRequest> parse_config_request(const Json::Value& json_value) const;
         static Instance<vendor::MovementVendorApiRequest> parse_linear_movement_request(const Json::Value& json_value);
         static Instance<vendor::MovementVendorApiRequest> parse_rotational_movement_request(const Json::Value& json_value);
-        static Instance<vendor::MovementVendorApiRequest> parse_movement_vendor_api_request(const Json::Value& json_value);
         static std::string retrieve_string(const Json::Value& json_value, const std::string& key);
         static double retrieve_double(const Json::Value& json_value, const std::string& key);
         static manager::Vector<double> parse_vector(const Json::Value& json_value);
@@ -97,12 +97,13 @@ namespace ipc {
 
     template <typename AxesConfig>
     inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_rotational_movement_request(const Json::Value& json_value) {
-        throw std::runtime_error("NOT IMPLEMENTED");
-    }
-
-    template <typename AxesConfig>
-    inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_movement_vendor_api_request(const Json::Value& json_value) {
-        throw std::runtime_error("NOT IMPLEMENTED");
+        const auto destination = parse_vector(json_value["destination"]);
+        const auto rotation_center = parse_vector(json_value["rotation_center"]);
+        const auto speed = retrieve_double(json_value, "speed");
+        const auto angle = retrieve_double(json_value, "angle");
+        return Instance<vendor::MovementVendorApiRequest>(
+            new vendor::RotationMovementRequest(destination, rotation_center, angle, speed)
+        );
     }
 
     template <typename AxesConfig>

@@ -3,8 +3,13 @@ target_include_directories(movement_json_api_request_parser INTERFACE ${CMAKE_CU
 target_link_libraries(
     movement_json_api_request_parser
     INTERFACE
-    movement_vendor_api_request
+    axes_controller_config_request
     linear_movement_request
+    ipc_instance
+    movement_manager_data
+    movement_manager_vector
+    movement_vendor_api_request
+    rotation_movement_request
     jsoncpp_static
 )
 
