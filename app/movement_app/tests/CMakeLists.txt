@@ -2,6 +2,7 @@ add_executable(
 	movement_app_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_host_builder.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_json_api_request_parser.cpp
 )
 
 target_link_libraries(
@@ -14,6 +15,7 @@ target_link_libraries(
     movement_manager_data
     test_ipc_data_reader
     test_ipc_data_writer
+    movement_json_api_request_parser
 	
 	gtest
 )
