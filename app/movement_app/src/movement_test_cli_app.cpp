@@ -1,12 +1,17 @@
 #include <filesystem>
+#include <iostream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
+#include "json/reader.h"
+#include "json/value.h"
+
 #include "ipc_data_reader.hpp"
+#include "ipc_instance.hpp"
 #include "movement_host_builder.hpp"
-#include "movement_manager.hpp"
+#include "movement_json_api_request_parser.hpp"
 #include "movement_manager_data.hpp"
-#include "raw_data_package_reader.hpp"
 
 using namespace host;
 using namespace ipc;
@@ -24,47 +29,104 @@ static MovementHostBuilder<AxesConfig, RawData>::AxesControllerCreator create_ax
 
 int main(int argc, char **argv) {
 	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
-	MovementHostBuilder<AxesConfig, RawData> instance;
-	instance
-		.set_raw_data_reader(create_raw_data_reader())
+	MovementHostBuilder<AxesConfig, RawData> host_builder;
+	host_builder
+		.set_raw_data_reader(create_raw_data_reader(argc, argv))
 		.set_api_request_parser(create_request_parser())
         .set_raw_data_writer(create_raw_data_writer())
 		.set_api_response_serializer(create_response_serializer())
         .set_axes_controller_creator(create_axes_controller_creator())
 		.set_axes_properties(axes_properties);
-
+    auto host = host_builder.build();
+    host.run_once();
     return 0;
 }
 
 class AxesConfig {
 public:
-    AxesConfig(const std::filesystem::path& output_file_path);
+    AxesConfig(const std::filesystem::path& output_file_path): m_output_file_path(output_file_path) {
+
+    }
     AxesConfig(const AxesConfig&) = default;
     AxesConfig& operator=(const AxesConfig&) = default;
     virtual ~AxesConfig() noexcept = default;
 
-    std::filesystem::path output_file_path() const;
+    std::filesystem::path output_file_path() const {
+        return m_output_file_path;
+    }
 private:
     std::filesystem::path m_output_file_path;
 };
 
 class CmdArgsReader: public IpcDataReader<RawData> {
 public:
-    CmdArgsReader(int argc, char **argv);
+    CmdArgsReader(int argc, char **argv) {
+        if (argc != 2) {
+            throw std::invalid_argument("missing the first positional argument - raw movement api request data");
+        }
+        if (!argv) {
+            throw std::invalid_argument("invalid argv argument");
+        }
+        m_data = std::string(argv[1]);
+    }
     CmdArgsReader(const CmdArgsReader&) = delete;
     CmdArgsReader& operator=(const CmdArgsReader&) = delete;
 
     std::optional<ipc::Instance<RawData>> read() override {
-        // TODO: read the raw data from argv[1] argument
-        // if there is no argument, throw std::runtime_error("no movement request data provided");
-        throw std::runtime_error("NOT IMPLEMENTED");
+        return ipc::Instance<RawData>(
+            new RawData(m_data.begin(), m_data.end())
+        );
     }
 private:
-    std::filesystem::path m_file_path;
+    std::string m_data;
+};
+
+class StdOutWriter: public IpcDataWriter<RawData> {
+public:
+    StdOutWriter() = default;
+    StdOutWriter(const StdOutWriter&) = delete;
+    StdOutWriter& operator=(const StdOutWriter&) = delete;
+
+    void write(const RawData& data) const override {
+        const auto data_str = std::string(data.begin(), data.end());
+        std::cout << data_str << std::endl;
+    }
 };
 
 inline MovementHostBuilder<AxesConfig, RawData>::RawDataReaderInstance create_raw_data_reader(int argc, char **argv) {
     return MovementHostBuilder<AxesConfig, RawData>::RawDataReaderInstance(
         new CmdArgsReader(argc, argv)
     );
+}
+
+inline MovementHostBuilder<AxesConfig, RawData>::RawDataWriterInstance create_raw_data_writer() {
+    return MovementHostBuilder<AxesConfig, RawData>::RawDataWriterInstance(
+        new StdOutWriter()
+    );
+}
+
+inline MovementHostBuilder<AxesConfig, RawData>::ApiRequestParser create_request_parser() {
+    const auto json_parser = MovementJsonApiRequestParser<AxesConfig>(
+        [](const Json::Value& json_data) {
+            const auto path_str = json_data["path"].asString();
+            const auto path = std::filesystem::path(path_str);
+            return AxesConfig(path);
+        }
+    );
+    return [json_parser](const RawData& raw_data) {
+        Json::Value json_val;
+	    Json::Reader reader;
+		if (!reader.parse(std::string(raw_data.begin(), raw_data.end()), std::ref(json_val), true)) {
+			throw std::runtime_error("failed to parse raw ipc_data data: " + reader.getFormattedErrorMessages());
+		}
+        return json_parser(json_val);
+    };
+}
+
+inline MovementHostBuilder<AxesConfig, RawData>::ApiResponseSerializer create_response_serializer() {
+    throw std::runtime_error("create_response_serializer is not implemented");
+}
+
+inline MovementHostBuilder<AxesConfig, RawData>::AxesControllerCreator create_axes_controller_creator() {
+    throw std::runtime_error("create_axes_controller_creator is not implemented");
 }

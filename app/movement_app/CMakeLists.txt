@@ -44,10 +44,11 @@ add_executable(movement_test_cli_app ${CMAKE_CURRENT_LIST_DIR}/src/movement_test
 target_link_libraries(
     movement_test_cli_app
     PRIVATE
+    ipc_data_reader
+    ipc_instance
     movement_host_builder
     movement_json_api_request_parser
-    movement_json_api_response_serializer
-    raw_data_package_reader
+    movement_manager_data
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
