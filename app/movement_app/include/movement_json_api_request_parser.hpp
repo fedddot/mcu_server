@@ -9,7 +9,10 @@
 #include "json/value.h"
 
 #include "axes_controller_config_request.hpp"
+#include "linear_movement_request.hpp"
 #include "ipc_instance.hpp"
+#include "movement_manager_data.hpp"
+#include "movement_manager_vector.hpp"
 #include "movement_vendor_api_request.hpp"
 
 namespace ipc {
@@ -34,6 +37,8 @@ namespace ipc {
         static Instance<vendor::MovementVendorApiRequest> parse_rotational_movement_request(const Json::Value& json_value);
         static Instance<vendor::MovementVendorApiRequest> parse_movement_vendor_api_request(const Json::Value& json_value);
         static std::string retrieve_string(const Json::Value& json_value, const std::string& key);
+        static double retrieve_double(const Json::Value& json_value, const std::string& key);
+        static manager::Vector<double> parse_vector(const Json::Value& json_value);
     };
 
     template <typename AxesConfig>
@@ -83,7 +88,11 @@ namespace ipc {
 
     template <typename AxesConfig>
     inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_linear_movement_request(const Json::Value& json_value) {
-        throw std::runtime_error("NOT IMPLEMENTED");
+        const auto destination = parse_vector(json_value["destination"]);
+        const auto speed = retrieve_double(json_value, "speed");
+        return Instance<vendor::MovementVendorApiRequest>(
+            new vendor::LinearMovementRequest(destination, speed)
+        );
     }
 
     template <typename AxesConfig>
@@ -106,6 +115,42 @@ namespace ipc {
             throw std::invalid_argument("wrong data format for key: " + key);
         }
         return val.asString();
+    }
+
+    template <typename AxesConfig>
+    inline manager::Vector<double> MovementJsonApiRequestParser<AxesConfig>::parse_vector(const Json::Value& json_value) {
+        const auto axes_mapping = std::map<manager::Axis, std::string>{
+            {manager::Axis::X, "x"},
+            {manager::Axis::Y, "y"},
+            {manager::Axis::Z, "z"},
+        };
+        if (!json_value.isObject()) {
+            throw std::invalid_argument("vector data has wrong format");
+        }
+        auto vector = manager::Vector<double>(0.0, 0.0, 0.0);
+        for (const auto& [axis, axis_key] : axes_mapping) {
+            if (!json_value.isMember(axis_key)) {
+                throw std::invalid_argument("vector data is missing projection axis " + axis_key);
+            }
+            const auto axis_val = json_value[axis_key];
+            if (!axis_val.isDouble()) {
+                throw std::invalid_argument(axis_key + "axis projection has wrong format");
+            }
+            vector.set(axis, axis_val.asDouble());
+        }
+        return vector;
+    }
+
+    template <typename AxesConfig>
+    inline double MovementJsonApiRequestParser<AxesConfig>::retrieve_double(const Json::Value& json_value, const std::string& key) {
+        if (!json_value.isMember(key)) {
+            throw std::invalid_argument("received json data is missing key: " + key);
+        }
+        const auto val = json_value[key];
+        if (!val.isDouble()) {
+            throw std::invalid_argument("wrong data format for key: " + key);
+        }
+        return val.asDouble();
     }
 }
 

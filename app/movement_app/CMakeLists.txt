@@ -4,6 +4,7 @@ target_link_libraries(
     movement_json_api_request_parser
     INTERFACE
     movement_vendor_api_request
+    linear_movement_request
     jsoncpp_static
 )
 
