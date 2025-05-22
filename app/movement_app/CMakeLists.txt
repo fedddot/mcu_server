@@ -1,54 +1,26 @@
-# add_library(response_json_transformer INTERFACE)
-# target_include_directories(response_json_transformer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-# target_link_libraries(
-#     response_json_transformer
-#     INTERFACE
-#     movement_manager_data
-#     movement_manager_request
-#     movement_manager_response
-#     movement_manager_vector
-#     ipc_instance
-#     jsoncpp_static
-# )
+add_library(movement_json_api_request_parser INTERFACE)
+target_include_directories(movement_json_api_request_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    movement_json_api_request_parser
+    INTERFACE
+    axes_controller_config_request
+    linear_movement_request
+    ipc_instance
+    movement_manager_data
+    movement_manager_vector
+    movement_vendor_api_request
+    rotation_movement_request
+    jsoncpp_static
+)
 
-# add_library(request_json_transformer INTERFACE)
-# target_include_directories(request_json_transformer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-# target_link_libraries(
-#     request_json_transformer
-#     INTERFACE
-#     movement_manager_data
-#     movement_manager_request
-#     movement_manager_response
-#     movement_manager_vector
-#     ipc_instance
-#     jsoncpp_static
-# )
-
-# add_library(movement_ipc_data_reader INTERFACE)
-# target_include_directories(movement_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-# target_link_libraries(
-#     movement_ipc_data_reader
-#     INTERFACE
-#     ipc_instance
-#     ipc_data
-#     ipc_data_reader
-#     ipc_instance
-#     json_ipc_data_reader
-#     request_json_transformer
-#     movement_manager_request
-# )
-
-# add_library(movement_ipc_data_writer INTERFACE)
-# target_include_directories(movement_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-# target_link_libraries(
-#     movement_ipc_data_writer
-#     INTERFACE
-#     ipc_instance
-#     ipc_data_writer
-#     json_ipc_data_writer
-#     response_json_transformer
-#     movement_manager_response
-# )
+add_library(movement_json_api_response_serializer INTERFACE)
+target_include_directories(movement_json_api_response_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    movement_json_api_response_serializer
+    INTERFACE
+    movement_vendor_api_response
+    jsoncpp_static
+)
 
 add_library(movement_host_builder INTERFACE)
 target_include_directories(movement_host_builder INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
