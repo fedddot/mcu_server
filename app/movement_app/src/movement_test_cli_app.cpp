@@ -1,5 +1,7 @@
+#include "json/writer.h"
 #include <filesystem>
 #include <iostream>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -7,15 +9,20 @@
 #include "json/reader.h"
 #include "json/value.h"
 
+#include "axes_controller.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_instance.hpp"
+#include "manager_instance.hpp"
 #include "movement_host_builder.hpp"
 #include "movement_json_api_request_parser.hpp"
+#include "movement_json_api_response_serializer.hpp"
 #include "movement_manager_data.hpp"
+#include "movement_vendor_api_response.hpp"
 
 using namespace host;
 using namespace ipc;
 using namespace manager;
+using namespace vendor;
 
 class AxesConfig;
 using RawData = std::vector<char>;
@@ -27,11 +34,19 @@ static MovementHostBuilder<AxesConfig, RawData>::ApiRequestParser create_request
 static MovementHostBuilder<AxesConfig, RawData>::ApiResponseSerializer create_response_serializer();
 static MovementHostBuilder<AxesConfig, RawData>::AxesControllerCreator create_axes_controller_creator();
 
+static const char *fake_argv[] = {
+    "movement_test_cli_app",
+    "{}",
+};
+
 int main(int argc, char **argv) {
 	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
 	MovementHostBuilder<AxesConfig, RawData> host_builder;
 	host_builder
-		.set_raw_data_reader(create_raw_data_reader(argc, argv))
+		.set_raw_data_reader(create_raw_data_reader(
+            static_cast<int>(sizeof(fake_argv)),
+            const_cast<char **>(fake_argv)
+        ))
 		.set_api_request_parser(create_request_parser())
         .set_raw_data_writer(create_raw_data_writer())
 		.set_api_response_serializer(create_response_serializer())
@@ -93,6 +108,39 @@ public:
     }
 };
 
+class DummyAxesController: public AxesController {
+public:
+    DummyAxesController(const AxesConfig& axes_config): m_axes_config(axes_config) {
+
+    }
+    DummyAxesController(const DummyAxesController&) = delete;
+    DummyAxesController& operator=(const DummyAxesController&) = delete;
+
+    void step(const AxisStep& step) override {
+        const auto axis_mapping = std::map<Axis, std::string>{
+            {Axis::X, "X"},
+            {Axis::Y, "Y"},
+            {Axis::Z, "Z"},
+        };
+        const auto direction_mapping = std::map<Direction, std::string>{
+            {Direction::POSITIVE, "POSITIVE"},
+            {Direction::NEGATIVE, "NEGATIVE"},
+        };
+        std::cout << "performing step along " << axis_mapping.at(step.axis) << " axis in " << direction_mapping.at(step.direction) << " direction with duration = " << step.duration << " s" << std::endl;
+    }
+    void enable() override {
+        std::cout << "axes controller enabled" << std::endl;
+    }
+    void disable() override {
+        std::cout << "axes controller disabled" << std::endl;
+    }
+    AxesController *clone() const override {
+        return new DummyAxesController(m_axes_config);
+    }
+private:
+    AxesConfig m_axes_config;
+};
+
 inline MovementHostBuilder<AxesConfig, RawData>::RawDataReaderInstance create_raw_data_reader(int argc, char **argv) {
     return MovementHostBuilder<AxesConfig, RawData>::RawDataReaderInstance(
         new CmdArgsReader(argc, argv)
@@ -124,9 +172,17 @@ inline MovementHostBuilder<AxesConfig, RawData>::ApiRequestParser create_request
 }
 
 inline MovementHostBuilder<AxesConfig, RawData>::ApiResponseSerializer create_response_serializer() {
-    throw std::runtime_error("create_response_serializer is not implemented");
+    const auto json_serializer = MovementJsonApiResponseSerializer();
+    return [json_serializer](const MovementVendorApiResponse& response) {
+        const auto json_val = json_serializer(response);
+        const auto writer_builder = Json::StreamWriterBuilder();
+		const auto serial_str = Json::writeString(writer_builder, json_val);
+		return RawData(serial_str.begin(), serial_str.end());
+    };
 }
 
 inline MovementHostBuilder<AxesConfig, RawData>::AxesControllerCreator create_axes_controller_creator() {
-    throw std::runtime_error("create_axes_controller_creator is not implemented");
+    return [](const AxesConfig& axes_config) {
+        return manager::Instance<AxesController>(new DummyAxesController(axes_config));
+    };
 }

@@ -17,9 +17,7 @@
 				"hediet.vscode-drawio"
 			],
 			"settings": {
-				"clangd.path": "/usr/lib/llvm-18/bin/clangd",
-				"cmake.buildBeforeRun": true,
-				"cmake.buildTask": true
+				"clangd.path": "/usr/lib/llvm-18/bin/clangd"
 			}
 		}
 	},
