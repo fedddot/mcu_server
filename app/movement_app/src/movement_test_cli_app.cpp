@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 	MovementHostBuilder<AxesConfig, RawData> host_builder;
 	host_builder
 		.set_raw_data_reader(create_raw_data_reader(
-            static_cast<int>(sizeof(fake_argv)),
+            2,
             const_cast<char **>(fake_argv)
         ))
 		.set_api_request_parser(create_request_parser())
