@@ -6,12 +6,12 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
-#include <vector>
 
 #include "json/reader.h"
 #include "json/value.h"
 
 #include "axes_controller.hpp"
+#include "ipc_data.hpp"
 #include "manager_instance.hpp"
 #include "movement_host_builder.hpp"
 #include "movement_json_api_request_parser.hpp"
@@ -26,7 +26,7 @@ using namespace manager;
 using namespace vendor;
 
 class AxesConfig;
-using RawData = std::vector<char>;
+using RawData = ipc::RawData;
 
 static MovementHostBuilder<AxesConfig, RawData>::RawDataReaderInstance create_raw_data_reader(const std::filesystem::path& data_path);
 static MovementHostBuilder<AxesConfig, RawData>::RawDataWriterInstance create_raw_data_writer();
