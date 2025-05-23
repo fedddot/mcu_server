@@ -35,8 +35,13 @@ static MovementHostBuilder<AxesConfig, RawData>::ApiResponseSerializer create_re
 static MovementHostBuilder<AxesConfig, RawData>::AxesControllerCreator create_axes_controller_creator();
 
 int main(int argc, char **argv) {
-	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
-    const auto raw_data_reader = create_raw_data_reader(std::filesystem::path("/usr/app/src/app/movement_app/resourses/test_data.json")); // TODO: retrieve from the args
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <path_to_json_file>" << std::endl;
+        return 1;
+    }
+    const auto json_file_path = std::filesystem::path(argv[1]);
+    const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
+    const auto raw_data_reader = create_raw_data_reader(std::filesystem::path(json_file_path));
     const auto& file_raw_data_reader = dynamic_cast<const FileRawDataReader&>(raw_data_reader.get());
 	MovementHostBuilder<AxesConfig, RawData> host_builder;
 	host_builder
