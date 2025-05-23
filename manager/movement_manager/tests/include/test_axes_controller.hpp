@@ -10,15 +10,15 @@
 namespace manager {
 	class TestAxesController: public AxesController {
 	public:
-		using Action = std::function<void(const AxisStep& step)>;
+		using Action = std::function<void(const Axis& axis, const Direction& direction, const double duration)>;
 		TestAxesController(const Action& action): m_action(action) {
 			if (!m_action) {
 				throw std::invalid_argument("invalid action received");
 			}
 		}
 		
-		void step(const AxisStep& step) override {
-			m_action(step);
+		void step(const Axis& axis, const Direction& direction, const double duration) override {
+			m_action(axis, direction, duration);
 		}
 		
 		void enable() override {
@@ -28,10 +28,10 @@ namespace manager {
 		void disable() override {
 
 		}
-
-		AxesController *clone() const override {
-			return new TestAxesController(*this);
-		};
+		
+		double get_step_length(const Axis& axis) const override {
+			return 0.1;
+		}
 	private:
 		Action m_action;
 	};
