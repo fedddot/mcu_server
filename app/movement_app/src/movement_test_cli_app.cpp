@@ -11,14 +11,13 @@
 #include "json/value.h"
 
 #include "axes_controller.hpp"
+#include "file_raw_data_reader.hpp"
 #include "ipc_data.hpp"
-#include "manager_instance.hpp"
 #include "movement_host_builder.hpp"
 #include "movement_json_api_request_parser.hpp"
 #include "movement_json_api_response_serializer.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_vendor_api_response.hpp"
-#include "file_raw_data_reader.hpp"
 
 using namespace host;
 using namespace ipc;
@@ -40,7 +39,6 @@ int main(int argc, char **argv) {
         return 1;
     }
     const auto json_file_path = std::filesystem::path(argv[1]);
-    const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
     const auto raw_data_reader = create_raw_data_reader(std::filesystem::path(json_file_path));
     const auto& file_raw_data_reader = dynamic_cast<const FileRawDataReader&>(raw_data_reader.get());
 	MovementHostBuilder<AxesConfig, RawData> host_builder;
@@ -49,8 +47,7 @@ int main(int argc, char **argv) {
 		.set_api_request_parser(create_request_parser())
         .set_raw_data_writer(create_raw_data_writer())
 		.set_api_response_serializer(create_response_serializer())
-        .set_axes_controller_creator(create_axes_controller_creator())
-		.set_axes_properties(axes_properties);
+        .set_axes_controller_creator(create_axes_controller_creator());
     auto host = host_builder.build();
     while (!file_raw_data_reader.empty()) {
         host.run_once();
@@ -60,18 +57,30 @@ int main(int argc, char **argv) {
 
 class AxesConfig {
 public:
-    AxesConfig(const std::filesystem::path& output_file_path): m_output_file_path(output_file_path) {
-
+    AxesConfig(
+        const double x_step_length,
+        const double y_step_length,
+        const double z_step_length
+    ): m_axes_step_lengths({
+        {Axis::X, x_step_length},
+        {Axis::Y, y_step_length},
+        {Axis::Z, z_step_length}
+    }) {    
+        for (const auto& [_, step_length] : m_axes_step_lengths) {
+            if (step_length <= 0.0) {
+                throw std::invalid_argument("step lengths must be positive non-zero values");
+            }
+        }
     }
     AxesConfig(const AxesConfig&) = default;
     AxesConfig& operator=(const AxesConfig&) = default;
     virtual ~AxesConfig() noexcept = default;
 
-    std::filesystem::path output_file_path() const {
-        return m_output_file_path;
+    double get_step_length(const Axis& axis) const {
+        return m_axes_step_lengths.at(axis);
     }
 private:
-    std::filesystem::path m_output_file_path;
+    std::map<Axis, double> m_axes_step_lengths;
 };
 
 class StdOutWriter: public IpcDataWriter<RawData> {
@@ -94,7 +103,7 @@ public:
     DummyAxesController(const DummyAxesController&) = delete;
     DummyAxesController& operator=(const DummyAxesController&) = delete;
 
-    void step(const AxisStep& step) override {
+    void step(const Axis& axis, const Direction& direction, const double duration) override {
         const auto axis_mapping = std::map<Axis, std::string>{
             {Axis::X, "X"},
             {Axis::Y, "Y"},
@@ -104,8 +113,8 @@ public:
             {Direction::POSITIVE, "POSITIVE"},
             {Direction::NEGATIVE, "NEGATIVE"},
         };
-        std::cout << "performing step along " << axis_mapping.at(step.axis) << " axis in " << direction_mapping.at(step.direction) << " direction with duration = " << step.duration << " s" << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(step.duration * 1000.0)));
+        std::cout << "performing step along " << axis_mapping.at(axis) << " axis in " << direction_mapping.at(direction) << " direction with duration = " << duration << " s" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(duration * 1000.0)));
     }
     void enable() override {
         std::cout << "axes controller enabled" << std::endl;
@@ -113,8 +122,8 @@ public:
     void disable() override {
         std::cout << "axes controller disabled" << std::endl;
     }
-    AxesController *clone() const override {
-        return new DummyAxesController(m_axes_config);
+    double get_step_length(const Axis& axis) const override {
+        return m_axes_config.get_step_length(axis);
     }
 private:
     AxesConfig m_axes_config;
@@ -135,16 +144,21 @@ inline MovementHostBuilder<AxesConfig, RawData>::RawDataWriterInstance create_ra
 inline MovementHostBuilder<AxesConfig, RawData>::ApiRequestParser create_request_parser() {
     const auto json_parser = MovementJsonApiRequestParser<AxesConfig>(
         [](const Json::Value& json_data) {
-            if (!json_data.isMember("path")) {
-                throw std::invalid_argument("missing path key in json data");
-            }
-            const auto path_val = json_data["path"];
-            if (!path_val.isString()) {
-                throw std::invalid_argument("path key in json data is not a string");
-            }
-            const auto path_str = path_val.asString();
-            const auto path = std::filesystem::path(path_str);
-            return AxesConfig(path);
+            auto retrieve_double = [](const Json::Value& json_val, const std::string& key) {
+                if (!json_val.isMember(key)) {
+                    throw std::invalid_argument("missing " + key + " key in json data");
+                }
+                const auto val = json_val[key];
+                if (!val.isDouble()) {
+                    throw std::invalid_argument(key + " key in json data is not a double");
+                }
+                return val.asDouble();
+            };
+            return AxesConfig(
+                retrieve_double(json_data, "x_step_length"),
+                retrieve_double(json_data, "y_step_length"),
+                retrieve_double(json_data, "z_step_length")
+            );
         }
     );
     return [json_parser](const RawData& raw_data) {

@@ -55,8 +55,8 @@ TEST(ut_movement_manager, linear_movement_sanity) {
 	const auto test_destination = Vector<double>(1.0, 2.0, 3.0);
 	const auto test_speed = 4.0;
 	const auto test_controller_config_data = [](const AxisStep& step) {
-		std::cout << "moving along axis " << static_cast<int>(step.axis) << ", in direction " << static_cast<int>(step.direction) << ", step duration " << step.duration << std::endl;
-		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<std::size_t>(step.duration * 1000)));
+		std::cout << "moving along axis " << static_cast<int>(step.m_axis) << ", in direction " << static_cast<int>(step.m_direction) << ", step duration " << step.m_duration << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<std::size_t>(step.m_duration * 1000)));
 	};
 	
 	// WHEN

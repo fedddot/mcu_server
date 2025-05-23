@@ -51,7 +51,7 @@ TEST(ut_movement_vendor, run_api_request_sanity) {
 	const auto manager_instance = create_movement_manager(
 		axes_properties,
 		[](const AxisStep& step) {
-			std::cout << "mocking axes controller is making a step in " << static_cast<int>(step.direction) << " direction along " << static_cast<int>(step.axis) << " with duration " << step.duration << std::endl;
+			std::cout << "mocking axes controller is making a step in " << static_cast<int>(step.m_direction) << " direction along " << static_cast<int>(step.m_axis) << " with duration " << step.m_duration << std::endl;
 		}
 	);
 	MovementVendor<AxesConfig> instance(manager_instance);

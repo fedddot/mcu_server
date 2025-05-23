@@ -88,12 +88,12 @@ namespace manager {
 	}
 
 	inline Vector<double> LinearMovement::add_step(const Vector<double>& current, const AxisStep& step) const {
-		auto increment = m_axes_step_lengths.get_step_length(step.axis);
-		if (step.direction == Direction::NEGATIVE) {
+		auto increment = m_axes_step_lengths.at(step.axis());
+		if (step.direction() == Direction::NEGATIVE) {
 			increment = -increment;
 		}
 		auto result = current;
-		result.set(step.axis, result.get(step.axis) + increment);
+		result.set(step.axis(), result.get(step.axis()) + increment);
 		return result;
 	}
 
@@ -119,7 +119,7 @@ namespace manager {
 	inline std::size_t LinearMovement::evaluate_steps_number(const Vector<double>& destination, const AxesStepLengths& axes_step_lengths) {
 		auto result = std::size_t(0UL);
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
-			const auto steps_per_axis = std::abs(destination.get(axis) / axes_step_lengths.get_step_length(axis));
+			const auto steps_per_axis = std::abs(destination.get(axis) / axes_step_lengths.at(axis));
 			result += static_cast<std::size_t>(steps_per_axis);
 		}
 		return result;

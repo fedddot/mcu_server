@@ -18,8 +18,7 @@ namespace manager {
 	public:
 		using AxesControllerCreator = std::function<Instance<AxesController>(const AxesConfig&)>;
 		MovementManager(
-			const AxesControllerCreator& axes_controller_ctor,
-			const AxesProperties& axes_properties
+			const AxesControllerCreator& axes_controller_ctor
 		);
 		MovementManager(const MovementManager& other) = default;
 		MovementManager& operator=(const MovementManager&) = delete;
@@ -30,14 +29,12 @@ namespace manager {
 	private:
 		AxesControllerCreator m_axes_controller_ctor;
 		std::optional<Instance<AxesController>> m_axes_controller;
-		AxesProperties m_axes_properties;
 	};
 
 	template <typename AxesConfig>
 	inline MovementManager<AxesConfig>::MovementManager(
-		const AxesControllerCreator& axes_controller_ctor,
-		const AxesProperties& axes_properties
-	): m_axes_controller_ctor(axes_controller_ctor), m_axes_controller(std::nullopt), m_axes_properties(axes_properties) {
+		const AxesControllerCreator& axes_controller_ctor
+	): m_axes_controller_ctor(axes_controller_ctor), m_axes_controller(std::nullopt) {
 		if (!m_axes_controller_ctor) {
 			throw std::invalid_argument("invalid axes_controller_ctor received");
 		}
@@ -53,9 +50,13 @@ namespace manager {
 		if (!m_axes_controller) {
 			throw std::runtime_error("axes controller is not initialized");
 		}
+		auto axes_step_lengths = LinearMovement::AxesStepLengths();
+		for (const auto& axis : {Axis::X, Axis::Y, Axis::Z}) {
+			axes_step_lengths[axis] = m_axes_controller->get().get_step_length(axis);
+		}
 		auto movement = LinearMovement(
 			destination,
-			m_axes_properties,
+			axes_step_lengths,
 			speed
 		);
 		m_axes_controller->get().enable();
@@ -64,7 +65,7 @@ namespace manager {
 			if (!step) {
 				break;
 			}
-			m_axes_controller->get().step(*step);
+			m_axes_controller->get().step(step->axis(), step->direction(), step->duration());
 		}
 		m_axes_controller->get().disable();
 	}
