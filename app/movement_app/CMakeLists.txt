@@ -40,4 +40,26 @@ target_link_libraries(
     api_response_writer_builder
 )
 
+add_library(file_raw_data_reader INTERFACE)
+target_include_directories(file_raw_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    file_raw_data_reader
+    INTERFACE
+    ipc_data
+    ipc_data_reader
+    ipc_instance
+    jsoncpp_static
+)
+
+add_executable(movement_test_cli_app ${CMAKE_CURRENT_LIST_DIR}/src/movement_test_cli_app.cpp)
+target_link_libraries(
+    movement_test_cli_app
+    PRIVATE
+    ipc_data_reader
+    ipc_instance
+    movement_host_builder
+    movement_json_api_request_parser
+    movement_manager_data
+)
+
 add_subdirectory(tests EXCLUDE_FROM_ALL)

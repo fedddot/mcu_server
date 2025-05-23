@@ -26,7 +26,7 @@ namespace manager {
 
 		void init(const AxesConfig& axes_config);
 		void linear_movement(const Vector<double>& destination, const double speed);
-		void circular_movement(const Vector<double>& destination, const Vector<double>& rotation_center, const double speed);
+		void circular_movement(const Vector<double>& destination, const Vector<double>& rotation_center, const double angle, const double speed);
 	private:
 		AxesControllerCreator m_axes_controller_ctor;
 		std::optional<Instance<AxesController>> m_axes_controller;
@@ -70,8 +70,8 @@ namespace manager {
 	}
 	
 	template <typename AxesConfig>
-	inline void MovementManager<AxesConfig>::circular_movement(const Vector<double>& destination, const Vector<double>& rotation_center, const double speed) {
-		throw std::runtime_error("not implemented");
+	inline void MovementManager<AxesConfig>::circular_movement(const Vector<double>& destination, const Vector<double>& rotation_center, const double angle, const double speed) {
+		throw std::runtime_error("MovementManager<AxesConfig>::circular_movement is not implemented");
 	}
 }
 

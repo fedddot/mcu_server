@@ -1,0 +1,30 @@
+[
+    {
+        "request_type": "CONFIG",
+        "path": "/tmp/whatever.txt"
+    },
+    {
+        "request_type": "LINEAR_MOVEMENT",
+        "destination": {
+            "x": 1.0,
+            "y": 2.0,
+            "z": 3.0
+        },
+        "speed": 1.0
+    },
+    {
+        "request_type": "ROTATIONAL_MOVEMENT",
+        "destination": {
+            "x": 1.0,
+            "y": 2.0,
+            "z": 3.0
+        },
+        "rotation_center": {
+            "x": 1.0,
+            "y": 2.0,
+            "z": 3.0
+        },
+        "speed": 1.0,
+        "angle": 0.7
+    }
+]

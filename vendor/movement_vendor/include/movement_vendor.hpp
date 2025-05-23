@@ -51,6 +51,8 @@ namespace vendor {
 				return run_cfg_request(request);
 			case MovementVendorApiRequest::RequestType::LINEAR_MOVEMENT:
 				return run_linear_movement_request(request);
+			case MovementVendorApiRequest::RequestType::ROTATIONAL_MOVEMENT:
+				return run_circular_movement_request(request);
 			default:
 				return MovementVendorApiResponse(MovementVendorApiResponse::Result::FAILURE, std::string("unsupported api request received"));
 			}
@@ -76,7 +78,12 @@ namespace vendor {
 	template <typename AxesConfig>
 	inline MovementVendorApiResponse MovementVendor<AxesConfig>::run_circular_movement_request(const MovementVendorApiRequest& request) {
 		auto casted_request = cast_request<RotationMovementRequest>(request);
-		m_movement_manager.get().circular_movement(casted_request.destination, casted_request.rotation_center, casted_request.speed);
+		m_movement_manager.get().circular_movement(
+			casted_request.destination(),
+			casted_request.rotation_center(),
+			casted_request.angle(),
+			casted_request.speed()
+		);
 		return MovementVendorApiResponse(MovementVendorApiResponse::Result::SUCCESS);
 	}
 
