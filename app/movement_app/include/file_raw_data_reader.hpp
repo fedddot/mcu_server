@@ -24,6 +24,7 @@ namespace ipc {
         FileRawDataReader& operator=(const FileRawDataReader&) = delete;
 
         std::optional<Instance<RawData>> read() override;
+        bool empty() const;
     private:
         Json::Value m_json_values;
     };
@@ -57,6 +58,10 @@ namespace ipc {
         return Instance<RawData>(
             new RawData(serial_str.begin(), serial_str.end())
         );
+    }
+
+    inline bool FileRawDataReader::empty() const {
+        return m_json_values.empty();
     }
 } // namespace ipc
 
