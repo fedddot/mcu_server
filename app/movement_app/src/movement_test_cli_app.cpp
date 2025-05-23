@@ -1,9 +1,11 @@
 #include "json/writer.h"
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "json/reader.h"
@@ -98,6 +100,7 @@ public:
             {Direction::NEGATIVE, "NEGATIVE"},
         };
         std::cout << "performing step along " << axis_mapping.at(step.axis) << " axis in " << direction_mapping.at(step.direction) << " direction with duration = " << step.duration << " s" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(step.duration * 1000.0)));
     }
     void enable() override {
         std::cout << "axes controller enabled" << std::endl;
