@@ -1,86 +1,59 @@
-#include <memory>
 #include <stdexcept>
+#include <thread>
 
 #include "gtest/gtest.h"
 
-#include "data.hpp"
-#include "movement.hpp"
+#include "axes_controller.hpp"
 #include "movement_manager.hpp"
-#include "in_memory_inventory.hpp"
-#include "integer.hpp"
-#include "object.hpp"
-#include "server_types.hpp"
-#include "test_movement.hpp"
+#include "movement_manager_data.hpp"
+#include "test_axes_controller.hpp"
 
-using namespace server;
 using namespace manager;
-using namespace manager_uts;
+
+using TestAxesControllerConfig = TestAxesController::Action;
+
+static AxesController *create_axes_ctrlr(const TestAxesControllerConfig& cfg);
 
 TEST(ut_movement_manager, ctor_dtor_sanity) {
-	// GIVEN
-	InMemoryInventory<ResourceId, Movement> inventory;
-
 	// WHEN
-	std::unique_ptr<MovementManager> instance_ptr(nullptr);
-	
-	// THEN
-	// ctor
-	ASSERT_NO_THROW(
-		instance_ptr = std::unique_ptr<MovementManager>(
-			new MovementManager(
-				&inventory,
-				[](const Data& create_cfg)-> Movement * {
-					throw std::runtime_error("not implemented");
-				}
-			)
-		)
-	);
-	ASSERT_NE(nullptr, instance_ptr);
+	MovementManager<TestAxesControllerConfig> *instance(nullptr);
 
-	// dtor
-	ASSERT_NO_THROW(instance_ptr = nullptr);
+	// THEN
+	ASSERT_NO_THROW(instance = new MovementManager<TestAxesControllerConfig>(create_axes_ctrlr));
+	ASSERT_NE(instance, nullptr);
+	ASSERT_NO_THROW(delete instance);
 }
 
-TEST(ut_movement_manager, crud_methods_sanity) {
+TEST(ut_movement_manager, init_sanity) {
 	// GIVEN
-	const auto id(ResourceId("test_movement"));
-	const auto movement_type(Movement::Type::LINEAR);
-
-	Object create_cfg;
-	create_cfg.add("type", Integer(static_cast<int>(movement_type)));
-
-	Object update_cfg;
-	update_cfg.add("param", Integer(10));
-
-	auto movement_action = [update_cfg](const Data& movement_cfg) {
-		ASSERT_EQ(Data::cast<Integer>(update_cfg.access("param")).get(), Data::cast<Integer>(Data::cast<Object>(movement_cfg).access("param")).get());
-	};
-
-	auto movement_ctor = [movement_action](const Data& create_cfg) {
-		auto type(static_cast<Movement::Type>(Data::cast<Integer>(Data::cast<Object>(create_cfg).access("type")).get()));
-		return new TestMovement(movement_action, type);
+	const auto test_controller_config_data = [](const Axis&, const Direction&, const double) {
+		throw std::runtime_error("NOT IMPLEMENTED");
 	};
 
 	// WHEN
-	InMemoryInventory<ResourceId, Movement> inventory;
-	MovementManager instance(&inventory, movement_ctor);
-	Object read_data;
+	MovementManager<TestAxesControllerConfig> instance(create_axes_ctrlr);
 
 	// THEN
-	// create
-	ASSERT_NO_THROW(instance.create_resource(id, create_cfg));
-	ASSERT_TRUE(inventory.contains(id));
-	ASSERT_EQ(movement_type, inventory.access(id).type());
+	ASSERT_NO_THROW(instance.init(test_controller_config_data));
+}
 
-	// read
-	ASSERT_NO_THROW(read_data = instance.read_resource({id}));
-	ASSERT_TRUE(read_data.contains("type"));
-	ASSERT_EQ(movement_type, static_cast<Movement::Type>(Data::cast<Integer>(read_data.access("type")).get()));
+TEST(ut_movement_manager, linear_movement_sanity) {
+	// GIVEN
+	const auto test_destination = Vector<double>(1.0, 2.0, 3.0);
+	const auto test_speed = 4.0;
+	const auto test_controller_config_data = [](const Axis& axis, const Direction& direction, const double duration) {
+		std::cout << "moving along axis " << static_cast<int>(axis) << ", in direction " << static_cast<int>(direction) << ", step duration " << duration << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<std::size_t>(duration * 1000)));
+	};
+	
+	// WHEN
+	MovementManager<TestAxesControllerConfig> instance(create_axes_ctrlr);
+	instance.init(test_controller_config_data);
+	
+	// THEN
+	ASSERT_NO_THROW(instance.linear_movement(test_destination, test_speed));
+}
 
-	// update
-	ASSERT_NO_THROW(instance.update_resource({id}, update_cfg));
-
-	// delete
-	ASSERT_NO_THROW(instance.delete_resource({id}));
-	ASSERT_FALSE(inventory.contains(id));
+inline AxesController *create_axes_ctrlr(const TestAxesControllerConfig& cfg) {
+	return new TestAxesController(cfg);
 }
