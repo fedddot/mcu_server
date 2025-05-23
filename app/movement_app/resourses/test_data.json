@@ -1,7 +1,9 @@
 [
     {
         "request_type": "CONFIG",
-        "path": "/tmp/whatever.txt"
+        "x_step_length": 0.1,
+        "y_step_length": 0.1,
+        "z_step_length": 0.1
     },
     {
         "request_type": "LINEAR_MOVEMENT",

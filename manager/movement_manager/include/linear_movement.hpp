@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <map>
 #include <optional>
 #include <stdexcept>
 
@@ -13,9 +14,10 @@
 namespace manager {
 	class LinearMovement {
 	public:
+		using AxesStepLengths = std::map<Axis, double>;
 		LinearMovement(
 			const Vector<double>& destination,
-			const AxesProperties& axes_properties,
+			const AxesStepLengths& axes_step_lengths,
 			const double speed
 		);
 		LinearMovement(const LinearMovement& other) = delete;
@@ -24,14 +26,14 @@ namespace manager {
 		std::optional<AxisStep> next_step();
 	private:
 		const Vector<double> m_destination;
-		const AxesProperties m_axes_properties;
+		const AxesStepLengths m_axes_step_lengths;
 		const double m_step_duration;
 
 		Vector<double> m_current;
 
 		bool is_enough() const;
-		static double evaluate_step_duration(const Vector<double>& destination, const AxesProperties& axes_properties, const double speed);
-		static std::size_t evaluate_steps_number(const Vector<double>& destination, const AxesProperties& axes_properties);
+		static double evaluate_step_duration(const Vector<double>& destination, const AxesStepLengths& axes_step_lengths, const double speed);
+		static std::size_t evaluate_steps_number(const Vector<double>& destination, const AxesStepLengths& axes_step_lengths);
 		AxisStep evaluate_axis_step(const Vector<double>& current) const;
 		Vector<double> add_step(const Vector<double>& current, const AxisStep& step) const;
 		static double evaluate_error_metric(const Vector<double>& base_vector, const Vector<double>& vector);
@@ -39,9 +41,9 @@ namespace manager {
 
 	inline LinearMovement::LinearMovement(
 		const Vector<double>& destination,
-		const AxesProperties& axes_properties,
+		const AxesStepLengths& axes_step_lengths,
 		const double speed
-	): m_destination(destination), m_axes_properties(axes_properties), m_step_duration(evaluate_step_duration(destination, axes_properties, speed)), m_current(0.0, 0.0, 0.0) {
+	): m_destination(destination), m_axes_step_lengths(axes_step_lengths), m_step_duration(evaluate_step_duration(destination, axes_step_lengths, speed)), m_current(0.0, 0.0, 0.0) {
 		
 	}
 	
@@ -86,12 +88,12 @@ namespace manager {
 	}
 
 	inline Vector<double> LinearMovement::add_step(const Vector<double>& current, const AxisStep& step) const {
-		auto increment = m_axes_properties.get_step_length(step.axis);
-		if (step.direction == Direction::NEGATIVE) {
+		auto increment = m_axes_step_lengths.at(step.axis());
+		if (step.direction() == Direction::NEGATIVE) {
 			increment = -increment;
 		}
 		auto result = current;
-		result.set(step.axis, result.get(step.axis) + increment);
+		result.set(step.axis(), result.get(step.axis()) + increment);
 		return result;
 	}
 
@@ -101,23 +103,23 @@ namespace manager {
 		return prod_norm_L2;
 	}
 
-	inline double LinearMovement::evaluate_step_duration(const Vector<double>& destination, const AxesProperties& axes_properties, const double speed) {
+	inline double LinearMovement::evaluate_step_duration(const Vector<double>& destination, const AxesStepLengths& axes_step_lengths, const double speed) {
 		if (speed <= 0) {
 			throw std::invalid_argument("speed must be a positive non-zero value");
 		}
 		const auto path_length = std::sqrt(inner_product(destination, destination));
 		const auto total_movement_time = path_length / speed;
-		const auto steps_number = evaluate_steps_number(destination, axes_properties);
+		const auto steps_number = evaluate_steps_number(destination, axes_step_lengths);
 		if (!steps_number) {
 			return 0;
 		}
 		return total_movement_time / steps_number;
 	}
 
-	inline std::size_t LinearMovement::evaluate_steps_number(const Vector<double>& destination, const AxesProperties& axes_properties) {
+	inline std::size_t LinearMovement::evaluate_steps_number(const Vector<double>& destination, const AxesStepLengths& axes_step_lengths) {
 		auto result = std::size_t(0UL);
 		for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
-			const auto steps_per_axis = std::abs(destination.get(axis) / axes_properties.get_step_length(axis));
+			const auto steps_per_axis = std::abs(destination.get(axis) / axes_step_lengths.at(axis));
 			result += static_cast<std::size_t>(steps_per_axis);
 		}
 		return result;

@@ -8,7 +8,6 @@
 #include "ipc_instance.hpp"
 #include "manager_instance.hpp"
 #include "movement_host_builder.hpp"
-#include "movement_manager_data.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 
@@ -58,7 +57,6 @@ TEST(ut_movement_host_builder, build_sanity) {
 	const auto axes_controller_ctor = [](const AxesConfig&) -> manager::Instance<AxesController> {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	const auto axes_properties = AxesProperties(0.1, 0.2, 0.3);
 	
 	// WHEN
 	MovementHostBuilder<AxesConfig, RawData> instance;
@@ -67,8 +65,7 @@ TEST(ut_movement_host_builder, build_sanity) {
 		.set_api_request_parser(api_request_parser)
 		.set_raw_data_writer(raw_data_writer)
 		.set_api_response_serializer(api_response_serializer)
-		.set_axes_controller_creator(axes_controller_ctor)
-		.set_axes_properties(axes_properties);
+		.set_axes_controller_creator(axes_controller_ctor);
 
 	// THEN
 	ASSERT_NO_THROW(

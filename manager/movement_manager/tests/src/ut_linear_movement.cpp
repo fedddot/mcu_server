@@ -102,12 +102,12 @@ TEST(ut_linear_movement, evaluate_sanity) {
 
 inline Vector<double> integrate_path(const std::vector<AxisStep>& steps, const AxesProperties& axes_properties) {
 	auto add_path = [](const Vector<double>& current, const AxisStep& step, const AxesProperties& axes_properties) {
-		auto increment = axes_properties.get_step_length(step.axis);
-		if (step.direction == Direction::NEGATIVE) {
+		auto increment = axes_properties.get_step_length(step.m_axis);
+		if (step.m_direction == Direction::NEGATIVE) {
 			increment = -increment;
 		}
 		auto result = current;
-		result.set(step.axis, result.get(step.axis) + increment);
+		result.set(step.m_axis, result.get(step.m_axis) + increment);
 		return result;
 	};
 	auto path = Vector<double>(0.0, 0.0, 0.0);

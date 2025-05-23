@@ -1,7 +1,6 @@
 #ifndef	MOVEMENT_MANAGER_DATA_HPP
 #define	MOVEMENT_MANAGER_DATA_HPP
 
-#include <map>
 #include <stdexcept>
 
 namespace manager {
@@ -16,46 +15,38 @@ namespace manager {
 		POSITIVE = 1,
 	};
 
-	struct AxisStep {
-		Axis axis;
-		Direction direction;
-		double duration;
-	};
-
-	class AxesProperties {
+	class AxisStep {
 	public:
-		AxesProperties(
-			const double x_step_length,
-			const double y_step_length,
-			const double z_step_length
-		);
-		AxesProperties(const AxesProperties&) = default;
-		AxesProperties& operator=(const AxesProperties&) = default;
-		~AxesProperties() = default;
+		AxisStep(const Axis& axis = Axis::X, const Direction& direction = Direction::POSITIVE, const double duration = 1.0);
+		AxisStep(const AxisStep&) = default;
+		AxisStep& operator=(const AxisStep&) = default;
+		virtual ~AxisStep() noexcept = default;
 
-		double get_step_length(const Axis& axis) const;
+		Axis axis() const;
+		Direction direction() const;
+		double duration() const;
 	private:
-		std::map<Axis, double> m_step_lengths;
+		Axis m_axis;
+		Direction m_direction;
+		double m_duration;
 	};
 
-	inline AxesProperties::AxesProperties(
-		const double x_step_length,
-		const double y_step_length,
-		const double z_step_length
-	): m_step_lengths {
-		{Axis::X, x_step_length},
-		{Axis::Y, y_step_length},
-		{Axis::Z, z_step_length}
-	} {
-		for (const auto iter : m_step_lengths) {
-			if (iter.second <= 0.0) {
-				throw std::invalid_argument("step length must be a positive non-zero value");
-			}
+	inline AxisStep::AxisStep(const Axis& axis, const Direction& direction, const double duration): m_axis(axis), m_direction(direction), m_duration(duration) {
+		if (duration <= 0.0) {
+			throw std::invalid_argument("duration must be a positive non-zero value");
 		}
 	}
 
-	inline double AxesProperties::get_step_length(const Axis& axis) const {
-		return m_step_lengths.at(axis);
+	inline Axis AxisStep::axis() const {
+		return m_axis;
+	}
+
+	inline Direction AxisStep::direction() const {
+		return m_direction;
+	}
+
+	inline double AxisStep::duration() const {
+		return m_duration;
 	}
 }
 
