@@ -1,7 +1,6 @@
 #ifndef	MOVEMENT_MANAGER_HPP
 #define	MOVEMENT_MANAGER_HPP
 
-#include <cmath>
 #include <functional>
 #include <optional>
 #include <stdexcept>
@@ -42,6 +41,7 @@ namespace manager {
 
 	template <typename AxesConfig>
 	inline void MovementManager<AxesConfig>::init(const AxesConfig& axes_config) {
+		m_axes_controller = std::nullopt;
 		m_axes_controller = m_axes_controller_ctor(axes_config);
 	}
 
