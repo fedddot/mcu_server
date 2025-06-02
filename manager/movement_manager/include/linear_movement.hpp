@@ -37,6 +37,7 @@ namespace manager {
 		AxisStep evaluate_axis_step(const Vector<double>& current) const;
 		Vector<double> add_step(const Vector<double>& current, const AxisStep& step) const;
 		static double evaluate_error_metric(const Vector<double>& base_vector, const Vector<double>& vector);
+		static Vector<double> sub_vectors(const Vector<double>& left, const Vector<double>& right);
 	};
 
 	inline LinearMovement::LinearMovement(
@@ -57,15 +58,18 @@ namespace manager {
 	}
 
 	inline bool LinearMovement::is_enough() const {
+		const auto difference = sub_vectors(m_destination, m_current);
+		if ((0 == difference.get(Axis::X)) && (0 == difference.get(Axis::X)) && (0 == difference.get(Axis::X))) {
+			return true;
+		}
 		for (const auto& axis : {Axis::X, Axis::Y, Axis::Z}) {
-			const auto difference = m_destination.get(axis) - m_current.get(axis);
-			if ((m_destination.get(axis) >= 0) && (difference < 0)) {
+			if ((m_destination.get(axis) >= 0) && (difference.get(axis) < 0)) {
 				return true;
 			}
-			if ((m_destination.get(axis) < 0) && (difference >= 0)) {
+			if ((m_destination.get(axis) < 0) && (difference.get(axis) >= 0)) {
 				return true;
 			}
-			if (std::abs(difference) > std::abs(m_destination.get(axis))) {
+			if (std::abs(difference.get(axis)) > std::abs(m_destination.get(axis))) {
 				return true;
 			}
 		}
@@ -101,6 +105,14 @@ namespace manager {
 		const auto vector_prod = vector_product(base_vector, vector);
 		const auto prod_norm_L2 = inner_product(vector_prod, vector_prod);
 		return prod_norm_L2;
+	}
+
+	inline Vector<double> LinearMovement::sub_vectors(const Vector<double>& left, const Vector<double>& right) {
+		return Vector<double>(
+			left.get(Axis::X) - right.get(Axis::X),
+			left.get(Axis::Y) - right.get(Axis::Y),
+			left.get(Axis::Z) - right.get(Axis::Z)
+		);
 	}
 
 	inline double LinearMovement::evaluate_step_duration(const Vector<double>& destination, const AxesStepLengths& axes_step_lengths, const double speed) {

@@ -5,7 +5,7 @@ target_link_libraries(test_axes_controller INTERFACE movement_manager_data axes_
 add_executable(
 	movement_manager_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
-    # ${CMAKE_CURRENT_LIST_DIR}/src/ut_linear_movement.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/ut_linear_movement.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ut_movement_manager.cpp
 )
 
