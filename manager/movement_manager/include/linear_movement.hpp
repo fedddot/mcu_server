@@ -59,7 +59,7 @@ namespace manager {
 
 	inline bool LinearMovement::is_enough() const {
 		const auto difference = sub_vectors(m_destination, m_current);
-		if ((0 == difference.get(Axis::X)) && (0 == difference.get(Axis::X)) && (0 == difference.get(Axis::X))) {
+		if ((0 == difference.get(Axis::X)) && (0 == difference.get(Axis::Y)) && (0 == difference.get(Axis::Z))) {
 			return true;
 		}
 		for (const auto& axis : {Axis::X, Axis::Y, Axis::Z}) {
