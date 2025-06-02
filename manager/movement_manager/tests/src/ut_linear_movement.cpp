@@ -9,16 +9,21 @@
 
 using namespace manager;
 
-static Vector<double> integrate_path(const std::vector<AxisStep>& steps, const AxesProperties& axes_properties);
+static Vector<double> integrate_path(const std::vector<AxisStep>& steps, const LinearMovement::AxesStepLengths& axes_properties);
 static void print_vector(const Vector<double>& vector);
-static void print_axis_properties(const AxesProperties& axes_properties);
+static void print_axis_properties(const LinearMovement::AxesStepLengths& axes_properties);
 static void print_allowed_absolute_error(const double allowed_absolute_error);
 static std::string axis_to_string(const Axis& axis);
 
 TEST(ut_linear_movement, ctor_dtor_sanity) {
 	// GIVEN
 	const auto destination = Vector<double>(10.0, 20.0, 30.0);
-	const auto axes_properties = AxesProperties(3.0, 4.0, 5.0);
+	const auto axes_properties = LinearMovement::AxesStepLengths {
+		{Axis::X, 3.0},
+		{Axis::Y, 4.0},
+		{Axis::Z, 5.0},
+	};
+	const auto speed = 4.0;
 	
 	// WHEN
 	LinearMovement *instance(nullptr);
@@ -27,7 +32,8 @@ TEST(ut_linear_movement, ctor_dtor_sanity) {
 	ASSERT_NO_THROW(
 		instance = new LinearMovement(
 			destination,
-			axes_properties
+			axes_properties,
+			speed
 		)
 	);
 	ASSERT_NE(instance, nullptr);
@@ -37,32 +43,54 @@ TEST(ut_linear_movement, ctor_dtor_sanity) {
 
 TEST(ut_linear_movement, evaluate_sanity) {
 	// GIVEN
+	const auto speed = 4.0;
+	const auto coarse_axes_properties = LinearMovement::AxesStepLengths {
+		{Axis::X, 3.0},
+		{Axis::Y, 4.0},
+		{Axis::Z, 5.0},
+	};
+	const auto fine_axes_properties = LinearMovement::AxesStepLengths {
+		{Axis::X, 0.005},
+		{Axis::Y, 0.005},
+		{Axis::Z, 0.005},
+	};
 	struct TestCase {
 		const Vector<double> destination;
-		const AxesProperties axes_properties;
+		const double speed;
+		const LinearMovement::AxesStepLengths axes_properties;
 		const double allowed_absolute_error;
 	};
 	const auto coarse_error = 2.0;
 	const auto fine_error = 0.008;
 	const auto destinations = {
 		TestCase {
+			Vector<double>(0.0, 0.0, 0.0),
+			speed,
+			coarse_axes_properties,
+			coarse_error
+		},
+		TestCase {
 			Vector<double>(10.0, 20.0, 30.0),
-			AxesProperties(3.0, 4.0, 5.0),
+			speed,
+			coarse_axes_properties,
 			coarse_error
 		},
 		TestCase {
 			Vector<double>(-10.0, 20.0, -30.0),
-			AxesProperties(3.0, 4.0, 5.0),
+			speed,
+			coarse_axes_properties,
 			coarse_error
 		},
 		TestCase {
 			Vector<double>(35.761, 300.0, 90.86423),
-			AxesProperties(0.005, 0.005, 0.005),
+			speed,
+			fine_axes_properties,
 			fine_error
 		},
 		TestCase {
 			Vector<double>(35.761, -300.0, -90.86423),
-			AxesProperties(0.005, 0.005, 0.005),
+			speed,
+			fine_axes_properties,
 			fine_error
 		},
 	};
@@ -76,15 +104,19 @@ TEST(ut_linear_movement, evaluate_sanity) {
 		// WHEN
 		LinearMovement instance(
 			test_case.destination,
-			test_case.axes_properties
+			test_case.axes_properties,
+			test_case.speed
 		);
-		auto result = std::vector<AxisStep>();
+		auto results = std::vector<AxisStep>();
 
 		// THEN
+
 		ASSERT_NO_THROW(
-			result = instance.evaluate_steps();
+			while (const auto result = instance.next_step()) {
+				results.push_back(*result);
+			}
 		);
-		const auto path = integrate_path(result, test_case.axes_properties);
+		const auto path = integrate_path(results, test_case.axes_properties);
 		std::cout << "Path: " << std::endl;
 		print_vector(path);
 		for (const auto& axis : {Axis::X, Axis::Y, Axis::Z}) {
@@ -100,14 +132,14 @@ TEST(ut_linear_movement, evaluate_sanity) {
 	}
 }
 
-inline Vector<double> integrate_path(const std::vector<AxisStep>& steps, const AxesProperties& axes_properties) {
-	auto add_path = [](const Vector<double>& current, const AxisStep& step, const AxesProperties& axes_properties) {
-		auto increment = axes_properties.get_step_length(step.m_axis);
-		if (step.m_direction == Direction::NEGATIVE) {
+inline Vector<double> integrate_path(const std::vector<AxisStep>& steps, const LinearMovement::AxesStepLengths& axes_properties) {
+	auto add_path = [](const Vector<double>& current, const AxisStep& step, const LinearMovement::AxesStepLengths& axes_properties) {
+		auto increment = axes_properties.at(step.axis());
+		if (step.direction() == Direction::NEGATIVE) {
 			increment = -increment;
 		}
 		auto result = current;
-		result.set(step.m_axis, result.get(step.m_axis) + increment);
+		result.set(step.axis(), result.get(step.axis()) + increment);
 		return result;
 	};
 	auto path = Vector<double>(0.0, 0.0, 0.0);
@@ -134,10 +166,10 @@ inline void print_vector(const Vector<double>& vector) {
 	std::cout << "}" << std::endl;
 }
 
-inline void print_axis_properties(const AxesProperties& axes_properties) {
+inline void print_axis_properties(const LinearMovement::AxesStepLengths& axes_properties) {
 	std::cout << "Axes properties: {" << std::endl;
 	for (const auto& axis: {Axis::X, Axis::Y, Axis::Z}) {
-		std::cout << '\t' << axis_to_string(axis) << " (step length): " << axes_properties.get_step_length(axis) << "," << std::endl;
+		std::cout << '\t' << axis_to_string(axis) << " (step length): " << axes_properties.at(axis) << "," << std::endl;
 	}
 	std::cout << "}" << std::endl;
 }
