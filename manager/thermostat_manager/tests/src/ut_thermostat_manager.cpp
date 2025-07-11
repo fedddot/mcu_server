@@ -38,6 +38,8 @@ TEST(ut_thermostat_manager, ctor_dtor_sanity) {
 
     // WHEN
     ThermostatManager* instance = nullptr;
+
+	// THEN
     ASSERT_NO_THROW(instance = new ThermostatManager(relay, temp, timer));
     ASSERT_NE(instance, nullptr);
     ASSERT_NO_THROW(delete instance);
