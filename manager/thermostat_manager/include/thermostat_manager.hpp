@@ -6,18 +6,10 @@
 
 #include "manager.hpp"
 #include "manager_instance.hpp"
+#include "relay_controller.hpp"
+#include "temperature_sensor_controller.hpp"
 
 namespace manager {
-	class RelayController {
-	public:
-		virtual ~RelayController() noexcept = default;
-		virtual void set_relay_state(const bool state) = 0;
-	};
-	class TemperatureSensorController {
-	public:
-		virtual ~TemperatureSensorController() noexcept = default;
-		virtual double read_temperature() const = 0;
-	};
 	class ThermostatManager: public Manager {
 	public:
 		ThermostatManager(
