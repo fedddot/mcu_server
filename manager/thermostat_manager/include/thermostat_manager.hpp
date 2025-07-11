@@ -17,13 +17,13 @@ namespace manager {
 			const Instance<RelayController>& relay_controller,
 			const Instance<TemperatureSensorController>& temp_sensor_controller,
 			const Instance<TimerScheduler>& timer_scheduler
-		): m_relay_controller(relay_controller), m_temp_sensor_controller(temp_sensor_controller), m_timer_scheduler(timer_scheduler), m_regulation_task_guard(std::nullopt), m_time_resolution_ms(10) {
+		): m_relay_controller(relay_controller), m_temp_sensor_controller(temp_sensor_controller), m_timer_scheduler(timer_scheduler), m_regulation_task_guard(std::nullopt) {
 			m_relay_controller.get().set_relay_state(false);
 		}
 		ThermostatManager(const ThermostatManager& other) = default;
 		ThermostatManager& operator=(const ThermostatManager&) = delete;
 		
-		void start(const double temp) {
+		void start(const double temp, const std::size_t time_resolution_ms) {
 			if (m_regulation_task_guard) {
 				m_regulation_task_guard->get().unschedule();
 				m_regulation_task_guard = std::nullopt;
@@ -36,7 +36,7 @@ namespace manager {
 						m_relay_controller.get().set_relay_state(false);
 					}
 				},
-				m_time_resolution_ms
+				time_resolution_ms
 			);
 		}
 		void stop() {
@@ -54,7 +54,6 @@ namespace manager {
 		Instance<TemperatureSensorController> m_temp_sensor_controller;
 		Instance<TimerScheduler> m_timer_scheduler;
 		std::optional<Instance<TimerScheduler::TaskGuard>> m_regulation_task_guard;
-		std::size_t m_time_resolution_ms;
 	};
 }
 

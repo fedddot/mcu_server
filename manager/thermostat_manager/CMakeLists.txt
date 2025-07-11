@@ -4,6 +4,10 @@ target_link_libraries(
     thermostat_manager
     INTERFACE
     manager
+    manager_instance
+    relay_controller
+    temperature_sensor_controller
+    timer_scheduler
 )
 
 add_library(relay_controller INTERFACE)
