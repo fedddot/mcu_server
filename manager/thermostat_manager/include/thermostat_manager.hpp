@@ -1,9 +1,11 @@
 #ifndef	THERMOSTAT_MANAGER_HPP
 #define	THERMOSTAT_MANAGER_HPP
 
+#include <cstddef>
+#include <stdexcept>
+
 #include "manager.hpp"
 #include "manager_instance.hpp"
-#include <cstddef>
 
 namespace manager {
 	class RelayController {
@@ -30,9 +32,15 @@ namespace manager {
 		void start(const double temp) {
 			if (m_is_running) {
 				throw std::runtime_error("ThermostatManager is already running");
+			}
+			throw std::runtime_error("not implemented");
 		}
-		void stop();
-		double get_current_temperature() const;
+		void stop() {
+			throw std::runtime_error("not implemented");
+		}
+		double get_current_temperature() const {
+			throw std::runtime_error("not implemented");
+		}
 	private:
 		Instance<RelayController> m_relay_controller;
 		Instance<TemperatureSensorController> m_temp_sensor_controller;
