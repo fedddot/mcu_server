@@ -9,4 +9,5 @@ target_link_libraries(
 	PRIVATE
     thermostat_manager
     gtest
+	gmock
 )
