@@ -1,12 +1,11 @@
-#ifndef THERMOSTAT_VENDOR_API_HPP
-#define THERMOSTAT_VENDOR_API_HPP
+#ifndef THERMOSTAT_VENDOR_HPP
+#define THERMOSTAT_VENDOR_HPP
 
 namespace vendor {
-class ThermostatVendorApi {
+class ThermostatVendor {
 public:
-    virtual ~ThermostatVendorApi() noexcept = default;
-    // Define vendor-specific API methods here
+    virtual ~ThermostatVendor() noexcept = default;
 };
 }
 
-#endif // THERMOSTAT_VENDOR_API_HPP
+#endif // THERMOSTAT_VENDOR_HPP
