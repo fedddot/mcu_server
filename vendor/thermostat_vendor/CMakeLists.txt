@@ -3,11 +3,11 @@ target_include_directories(thermostat_vendor INTERFACE ${CMAKE_CURRENT_LIST_DIR}
 target_link_libraries(
     thermostat_vendor
     INTERFACE
-    vendor
-    vendor_instance
     thermostat_api_request
     thermostat_api_response
     thermostat_manager
+    vendor
+    vendor_instance
 )
 
 add_library(thermostat_api_request INTERFACE)
