@@ -24,6 +24,8 @@ uts = [
     "movement_manager_tests",
     "movement_vendor_tests",
     "raw_data_package_tests",
+    "thermostat_manager_tests",
+    "thermostat_vendor_tests",
 ]
 
 def find_executable(name, path):
