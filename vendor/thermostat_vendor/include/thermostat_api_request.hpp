@@ -10,6 +10,7 @@ namespace vendor {
 		enum class RequestType: int {
 			START,
 			STOP,
+			GET_TEMP,
 		};
 		ThermostatVendorApiRequest(
 			const RequestType& type = RequestType::STOP,

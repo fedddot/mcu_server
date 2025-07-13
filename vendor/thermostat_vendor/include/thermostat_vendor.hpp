@@ -28,8 +28,13 @@ namespace vendor {
                 return run_start_request(request);
             case ThermostatVendorApiRequest::RequestType::STOP:
                 return run_stop_request(request);
+            case ThermostatVendorApiRequest::RequestType::GET_TEMP:
+                return run_get_temp_request(request);
             default:
-                throw std::runtime_error("unsupported request type");
+                return ThermostatVendorApiResponse(
+                    ThermostatVendorApiResponse::Result::FAILURE,
+                    "unknown request type"
+                );
             }
         }
 	private:
@@ -56,6 +61,14 @@ namespace vendor {
             return ThermostatVendorApiResponse(
                 ThermostatVendorApiResponse::Result::SUCCESS,
                 std::nullopt
+            );
+        }
+
+        ThermostatVendorApiResponse run_get_temp_request(const ThermostatVendorApiRequest& request) {
+            return ThermostatVendorApiResponse(
+                ThermostatVendorApiResponse::Result::SUCCESS,
+                std::nullopt,
+                m_thermostat_manager.get().get_current_temperature()
             );
         }
     };
