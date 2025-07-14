@@ -90,7 +90,7 @@ namespace host {
 			m_scheduler = scheduler;
 			return std::ref(*this);
 		}
-		ThermostatHostBuilder& set_temp_sensor(const RelayControllerInstance& temp_sensor) {
+		ThermostatHostBuilder& set_temp_sensor(const SensorInstance& temp_sensor) {
 			m_sensor = temp_sensor;
 			return std::ref(*this);
 		}
