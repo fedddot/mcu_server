@@ -29,10 +29,10 @@ target_sources(service_api PRIVATE ${GENERATED_PROTO_PATH}/service_api.pb.c)
 target_include_directories(service_api PUBLIC ${GENERATED_PROTO_PATH} $ENV{NANOPB_SRC_PATH})
 add_dependencies(service_api generate_service_api)
 
-add_library(api_request_parser INTERFACE)
-target_include_directories(api_request_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(proto_thermostat_api_request_parser INTERFACE)
+target_include_directories(proto_thermostat_api_request_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-	api_request_parser
+	proto_thermostat_api_request_parser
 	INTERFACE
 	ipc_data
 	ipc_instance
@@ -42,10 +42,10 @@ target_link_libraries(
 	thermostat_api_request
 )
 
-add_library(api_response_serializer INTERFACE)
-target_include_directories(api_response_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(proto_thermostat_api_response_serializer INTERFACE)
+target_include_directories(proto_thermostat_api_response_serializer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-	api_response_serializer
+	proto_thermostat_api_response_serializer
 	INTERFACE
 	ipc_data
 	pb_common

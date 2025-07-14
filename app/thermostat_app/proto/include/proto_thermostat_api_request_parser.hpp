@@ -1,5 +1,5 @@
-#ifndef API_REQUEST_PARSER_HPP
-#define API_REQUEST_PARSER_HPP
+#ifndef PROTO_THERMOSTAT_API_REQUEST_PARSER_HPP
+#define PROTO_THERMOSTAT_API_REQUEST_PARSER_HPP
 
 #include <optional>
 #include <stdexcept>
@@ -54,4 +54,4 @@ namespace ipc {
     }
 }
 
-#endif // API_REQUEST_PARSER_HPP
+#endif // PROTO_THERMOSTAT_API_REQUEST_PARSER_HPP
