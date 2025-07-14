@@ -3,7 +3,7 @@
 #include "pb_encode.h"
 
 #include "ipc_data.hpp"
-#include "api_request_parser.hpp"
+#include "proto_thermostat_api_request_parser.hpp"
 #include "service_api.pb.h"
 #include "thermostat_api_request.hpp"
 
