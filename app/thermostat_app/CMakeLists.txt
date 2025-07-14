@@ -20,4 +20,5 @@ target_link_libraries(
     timer_scheduler
 )
 
+add_subdirectory(proto)
 add_subdirectory(tests EXCLUDE_FROM_ALL)
