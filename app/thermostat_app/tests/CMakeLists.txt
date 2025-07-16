@@ -7,9 +7,16 @@ add_executable(
 target_link_libraries(
 	thermostat_app_tests
 	PRIVATE
+    ipc_data
+    ipc_instance
+    manager_instance
+    relay_controller
+    temperature_sensor_controller
+    test_ipc_data_reader
+    test_ipc_data_writer
     thermostat_host_builder
-	test_ipc_data_reader
-	test_ipc_data_writer
+    timer_scheduler
 	
 	gtest
+	gmock
 )
