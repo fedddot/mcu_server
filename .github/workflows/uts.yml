@@ -27,3 +27,8 @@ jobs:
       working-directory: ${{github.workspace}}/automation
       run: |
         docker run -i -v ${{github.workspace}}:/usr/app/src mcu-server-dev:latest python3 -u automation/run_ut_tests.py /usr/app/src
+    
+    - name: cleanup build artifacts
+      working-directory: ${{github.workspace}}
+      run: |
+        docker run -i -v ${{github.workspace}}:/usr/app/src mcu-server-dev:latest rm -rf build
