@@ -4,7 +4,7 @@ target_link_libraries(
     thermostat_manager
     INTERFACE
     manager
-    manager_instance
+    manager_instance_reference
     relay_controller
     temperature_sensor_controller
     timer_scheduler
