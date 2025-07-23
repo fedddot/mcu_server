@@ -10,14 +10,11 @@ target_link_libraries(
     ipc_data_reader
     ipc_data_writer
     ipc_instance
-    manager_instance
-    relay_controller
-    temperature_sensor_controller
     thermostat_api_request
     thermostat_api_response
     thermostat_manager
+    thermostat_manager_controller
     thermostat_vendor
-    timer_scheduler
 )
 
 add_subdirectory(proto)

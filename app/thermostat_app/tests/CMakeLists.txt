@@ -10,12 +10,9 @@ target_link_libraries(
     ipc_data
     ipc_instance
     manager_instance
-    relay_controller
-    temperature_sensor_controller
     test_ipc_data_reader
     test_ipc_data_writer
     thermostat_host_builder
-    timer_scheduler
 	
 	gtest
 	gmock

@@ -6,36 +6,25 @@
 #include "ipc_data.hpp"
 #include "ipc_instance.hpp"
 #include "manager_instance.hpp"
-#include "relay_controller.hpp"
-#include "temperature_sensor_controller.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
 #include "thermostat_host_builder.hpp"
-#include "timer_scheduler.hpp"
 
 using namespace ipc;
 using namespace manager;
 using namespace host;
 using namespace testing;
 
-class MockRelayController : public RelayController {
+class MockThermostatManagerController : public ThermostatManagerController {
 public:
     MOCK_METHOD(void, set_relay_state, (const bool state), (override));
+	MOCK_METHOD(double, read_temperature, (), (const, override));
+	MOCK_METHOD(manager::Instance<TaskGuard>, schedule_task, (const Task& task, const std::size_t period_ms), (override));
 };
 
-class MockTemperatureSensorController : public TemperatureSensorController {
-public:
-    MOCK_METHOD(double, read_temperature, (), (const, override));
-};
-
-class MockTaskGuard : public TimerScheduler::TaskGuard {
-public:
+class MockTaskGuard : public ThermostatManagerController::TaskGuard {
+	public:
     MOCK_METHOD(void, unschedule, (), (override));
-};
-
-class MockTimerScheduler : public TimerScheduler {
-public:
-    MOCK_METHOD(manager::Instance<TaskGuard>, schedule_task, (const Task& task, const std::size_t period_ms), (override));
 };
 
 TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
@@ -74,9 +63,7 @@ TEST(ut_thermostat_host_builder, build_sanity) {
 	const auto api_response_serializer = [](const ThermostatHostBuilder::ApiResponse&) -> RawData {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	const auto relay_controller = manager::Instance<RelayController>(new MockRelayController());
-	const auto scheduler = manager::Instance<TimerScheduler>(new MockTimerScheduler());
-	const auto sensor = manager::Instance<TemperatureSensorController>(new MockTemperatureSensorController());
+	auto controller = NiceMock<MockThermostatManagerController>();
 	
 	// WHEN
 	ThermostatHostBuilder instance;
@@ -85,9 +72,7 @@ TEST(ut_thermostat_host_builder, build_sanity) {
 		.set_api_request_parser(api_request_parser)
 		.set_raw_data_writer(raw_data_writer)
 		.set_api_response_serializer(api_response_serializer)
-		.set_relay_controller(relay_controller)
-		.set_scheduler(scheduler)
-		.set_temp_sensor(sensor);
+		.set_controller(&controller);
 
 	// THEN
 	ASSERT_NO_THROW(
