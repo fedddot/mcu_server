@@ -7,7 +7,10 @@ add_executable(
 target_link_libraries(
 	thermostat_manager_tests
 	PRIVATE
+    manager_instance
+    thermostat_manager_controller
     thermostat_manager
+	
     gtest
 	gmock
 )
