@@ -3,22 +3,20 @@
 
 #include <cstddef>
 #include <optional>
+#include <stdexcept>
 
 #include "manager.hpp"
 #include "manager_instance.hpp"
-#include "relay_controller.hpp"
-#include "temperature_sensor_controller.hpp"
-#include "timer_scheduler.hpp"
+#include "thermostat_manager_controller.hpp"
 
 namespace manager {
 	class ThermostatManager: public Manager {
 	public:
-		ThermostatManager(
-			const Instance<RelayController>& relay_controller,
-			const Instance<TemperatureSensorController>& temp_sensor_controller,
-			const Instance<TimerScheduler>& timer_scheduler
-		): m_relay_controller(relay_controller), m_temp_sensor_controller(temp_sensor_controller), m_timer_scheduler(timer_scheduler), m_regulation_task_guard(std::nullopt) {
-			m_relay_controller.get().set_relay_state(false);
+		ThermostatManager(ThermostatManagerController *controller_ptr): m_controller_ptr(controller_ptr), m_regulation_task_guard(std::nullopt) {
+			if (!m_controller_ptr) {
+				throw std::runtime_error("invalid controller_ptr received");
+			}
+			m_controller_ptr->set_relay_state(false);
 		}
 		ThermostatManager(const ThermostatManager& other) = default;
 		ThermostatManager& operator=(const ThermostatManager&) = delete;
@@ -28,12 +26,12 @@ namespace manager {
 				m_regulation_task_guard->get().unschedule();
 				m_regulation_task_guard = std::nullopt;
 			}
-			m_regulation_task_guard = m_timer_scheduler.get().schedule_task(
+			m_regulation_task_guard = m_controller_ptr->schedule_task(
 				[this, temp]() {
-					if (m_temp_sensor_controller.get().read_temperature() < temp) {
-						m_relay_controller.get().set_relay_state(true);
+					if (m_controller_ptr->read_temperature() < temp) {
+						m_controller_ptr->set_relay_state(true);
 					} else {
-						m_relay_controller.get().set_relay_state(false);
+						m_controller_ptr->set_relay_state(false);
 					}
 				},
 				time_resolution_ms
@@ -44,16 +42,14 @@ namespace manager {
 				m_regulation_task_guard->get().unschedule();
 				m_regulation_task_guard = std::nullopt;
 			}
-			m_relay_controller.get().set_relay_state(false);
+			m_controller_ptr->set_relay_state(false);
 		}
 		double get_current_temperature() const {
-			return m_temp_sensor_controller.get().read_temperature();
+			return m_controller_ptr->read_temperature();
 		}
 	private:
-		Instance<RelayController> m_relay_controller;
-		Instance<TemperatureSensorController> m_temp_sensor_controller;
-		Instance<TimerScheduler> m_timer_scheduler;
-		std::optional<Instance<TimerScheduler::TaskGuard>> m_regulation_task_guard;
+		ThermostatManagerController *m_controller_ptr;
+		std::optional<Instance<ThermostatManagerController::TaskGuard>> m_regulation_task_guard;
 	};
 }
 
