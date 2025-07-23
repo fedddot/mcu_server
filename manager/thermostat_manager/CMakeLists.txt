@@ -4,6 +4,7 @@ target_link_libraries(
     thermostat_manager
     INTERFACE
     manager
+    manager_instance
     thermostat_manager_controller
 )
 
