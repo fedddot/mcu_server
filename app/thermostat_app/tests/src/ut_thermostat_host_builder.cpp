@@ -15,14 +15,14 @@ using namespace manager;
 using namespace host;
 using namespace testing;
 
-class MockThermostatManagerController : public ThermostatManagerController {
+class MockThermostatController : public ThermostatController {
 public:
     MOCK_METHOD(void, set_relay_state, (const bool state), (override));
 	MOCK_METHOD(double, read_temperature, (), (const, override));
 	MOCK_METHOD(manager::Instance<TaskGuard>, schedule_task, (const Task& task, const std::size_t period_ms), (override));
 };
 
-class MockTaskGuard : public ThermostatManagerController::TaskGuard {
+class MockTaskGuard : public ThermostatController::TaskGuard {
 	public:
     MOCK_METHOD(void, unschedule, (), (override));
 };
@@ -63,7 +63,7 @@ TEST(ut_thermostat_host_builder, build_sanity) {
 	const auto api_response_serializer = [](const ThermostatHostBuilder::ApiResponse&) -> RawData {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	auto controller = NiceMock<MockThermostatManagerController>();
+	auto controller = NiceMock<MockThermostatController>();
 	
 	// WHEN
 	ThermostatHostBuilder instance;

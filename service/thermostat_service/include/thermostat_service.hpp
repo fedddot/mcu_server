@@ -13,7 +13,7 @@ namespace service {
     class ThermostatService: public Service<ThermostatServiceApiRequest, ThermostatServiceApiResponse> {
     public:
 		ThermostatService(
-			manager::ThermostatManagerController *controller_ptr
+			manager::ThermostatController *controller_ptr
 		): m_thermostat_manager(controller_ptr) {
             
         }
@@ -37,6 +37,8 @@ namespace service {
         }
 	private:
 		manager::ThermostatManager m_thermostat_manager;
+        ThermostatController *m_controller_ptr;
+		std::optional<Instance<ThermostatController::TaskGuard>> m_regulation_task_guard;
 		
 		ThermostatServiceApiResponse run_start_request(const ThermostatServiceApiRequest& request) {
             if (!request.temperature() || !request.time_resolution_ms()) {
@@ -68,6 +70,32 @@ namespace service {
                 m_thermostat_manager.get_current_temperature()
             );
         }
+        		void start(const double temp, const std::size_t time_resolution_ms) {
+			if (m_regulation_task_guard) {
+				m_regulation_task_guard->get().unschedule();
+				m_regulation_task_guard = std::nullopt;
+			}
+			m_regulation_task_guard = m_controller_ptr->schedule_task(
+				[this, temp]() {
+					if (m_controller_ptr->read_temperature() < temp) {
+						m_controller_ptr->set_relay_state(true);
+					} else {
+						m_controller_ptr->set_relay_state(false);
+					}
+				},
+				time_resolution_ms
+			);
+		}
+		void stop() {
+			if (m_regulation_task_guard) {
+				m_regulation_task_guard->get().unschedule();
+				m_regulation_task_guard = std::nullopt;
+			}
+			m_controller_ptr->set_relay_state(false);
+		}
+		double get_current_temperature() const {
+			return m_controller_ptr->read_temperature();
+		}
     };
 }
 

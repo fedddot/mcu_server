@@ -31,7 +31,7 @@ namespace host {
 		using ApiResponseSerializer = std::function<RawData(const ApiResponse&)>;
 		using RawDataWriter = ipc::IpcDataWriter<RawData>;
 
-		using Controller = manager::ThermostatManagerController;
+		using Controller = manager::ThermostatController;
 		
 		ThermostatHostBuilder(): m_raw_reader_ptr(nullptr), m_raw_writer_ptr(nullptr), m_controller_ptr(nullptr) {
 
