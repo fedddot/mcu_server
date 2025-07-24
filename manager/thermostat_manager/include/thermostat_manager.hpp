@@ -20,6 +20,9 @@ namespace manager {
 		}
 		ThermostatManager(const ThermostatManager& other) = default;
 		ThermostatManager& operator=(const ThermostatManager&) = delete;
+		~ThermostatManager() noexcept override {
+			stop();
+		}
 		
 		void start(const double temp, const std::size_t time_resolution_ms) {
 			if (m_regulation_task_guard) {
