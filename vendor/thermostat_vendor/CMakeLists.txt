@@ -7,7 +7,6 @@ target_link_libraries(
     thermostat_api_response
     thermostat_manager
     vendor
-    vendor_instance
 )
 
 add_library(thermostat_api_request INTERFACE)

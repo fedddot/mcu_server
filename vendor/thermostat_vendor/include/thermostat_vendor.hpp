@@ -2,22 +2,22 @@
 #define THERMOSTAT_VENDOR_HPP
 
 #include <optional>
+#include <stdexcept>
 
 #include "thermostat_api_request.hpp"
 #include "thermostat_api_response.hpp"
 #include "thermostat_manager.hpp"
 #include "vendor.hpp"
-#include "vendor_instance.hpp"
 
 namespace vendor {
     class ThermostatVendor: public Vendor<ThermostatVendorApiRequest, ThermostatVendorApiResponse> {
     public:
-		using ThermostatManagerInstance = vendor::Instance<manager::ThermostatManager>;
-
 		ThermostatVendor(
-			const ThermostatManagerInstance& thermostat_manager
-		): m_thermostat_manager(thermostat_manager) {
-
+			manager::ThermostatManager *thermostat_manager_ptr
+		): m_thermostat_manager_ptr(thermostat_manager_ptr) {
+            if(!m_thermostat_manager_ptr) {
+                throw std::invalid_argument("invalid thermostat_manager_ptr received");
+            }
         }
 		ThermostatVendor(const ThermostatVendor& other) = default;
 		ThermostatVendor& operator=(const ThermostatVendor&) = delete;
@@ -38,7 +38,7 @@ namespace vendor {
             }
         }
 	private:
-		ThermostatManagerInstance m_thermostat_manager;
+		manager::ThermostatManager *m_thermostat_manager_ptr;
 		
 		ThermostatVendorApiResponse run_start_request(const ThermostatVendorApiRequest& request) {
             if (!request.temperature() || !request.time_resolution_ms()) {
@@ -47,7 +47,7 @@ namespace vendor {
                     "invalid start request: temperature or time resolution is missing"
                 );
             }
-            m_thermostat_manager.get().start(
+            m_thermostat_manager_ptr->start(
                 *request.temperature(),
                 *request.time_resolution_ms()
             );
@@ -57,7 +57,7 @@ namespace vendor {
             );
         }
 		ThermostatVendorApiResponse run_stop_request(const ThermostatVendorApiRequest& request) {
-            m_thermostat_manager.get().stop();
+            m_thermostat_manager_ptr->stop();
             return ThermostatVendorApiResponse(
                 ThermostatVendorApiResponse::Result::SUCCESS,
                 std::nullopt
@@ -68,7 +68,7 @@ namespace vendor {
             return ThermostatVendorApiResponse(
                 ThermostatVendorApiResponse::Result::SUCCESS,
                 std::nullopt,
-                m_thermostat_manager.get().get_current_temperature()
+                m_thermostat_manager_ptr->get_current_temperature()
             );
         }
     };
