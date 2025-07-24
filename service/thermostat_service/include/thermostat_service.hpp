@@ -5,7 +5,6 @@
 
 #include "thermostat_api_request.hpp"
 #include "thermostat_api_response.hpp"
-#include "thermostat_manager.hpp"
 #include "thermostat_manager_controller.hpp"
 #include "service.hpp"
 
