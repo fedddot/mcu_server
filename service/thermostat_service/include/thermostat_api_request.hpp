@@ -5,23 +5,23 @@
 #include <optional>
 
 namespace service {
-	class ThermostatServiceApiRequest {
+	class ThermostatApiRequest {
 	public:
 		enum class RequestType: int {
 			START,
 			STOP,
 			GET_TEMP,
 		};
-		ThermostatServiceApiRequest(
+		ThermostatApiRequest(
 			const RequestType& type = RequestType::STOP,
 			const std::optional<double>& temp = std::nullopt,
 			const std::optional<std::size_t>& time_resolution_ms = std::nullopt
 		): m_type(type), m_temp(temp), m_time_resolution_ms(time_resolution_ms) {
 
 		}
-		ThermostatServiceApiRequest(const ThermostatServiceApiRequest& other) = default;
-		ThermostatServiceApiRequest& operator=(const ThermostatServiceApiRequest&) = default;
-		virtual ~ThermostatServiceApiRequest() noexcept = default;
+		ThermostatApiRequest(const ThermostatApiRequest& other) = default;
+		ThermostatApiRequest& operator=(const ThermostatApiRequest&) = default;
+		virtual ~ThermostatApiRequest() noexcept = default;
 
 		RequestType type() const {
 			return m_type;

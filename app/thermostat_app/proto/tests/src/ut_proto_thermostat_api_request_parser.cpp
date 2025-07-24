@@ -10,12 +10,12 @@
 using namespace ipc;
 using namespace service;
 
-static RawData serialize_thermostat_request(const ThermostatServiceApiRequest& request);
+static RawData serialize_thermostat_request(const ThermostatApiRequest& request);
 
 TEST(ut_api_request_parser, sanity) {
 	// GIVEN
-	const auto request = ThermostatServiceApiRequest(
-		ThermostatServiceApiRequest::RequestType::START,
+	const auto request = ThermostatApiRequest(
+		ThermostatApiRequest::RequestType::START,
 		25.0,
 		1000
 	);
@@ -33,11 +33,11 @@ TEST(ut_api_request_parser, sanity) {
 	});
 }
 
-inline RawData serialize_thermostat_request(const ThermostatServiceApiRequest& request) {
-	const auto request_type_mapping = std::map<ThermostatServiceApiRequest::RequestType, service_api_RequestType> {
-		{ ThermostatServiceApiRequest::RequestType::START, service_api_RequestType_START },
-		{ ThermostatServiceApiRequest::RequestType::STOP, service_api_RequestType_STOP },
-		{ ThermostatServiceApiRequest::RequestType::GET_TEMP, service_api_RequestType_GET_TEMP }
+inline RawData serialize_thermostat_request(const ThermostatApiRequest& request) {
+	const auto request_type_mapping = std::map<ThermostatApiRequest::RequestType, service_api_RequestType> {
+		{ ThermostatApiRequest::RequestType::START, service_api_RequestType_START },
+		{ ThermostatApiRequest::RequestType::STOP, service_api_RequestType_STOP },
+		{ ThermostatApiRequest::RequestType::GET_TEMP, service_api_RequestType_GET_TEMP }
 	};
 	auto casted_temp = float(0.0);
 	if (request.temperature()) {
@@ -56,7 +56,7 @@ inline RawData serialize_thermostat_request(const ThermostatServiceApiRequest& r
 	pb_byte_t buffer[256];
 	auto ostream = pb_ostream_from_buffer(buffer, sizeof(buffer));
 	if (!pb_encode(&ostream, service_api_ThermostatApiRequest_fields, &pb_request)) {
-		throw std::runtime_error("Failed to encode ThermostatServiceApiRequest to raw data");
+		throw std::runtime_error("Failed to encode ThermostatApiRequest to raw data");
 	}
 	return RawData((const char *)buffer, (const char *)(buffer + ostream.bytes_written));
 }

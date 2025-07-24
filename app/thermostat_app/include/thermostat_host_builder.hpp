@@ -22,7 +22,7 @@ namespace host {
 	template <typename RawData>
 	class ThermostatHostBuilder {
 	public:
-		using ApiRequest = service::ThermostatServiceApiRequest;
+		using ApiRequest = service::ThermostatApiRequest;
 		using ApiRequestParser = std::function<ApiRequest(const RawData&)>;
 		using RawDataReader = ipc::IpcDataReader<RawData>;
 

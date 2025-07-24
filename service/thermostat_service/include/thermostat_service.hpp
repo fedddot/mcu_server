@@ -10,7 +10,7 @@
 #include "service.hpp"
 
 namespace service {
-    class ThermostatService: public Service<ThermostatServiceApiRequest, ThermostatServiceApiResponse> {
+    class ThermostatService: public Service<ThermostatApiRequest, ThermostatServiceApiResponse> {
     public:
 		ThermostatService(ThermostatController *controller_ptr): m_controller_ptr(controller_ptr), m_regulation_task_guard(std::nullopt) {
             if (!m_controller_ptr) {
@@ -20,13 +20,13 @@ namespace service {
 		ThermostatService(const ThermostatService& other) = default;
 		ThermostatService& operator=(const ThermostatService&) = delete;
 
-		ThermostatServiceApiResponse run_api_request(const ThermostatServiceApiRequest& request) override {
+		ThermostatServiceApiResponse run_api_request(const ThermostatApiRequest& request) override {
             switch (request.type()) {
-            case ThermostatServiceApiRequest::RequestType::START:
+            case ThermostatApiRequest::RequestType::START:
                 return run_start_request(request);
-            case ThermostatServiceApiRequest::RequestType::STOP:
+            case ThermostatApiRequest::RequestType::STOP:
                 return run_stop_request(request);
-            case ThermostatServiceApiRequest::RequestType::GET_TEMP:
+            case ThermostatApiRequest::RequestType::GET_TEMP:
                 return run_get_temp_request(request);
             default:
                 return ThermostatServiceApiResponse(
@@ -39,7 +39,7 @@ namespace service {
         ThermostatController *m_controller_ptr;
 		std::optional<ThermostatController::TaskGuard *> m_regulation_task_guard;
 
-        ThermostatServiceApiResponse run_start_request(const ThermostatServiceApiRequest& request) {
+        ThermostatServiceApiResponse run_start_request(const ThermostatApiRequest& request) {
             if (!request.temperature().has_value() || !request.time_resolution_ms().has_value()) {
                 return ThermostatServiceApiResponse(
                     ThermostatServiceApiResponse::Result::FAILURE,
@@ -67,7 +67,7 @@ namespace service {
                 std::nullopt
             );
         }
-		ThermostatServiceApiResponse run_stop_request(const ThermostatServiceApiRequest& request) {
+		ThermostatServiceApiResponse run_stop_request(const ThermostatApiRequest& request) {
 			if (m_regulation_task_guard.has_value()) {
 				m_regulation_task_guard.value()->unschedule();
                 delete m_regulation_task_guard.value();
@@ -79,7 +79,7 @@ namespace service {
                 std::nullopt
             );
         }
-        ThermostatServiceApiResponse run_get_temp_request(const ThermostatServiceApiRequest& request) {
+        ThermostatServiceApiResponse run_get_temp_request(const ThermostatApiRequest& request) {
             return ThermostatServiceApiResponse(
                 ThermostatServiceApiResponse::Result::SUCCESS,
                 std::nullopt,
