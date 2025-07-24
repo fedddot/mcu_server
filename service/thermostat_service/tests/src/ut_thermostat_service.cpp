@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 
-// #include "thermostat_manager.hpp"
 #include "thermostat_service.hpp"
 
 using namespace service;

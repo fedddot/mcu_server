@@ -12,8 +12,7 @@ target_link_libraries(
     ipc_instance
     thermostat_api_request
     thermostat_api_response
-    thermostat_manager
-    thermostat_manager_controller
+    thermostat_controller
     thermostat_service
 )
 

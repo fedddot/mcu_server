@@ -7,7 +7,6 @@ add_executable(
 target_link_libraries(
 	thermostat_service_tests
 	PRIVATE
-    thermostat_manager
     thermostat_service
 	
     gtest
