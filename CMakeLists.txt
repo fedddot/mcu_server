@@ -9,7 +9,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(app)
 add_subdirectory(host)
-add_subdirectory(manager)
 add_subdirectory(ipc)
 add_subdirectory(external)
 add_subdirectory(service)

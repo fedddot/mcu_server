@@ -5,7 +5,6 @@ target_link_libraries(
     INTERFACE
     thermostat_api_request
     thermostat_api_response
-    thermostat_manager
     service
 )
 
