@@ -49,14 +49,14 @@ TEST(ut_movement_service, run_api_request_sanity) {
 		}
 	);
 	MovementService<AxesConfig> instance(manager_instance);
-	MovementServiceApiResponse response;
+	MovementApiResponse response;
 	
 	// THEN
 	ASSERT_NO_THROW(response = instance.run_api_request(cfg_request));
-	ASSERT_EQ(MovementServiceApiResponse::Result::SUCCESS, response.result());
+	ASSERT_EQ(MovementApiResponse::Result::SUCCESS, response.result());
 
 	ASSERT_NO_THROW(response = instance.run_api_request(test_request));
-	ASSERT_EQ(MovementServiceApiResponse::Result::SUCCESS, response.result());
+	ASSERT_EQ(MovementApiResponse::Result::SUCCESS, response.result());
 }
 
 inline MovementService<AxesConfig>::MovementManagerInstance create_movement_manager(const TestAxesController::Action& action) {

@@ -21,12 +21,12 @@ TEST(ut_movement_json_api_response_serializer, ctor_dtor_sanity) {
 
 TEST(ut_movement_json_api_response_serializer, serialize_sanity) {
     // GIVEN
-    const auto response_wo_message = MovementServiceApiResponse(
-        MovementServiceApiResponse::Result::SUCCESS,
+    const auto response_wo_message = MovementApiResponse(
+        MovementApiResponse::Result::SUCCESS,
         std::nullopt
     );
-    const auto response_w_message = MovementServiceApiResponse(
-        MovementServiceApiResponse::Result::FAILURE,
+    const auto response_w_message = MovementApiResponse(
+        MovementApiResponse::Result::FAILURE,
         std::string("test message")
     );
 

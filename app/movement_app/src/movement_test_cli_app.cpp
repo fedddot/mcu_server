@@ -173,7 +173,7 @@ inline MovementHostBuilder<AxesConfig, RawData>::ApiRequestParser create_request
 
 inline MovementHostBuilder<AxesConfig, RawData>::ApiResponseSerializer create_response_serializer() {
     const auto json_serializer = MovementJsonApiResponseSerializer();
-    return [json_serializer](const MovementServiceApiResponse& response) {
+    return [json_serializer](const MovementApiResponse& response) {
         const auto json_val = json_serializer(response);
         const auto writer_builder = Json::StreamWriterBuilder();
 		const auto serial_str = Json::writeString(writer_builder, json_val);

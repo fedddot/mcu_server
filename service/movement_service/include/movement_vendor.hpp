@@ -16,7 +16,7 @@
 
 namespace service {
 	template <typename AxesConfig>
-	class MovementService: public Service<MovementServiceApiRequest, MovementServiceApiResponse> {
+	class MovementService: public Service<MovementServiceApiRequest, MovementApiResponse> {
 	public:
 		using MovementManagerInstance = service::Instance<manager::MovementManager<AxesConfig>>;
 
@@ -26,13 +26,13 @@ namespace service {
 		MovementService(const MovementService& other) = default;
 		MovementService& operator=(const MovementService&) = delete;
 
-		MovementServiceApiResponse run_api_request(const MovementServiceApiRequest& request) override;
+		MovementApiResponse run_api_request(const MovementServiceApiRequest& request) override;
 	private:
 		MovementManagerInstance m_movement_manager;
 		
-		MovementServiceApiResponse run_cfg_request(const MovementServiceApiRequest& request);
-		MovementServiceApiResponse run_linear_movement_request(const MovementServiceApiRequest& request);
-		MovementServiceApiResponse run_circular_movement_request(const MovementServiceApiRequest& request);
+		MovementApiResponse run_cfg_request(const MovementServiceApiRequest& request);
+		MovementApiResponse run_linear_movement_request(const MovementServiceApiRequest& request);
+		MovementApiResponse run_circular_movement_request(const MovementServiceApiRequest& request);
 
 		template <typename T>
 		static const T& cast_request(const MovementServiceApiRequest& request);
@@ -44,7 +44,7 @@ namespace service {
 	): m_movement_manager(movement_manager) {}
 	
 	template <typename AxesConfig>
-	inline MovementServiceApiResponse MovementService<AxesConfig>::run_api_request(const MovementServiceApiRequest& request) {
+	inline MovementApiResponse MovementService<AxesConfig>::run_api_request(const MovementServiceApiRequest& request) {
 		try {
 			switch (request.type()) {
 			case MovementServiceApiRequest::RequestType::CONFIG:
@@ -54,29 +54,29 @@ namespace service {
 			case MovementServiceApiRequest::RequestType::ROTATIONAL_MOVEMENT:
 				return run_circular_movement_request(request);
 			default:
-				return MovementServiceApiResponse(MovementServiceApiResponse::Result::FAILURE, std::string("unsupported api request received"));
+				return MovementApiResponse(MovementApiResponse::Result::FAILURE, std::string("unsupported api request received"));
 			}
 		} catch (const std::exception& e) {
-			return MovementServiceApiResponse(MovementServiceApiResponse::Result::FAILURE, std::string(e.what()));
+			return MovementApiResponse(MovementApiResponse::Result::FAILURE, std::string(e.what()));
 		}
 	}
 
 	template <typename AxesConfig>
-	inline MovementServiceApiResponse MovementService<AxesConfig>::run_cfg_request(const MovementServiceApiRequest& request) {
+	inline MovementApiResponse MovementService<AxesConfig>::run_cfg_request(const MovementServiceApiRequest& request) {
 		auto casted_request = cast_request<AxesControllerConfigApiRequest<AxesConfig>>(request);
 		m_movement_manager.get().init(casted_request.axes_cfg());
-		return MovementServiceApiResponse(MovementServiceApiResponse::Result::SUCCESS);
+		return MovementApiResponse(MovementApiResponse::Result::SUCCESS);
 	}
 
 	template <typename AxesConfig>
-	inline MovementServiceApiResponse MovementService<AxesConfig>::run_linear_movement_request(const MovementServiceApiRequest& request) {
+	inline MovementApiResponse MovementService<AxesConfig>::run_linear_movement_request(const MovementServiceApiRequest& request) {
 		auto casted_request = cast_request<LinearMovementRequest>(request);
 		m_movement_manager.get().linear_movement(casted_request.destination(), casted_request.speed());
-		return MovementServiceApiResponse(MovementServiceApiResponse::Result::SUCCESS);
+		return MovementApiResponse(MovementApiResponse::Result::SUCCESS);
 	}
 
 	template <typename AxesConfig>
-	inline MovementServiceApiResponse MovementService<AxesConfig>::run_circular_movement_request(const MovementServiceApiRequest& request) {
+	inline MovementApiResponse MovementService<AxesConfig>::run_circular_movement_request(const MovementServiceApiRequest& request) {
 		auto casted_request = cast_request<RotationMovementRequest>(request);
 		m_movement_manager.get().circular_movement(
 			casted_request.destination(),
@@ -84,7 +84,7 @@ namespace service {
 			casted_request.angle(),
 			casted_request.speed()
 		);
-		return MovementServiceApiResponse(MovementServiceApiResponse::Result::SUCCESS);
+		return MovementApiResponse(MovementApiResponse::Result::SUCCESS);
 	}
 
 	template <typename AxesConfig>

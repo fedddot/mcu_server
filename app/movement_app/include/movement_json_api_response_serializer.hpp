@@ -13,13 +13,13 @@ namespace ipc {
         MovementJsonApiResponseSerializer& operator=(const MovementJsonApiResponseSerializer&) = default;
         virtual ~MovementJsonApiResponseSerializer() noexcept = default;
 
-        Json::Value operator()(const service::MovementServiceApiResponse& response) const;
+        Json::Value operator()(const service::MovementApiResponse& response) const;
     };
 
-    inline Json::Value MovementJsonApiResponseSerializer::operator()(const service::MovementServiceApiResponse& response) const {
-        const auto result_mapping = std::map<service::MovementServiceApiResponse::Result, std::string>{
-            {service::MovementServiceApiResponse::Result::SUCCESS, "SUCCESS"},
-            {service::MovementServiceApiResponse::Result::FAILURE, "FAILURE"},
+    inline Json::Value MovementJsonApiResponseSerializer::operator()(const service::MovementApiResponse& response) const {
+        const auto result_mapping = std::map<service::MovementApiResponse::Result, std::string>{
+            {service::MovementApiResponse::Result::SUCCESS, "SUCCESS"},
+            {service::MovementApiResponse::Result::FAILURE, "FAILURE"},
         };
         Json::Value json;
         json["status"] = result_mapping.at(response.result());

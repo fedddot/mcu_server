@@ -24,7 +24,7 @@ namespace host {
 		using ApiRequestParser = typename ipc::ApiRequestReaderBuilder<ApiRequest, RawData>::ApiRequestParser;
 		using RawDataReaderInstance = ipc::Instance<ipc::IpcDataReader<RawData>>;
 
-		using ApiResponse = service::MovementServiceApiResponse;
+		using ApiResponse = service::MovementApiResponse;
 		using ApiResponseSerializer = typename ipc::ApiResponseWriterBuilder<ApiResponse, RawData>::ApiResponseSerializer;
 		using RawDataWriterInstance = ipc::Instance<ipc::IpcDataWriter<RawData>>;
 
