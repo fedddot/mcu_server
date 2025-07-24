@@ -7,7 +7,9 @@ add_executable(
 target_link_libraries(
 	thermostat_app_tests
 	PRIVATE
-    thermostat_host_builder
+	thermostat_host_builder
+	thermostat_controller
+	thermostat_service
 	
 	gtest
 	gmock

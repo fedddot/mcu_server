@@ -5,6 +5,7 @@
 
 #include "thermostat_host_builder.hpp"
 #include "thermostat_controller.hpp"
+#include "thermostat_service.hpp"
 
 using namespace host;
 using namespace service;
@@ -23,6 +24,8 @@ class MockTaskGuard : public ThermostatController::TaskGuard {
 };
 
 using RawData = std::string;
+using ApiRequest = ThermostatHostBuilder<RawData>::ApiRequest;
+using ApiResponse = ThermostatHostBuilder<RawData>::ApiResponse;
 
 TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
 	// WHEN
@@ -38,43 +41,36 @@ TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-// TEST(ut_thermostat_host_builder, build_sanity) {
-// 	// GIVEN
-// 	const auto raw_data_reader = ThermostatHostBuilder<RawData>::RawDataReaderInstance(
-// 		new TestIpcDataReader<RawData>(
-// 			[]() -> std::optional<ipc::Instance<RawData>> {
-// 				throw std::runtime_error("NOT IMPLEMENTED");
-// 			}
-// 		)
-// 	);
-// 	const auto raw_data_writer = ThermostatHostBuilder<RawData>::RawDataWriterInstance(
-// 		new TestIpcDataWriter<RawData>(
-// 			[](const RawData&) {
-// 				throw std::runtime_error("NOT IMPLEMENTED");
-// 			}
-// 		)
-// 	);
-// 	const auto api_request_parser = [](const RawData&) -> ipc::Instance<ThermostatHostBuilder<RawData>::ApiRequest> {
-// 		throw std::runtime_error("NOT IMPLEMENTED");
-// 	};
-// 	const auto api_response_serializer = [](const ThermostatHostBuilder<RawData>::ApiResponse&) -> RawData {
-// 		throw std::runtime_error("NOT IMPLEMENTED");
-// 	};
-// 	auto controller = NiceMock<MockThermostatController>();
+TEST(ut_thermostat_host_builder, build_sanity) {
+	// GIVEN
+	const auto raw_data_reader = []() -> std::optional<RawData> {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto raw_data_writer = [](const RawData&) {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto api_request_parser = [](const RawData&) -> ApiRequest {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto api_response_serializer = [](const ApiResponse&) -> RawData {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	auto controller = NiceMock<MockThermostatController>();
+	auto service = ThermostatService(&controller);
 	
-// 	// WHEN
-// 	ThermostatHostBuilder<RawData> instance;
-// 	instance
-// 		.set_raw_data_reader(raw_data_reader)
-// 		.set_api_request_parser(api_request_parser)
-// 		.set_raw_data_writer(raw_data_writer)
-// 		.set_api_response_serializer(api_response_serializer)
-// 		.set_controller(&controller);
+	// WHEN
+	ThermostatHostBuilder<RawData> instance;
+	instance
+		.set_raw_data_reader(raw_data_reader)
+		.set_api_request_parser(api_request_parser)
+		.set_raw_data_writer(raw_data_writer)
+		.set_api_response_serializer(api_response_serializer)
+		.set_service(&service);
 
-// 	// THEN
-// 	ASSERT_NO_THROW(
-// 		{
-// 			const auto host = instance.build();
-// 		}
-// 	);
-// }
+	// THEN
+	ASSERT_NO_THROW(
+		{
+			const auto host = instance.build();
+		}
+	);
+}
