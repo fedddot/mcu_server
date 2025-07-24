@@ -1,5 +1,5 @@
-#ifndef THERMOSTAT_VENDOR_HPP
-#define THERMOSTAT_VENDOR_HPP
+#ifndef THERMOSTAT_SERVICE_HPP
+#define THERMOSTAT_SERVICE_HPP
 
 #include <optional>
 
@@ -7,30 +7,30 @@
 #include "thermostat_api_response.hpp"
 #include "thermostat_manager.hpp"
 #include "thermostat_manager_controller.hpp"
-#include "vendor.hpp"
+#include "service.hpp"
 
-namespace vendor {
-    class ThermostatVendor: public Vendor<ThermostatVendorApiRequest, ThermostatVendorApiResponse> {
+namespace service {
+    class ThermostatService: public Service<ThermostatServiceApiRequest, ThermostatServiceApiResponse> {
     public:
-		ThermostatVendor(
+		ThermostatService(
 			manager::ThermostatManagerController *controller_ptr
 		): m_thermostat_manager(controller_ptr) {
             
         }
-		ThermostatVendor(const ThermostatVendor& other) = default;
-		ThermostatVendor& operator=(const ThermostatVendor&) = delete;
+		ThermostatService(const ThermostatService& other) = default;
+		ThermostatService& operator=(const ThermostatService&) = delete;
 
-		ThermostatVendorApiResponse run_api_request(const ThermostatVendorApiRequest& request) override {
+		ThermostatServiceApiResponse run_api_request(const ThermostatServiceApiRequest& request) override {
             switch (request.type()) {
-            case ThermostatVendorApiRequest::RequestType::START:
+            case ThermostatServiceApiRequest::RequestType::START:
                 return run_start_request(request);
-            case ThermostatVendorApiRequest::RequestType::STOP:
+            case ThermostatServiceApiRequest::RequestType::STOP:
                 return run_stop_request(request);
-            case ThermostatVendorApiRequest::RequestType::GET_TEMP:
+            case ThermostatServiceApiRequest::RequestType::GET_TEMP:
                 return run_get_temp_request(request);
             default:
-                return ThermostatVendorApiResponse(
-                    ThermostatVendorApiResponse::Result::FAILURE,
+                return ThermostatServiceApiResponse(
+                    ThermostatServiceApiResponse::Result::FAILURE,
                     "unknown request type"
                 );
             }
@@ -38,10 +38,10 @@ namespace vendor {
 	private:
 		manager::ThermostatManager m_thermostat_manager;
 		
-		ThermostatVendorApiResponse run_start_request(const ThermostatVendorApiRequest& request) {
+		ThermostatServiceApiResponse run_start_request(const ThermostatServiceApiRequest& request) {
             if (!request.temperature() || !request.time_resolution_ms()) {
-                return ThermostatVendorApiResponse(
-                    ThermostatVendorApiResponse::Result::FAILURE,
+                return ThermostatServiceApiResponse(
+                    ThermostatServiceApiResponse::Result::FAILURE,
                     "invalid start request: temperature or time resolution is missing"
                 );
             }
@@ -49,21 +49,21 @@ namespace vendor {
                 *request.temperature(),
                 *request.time_resolution_ms()
             );
-            return ThermostatVendorApiResponse(
-                ThermostatVendorApiResponse::Result::SUCCESS,
+            return ThermostatServiceApiResponse(
+                ThermostatServiceApiResponse::Result::SUCCESS,
                 std::nullopt
             );
         }
-		ThermostatVendorApiResponse run_stop_request(const ThermostatVendorApiRequest& request) {
+		ThermostatServiceApiResponse run_stop_request(const ThermostatServiceApiRequest& request) {
             m_thermostat_manager.stop();
-            return ThermostatVendorApiResponse(
-                ThermostatVendorApiResponse::Result::SUCCESS,
+            return ThermostatServiceApiResponse(
+                ThermostatServiceApiResponse::Result::SUCCESS,
                 std::nullopt
             );
         }
-        ThermostatVendorApiResponse run_get_temp_request(const ThermostatVendorApiRequest& request) {
-            return ThermostatVendorApiResponse(
-                ThermostatVendorApiResponse::Result::SUCCESS,
+        ThermostatServiceApiResponse run_get_temp_request(const ThermostatServiceApiRequest& request) {
+            return ThermostatServiceApiResponse(
+                ThermostatServiceApiResponse::Result::SUCCESS,
                 std::nullopt,
                 m_thermostat_manager.get_current_temperature()
             );
@@ -71,4 +71,4 @@ namespace vendor {
     };
 }
 
-#endif // THERMOSTAT_VENDOR_HPP
+#endif // THERMOSTAT_SERVICE_HPP

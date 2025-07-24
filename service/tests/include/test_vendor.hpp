@@ -1,20 +1,20 @@
-#ifndef	TEST_VENDOR_HPP
-#define	TEST_VENDOR_HPP
+#ifndef	TEST_SERVICE_HPP
+#define	TEST_SERVICE_HPP
 
 #include <functional>
 #include <stdexcept>
 
-#include "vendor.hpp"
+#include "service.hpp"
 
-namespace vendor {
+namespace service {
 	template <typename ApiRequest, typename ApiResponse>
-	class TestVendor: public Vendor<ApiRequest, ApiResponse> {
+	class TestService: public Service<ApiRequest, ApiResponse> {
 	public:
 		using TestAction = std::function<ApiResponse(const ApiRequest&)>;
 
-		TestVendor(const TestAction& test_action);
-		TestVendor(const TestVendor&) = default;
-		TestVendor& operator=(const TestVendor&) = default;
+		TestService(const TestAction& test_action);
+		TestService(const TestService&) = default;
+		TestService& operator=(const TestService&) = default;
 
 		ApiResponse run_api_request(const ApiRequest& request) override;
 	private:
@@ -22,16 +22,16 @@ namespace vendor {
 	};
 
 	template <typename ApiRequest, typename ApiResponse>
-	inline TestVendor<ApiRequest, ApiResponse>::TestVendor(const TestAction& test_action): m_test_action(test_action) {
+	inline TestService<ApiRequest, ApiResponse>::TestService(const TestAction& test_action): m_test_action(test_action) {
 		if (!m_test_action) {
 			throw std::invalid_argument("invalid test action received");
 		}
 	}
 
 	template <typename ApiRequest, typename ApiResponse>
-	inline ApiResponse TestVendor<ApiRequest, ApiResponse>::run_api_request(const ApiRequest& request) {
+	inline ApiResponse TestService<ApiRequest, ApiResponse>::run_api_request(const ApiRequest& request) {
 		return m_test_action(request);
 	}
 }
 
-#endif // TEST_VENDOR_HPP
+#endif // TEST_SERVICE_HPP

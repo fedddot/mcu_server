@@ -1,8 +1,8 @@
-#ifndef	MOVEMENT_VENDOR_API_REQUEST_HPP
-#define	MOVEMENT_VENDOR_API_REQUEST_HPP
+#ifndef	MOVEMENT_SERVICE_API_REQUEST_HPP
+#define	MOVEMENT_SERVICE_API_REQUEST_HPP
 
-namespace vendor {
-	class MovementVendorApiRequest {
+namespace service {
+	class MovementServiceApiRequest {
 	public:
 		enum class RequestType: int {
 			CONFIG,
@@ -13,4 +13,4 @@ namespace vendor {
 	};
 }
 
-#endif // MOVEMENT_VENDOR_API_REQUEST_HPP
+#endif // MOVEMENT_SERVICE_API_REQUEST_HPP

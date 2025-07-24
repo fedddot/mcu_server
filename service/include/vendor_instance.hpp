@@ -1,10 +1,10 @@
-#ifndef	VENDOR_INSTANCE_HPP
-#define	VENDOR_INSTANCE_HPP
+#ifndef	SERVICE_INSTANCE_HPP
+#define	SERVICE_INSTANCE_HPP
 
 #include <memory>
 #include <stdexcept>
 
-namespace vendor {
+namespace service {
 	template <typename T>
 	class Instance {
 	public:
@@ -35,4 +35,4 @@ namespace vendor {
 	}
 }
 
-#endif // VENDOR_INSTANCE_HPP
+#endif // SERVICE_INSTANCE_HPP

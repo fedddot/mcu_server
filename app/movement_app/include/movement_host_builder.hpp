@@ -12,19 +12,19 @@
 #include "ipc_data_writer.hpp"
 #include "ipc_instance.hpp"
 #include "movement_manager.hpp"
-#include "movement_vendor.hpp"
-#include "movement_vendor_api_request.hpp"
-#include "movement_vendor_api_response.hpp"
+#include "movement_service.hpp"
+#include "movement_service_api_request.hpp"
+#include "movement_service_api_response.hpp"
 
 namespace host {
 	template <typename AxesConfig, typename RawData>
 	class MovementHostBuilder {
 	public:
-		using ApiRequest = vendor::MovementVendorApiRequest;
+		using ApiRequest = service::MovementServiceApiRequest;
 		using ApiRequestParser = typename ipc::ApiRequestReaderBuilder<ApiRequest, RawData>::ApiRequestParser;
 		using RawDataReaderInstance = ipc::Instance<ipc::IpcDataReader<RawData>>;
 
-		using ApiResponse = vendor::MovementVendorApiResponse;
+		using ApiResponse = service::MovementServiceApiResponse;
 		using ApiResponseSerializer = typename ipc::ApiResponseWriterBuilder<ApiResponse, RawData>::ApiResponseSerializer;
 		using RawDataWriterInstance = ipc::Instance<ipc::IpcDataWriter<RawData>>;
 
@@ -40,16 +40,16 @@ namespace host {
 		Host<ApiRequest, ApiResponse> build() const {
 			const auto api_request_reader = m_api_request_reader_builder.build();
 			const auto api_response_writer = m_api_response_writer_builder.build();
-			const auto movement_manager_instance = typename vendor::MovementVendor<AxesConfig>::MovementManagerInstance(
+			const auto movement_manager_instance = typename service::MovementService<AxesConfig>::MovementManagerInstance(
 				new manager::MovementManager<AxesConfig>(
 					retrieve_from_option(m_axes_controller_ctor, "axes controller constructor")
 				)
 			);
-			const auto movement_vendor = Host<ApiRequest, ApiResponse>::VendorInstance(new vendor::MovementVendor<AxesConfig>(movement_manager_instance));
+			const auto movement_service = Host<ApiRequest, ApiResponse>::ServiceInstance(new service::MovementService<AxesConfig>(movement_manager_instance));
 			return Host<ApiRequest, ApiResponse>(
 				api_request_reader,
 				api_response_writer,
-				movement_vendor,
+				movement_service,
 				[](const std::exception& e) {
 					return ApiResponse(
 						ApiResponse::Result::FAILURE,

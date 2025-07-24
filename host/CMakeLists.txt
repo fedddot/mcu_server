@@ -7,7 +7,7 @@ target_link_libraries(
     host
     INTERFACE
     host_instance
-    vendor
+    service
     ipc_data_reader
     ipc_data_writer
 )

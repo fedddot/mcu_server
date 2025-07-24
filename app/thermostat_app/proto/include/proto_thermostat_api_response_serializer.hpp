@@ -19,17 +19,17 @@ namespace ipc {
         ApiResponseSerializer& operator=(const ApiResponseSerializer&) = default;
         virtual ~ApiResponseSerializer() noexcept = default;
 
-        RawData operator()(const vendor::ThermostatVendorApiResponse& response) const;
+        RawData operator()(const service::ThermostatServiceApiResponse& response) const;
     private:
         static bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
     };
 
-    inline RawData ApiResponseSerializer::operator()(const vendor::ThermostatVendorApiResponse& response) const {
-        using namespace vendor;
-        using VendorStatus = vendor::ThermostatVendorApiResponse::Result;
-        const auto status_mapping = std::map<VendorStatus, service_api_StatusCode> {
-            { VendorStatus::SUCCESS, service_api_StatusCode_SUCCESS },
-            { VendorStatus::FAILURE, service_api_StatusCode_FAILURE },
+    inline RawData ApiResponseSerializer::operator()(const service::ThermostatServiceApiResponse& response) const {
+        using namespace service;
+        using ServiceStatus = service::ThermostatServiceApiResponse::Result;
+        const auto status_mapping = std::map<ServiceStatus, service_api_StatusCode> {
+            { ServiceStatus::SUCCESS, service_api_StatusCode_SUCCESS },
+            { ServiceStatus::FAILURE, service_api_StatusCode_FAILURE },
         };
         const auto pb_status = status_mapping.at(response.result());
         const auto pb_msg = response.message() ? response.message().value() : std::string("");
@@ -52,7 +52,7 @@ namespace ipc {
             BUFF_SIZE
         );
         if (!pb_encode(&ostream, service_api_ThermostatApiResponse_fields, &pb_response)) {
-            throw std::runtime_error("failed to encode ThermostatVendorApiResponse into protocol buffer: " + std::string(PB_GET_ERROR(&ostream)));
+            throw std::runtime_error("failed to encode ThermostatServiceApiResponse into protocol buffer: " + std::string(PB_GET_ERROR(&ostream)));
         }
         return RawData((const char *)buffer, (const char *)buffer + ostream.bytes_written);
     }

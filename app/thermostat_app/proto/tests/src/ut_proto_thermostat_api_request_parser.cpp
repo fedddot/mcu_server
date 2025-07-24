@@ -8,14 +8,14 @@
 #include "thermostat_api_request.hpp"
 
 using namespace ipc;
-using namespace vendor;
+using namespace service;
 
-static RawData serialize_thermostat_request(const ThermostatVendorApiRequest& request);
+static RawData serialize_thermostat_request(const ThermostatServiceApiRequest& request);
 
 TEST(ut_api_request_parser, sanity) {
 	// GIVEN
-	const auto request = ThermostatVendorApiRequest(
-		ThermostatVendorApiRequest::RequestType::START,
+	const auto request = ThermostatServiceApiRequest(
+		ThermostatServiceApiRequest::RequestType::START,
 		25.0,
 		1000
 	);
@@ -33,11 +33,11 @@ TEST(ut_api_request_parser, sanity) {
 	});
 }
 
-inline RawData serialize_thermostat_request(const ThermostatVendorApiRequest& request) {
-	const auto request_type_mapping = std::map<ThermostatVendorApiRequest::RequestType, service_api_RequestType> {
-		{ ThermostatVendorApiRequest::RequestType::START, service_api_RequestType_START },
-		{ ThermostatVendorApiRequest::RequestType::STOP, service_api_RequestType_STOP },
-		{ ThermostatVendorApiRequest::RequestType::GET_TEMP, service_api_RequestType_GET_TEMP }
+inline RawData serialize_thermostat_request(const ThermostatServiceApiRequest& request) {
+	const auto request_type_mapping = std::map<ThermostatServiceApiRequest::RequestType, service_api_RequestType> {
+		{ ThermostatServiceApiRequest::RequestType::START, service_api_RequestType_START },
+		{ ThermostatServiceApiRequest::RequestType::STOP, service_api_RequestType_STOP },
+		{ ThermostatServiceApiRequest::RequestType::GET_TEMP, service_api_RequestType_GET_TEMP }
 	};
 	auto casted_temp = float(0.0);
 	if (request.temperature()) {
@@ -56,7 +56,7 @@ inline RawData serialize_thermostat_request(const ThermostatVendorApiRequest& re
 	pb_byte_t buffer[256];
 	auto ostream = pb_ostream_from_buffer(buffer, sizeof(buffer));
 	if (!pb_encode(&ostream, service_api_ThermostatApiRequest_fields, &pb_request)) {
-		throw std::runtime_error("Failed to encode ThermostatVendorApiRequest to raw data");
+		throw std::runtime_error("Failed to encode ThermostatServiceApiRequest to raw data");
 	}
 	return RawData((const char *)buffer, (const char *)(buffer + ostream.bytes_written));
 }

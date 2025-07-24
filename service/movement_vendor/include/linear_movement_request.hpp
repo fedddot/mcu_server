@@ -4,10 +4,10 @@
 #include <stdexcept>
 
 #include "movement_manager_vector.hpp"
-#include "movement_vendor_api_request.hpp"
+#include "movement_service_api_request.hpp"
 
-namespace vendor {
-	class LinearMovementRequest: public MovementVendorApiRequest {
+namespace service {
+	class LinearMovementRequest: public MovementServiceApiRequest {
 	public:
 		using Vector = manager::Vector<double>;
 		LinearMovementRequest(const Vector& destination, const double speed);
@@ -27,7 +27,7 @@ namespace vendor {
 		}
 	}
 
-	inline MovementVendorApiRequest::RequestType LinearMovementRequest::type() const {
+	inline MovementServiceApiRequest::RequestType LinearMovementRequest::type() const {
 		return RequestType::LINEAR_MOVEMENT;
 	}
 

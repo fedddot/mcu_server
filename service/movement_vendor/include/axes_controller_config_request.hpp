@@ -1,11 +1,11 @@
 #ifndef	AXES_CONTROLLER_CONFIG_REQUEST_HPP
 #define	AXES_CONTROLLER_CONFIG_REQUEST_HPP
 
-#include "movement_vendor_api_request.hpp"
+#include "movement_service_api_request.hpp"
 
-namespace vendor {
+namespace service {
 	template <typename AxesConfig>
-	class AxesControllerConfigApiRequest: public MovementVendorApiRequest {
+	class AxesControllerConfigApiRequest: public MovementServiceApiRequest {
 	public:
 		AxesControllerConfigApiRequest(const AxesConfig& axes_cfg): m_axes_cfg(axes_cfg) {
 

@@ -4,10 +4,10 @@
 #include "gtest/gtest.h"
 
 #include "movement_json_api_response_serializer.hpp"
-#include "movement_vendor_api_response.hpp"
+#include "movement_service_api_response.hpp"
 
 using namespace ipc;
-using namespace vendor;
+using namespace service;
 
 TEST(ut_movement_json_api_response_serializer, ctor_dtor_sanity) {
 	// WHEN
@@ -21,12 +21,12 @@ TEST(ut_movement_json_api_response_serializer, ctor_dtor_sanity) {
 
 TEST(ut_movement_json_api_response_serializer, serialize_sanity) {
     // GIVEN
-    const auto response_wo_message = MovementVendorApiResponse(
-        MovementVendorApiResponse::Result::SUCCESS,
+    const auto response_wo_message = MovementServiceApiResponse(
+        MovementServiceApiResponse::Result::SUCCESS,
         std::nullopt
     );
-    const auto response_w_message = MovementVendorApiResponse(
-        MovementVendorApiResponse::Result::FAILURE,
+    const auto response_w_message = MovementServiceApiResponse(
+        MovementServiceApiResponse::Result::FAILURE,
         std::string("test message")
     );
 

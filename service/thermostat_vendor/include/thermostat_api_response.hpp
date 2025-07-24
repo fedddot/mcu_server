@@ -1,26 +1,26 @@
-#ifndef	THERMOSTAT_VENDOR_API_RESPONSE_HPP
-#define	THERMOSTAT_VENDOR_API_RESPONSE_HPP
+#ifndef	THERMOSTAT_SERVICE_API_RESPONSE_HPP
+#define	THERMOSTAT_SERVICE_API_RESPONSE_HPP
 
 #include <optional>
 #include <string>
 
-namespace vendor {
-	class ThermostatVendorApiResponse {
+namespace service {
+	class ThermostatServiceApiResponse {
 	public:
 		enum class Result: int {
 			SUCCESS,
 			FAILURE,
 		};
-		ThermostatVendorApiResponse(
+		ThermostatServiceApiResponse(
 			const Result& result = Result::FAILURE,
 			const std::optional<std::string>& message = std::nullopt,
 			const std::optional<double>& temperature = std::nullopt
 		): m_result(result), m_message(message), m_temperature(temperature) {
 
 		}
-		ThermostatVendorApiResponse(const ThermostatVendorApiResponse& other) = default;
-		ThermostatVendorApiResponse& operator=(const ThermostatVendorApiResponse&) = default;
-		virtual ~ThermostatVendorApiResponse() noexcept = default;
+		ThermostatServiceApiResponse(const ThermostatServiceApiResponse& other) = default;
+		ThermostatServiceApiResponse& operator=(const ThermostatServiceApiResponse&) = default;
+		virtual ~ThermostatServiceApiResponse() noexcept = default;
 
 		Result result() const {
 			return m_result;
@@ -40,4 +40,4 @@ namespace vendor {
 	};
 }
 
-#endif // THERMOSTAT_VENDOR_API_RESPONSE_HPP
+#endif // THERMOSTAT_SERVICE_API_RESPONSE_HPP

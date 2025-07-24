@@ -9,9 +9,9 @@
 #include "ipc_instance.hpp"
 #include "test_ipc_data_reader.hpp"
 #include "test_ipc_data_writer.hpp"
-#include "test_vendor.hpp"
+#include "test_service.hpp"
 
-using namespace vendor;
+using namespace service;
 using namespace host;
 using namespace ipc;
 
@@ -35,8 +35,8 @@ TEST(ut_host, ctor_dtor_sanity) {
 			}
 		)
 	);
-	const auto vendor = TestHost::VendorInstance(
-		new TestVendor<ApiRequest, ApiResponse>(
+	const auto service = TestHost::ServiceInstance(
+		new TestService<ApiRequest, ApiResponse>(
 			[](const ApiRequest&) -> ApiResponse {
 				throw std::runtime_error("NOT IMPLEMENTED");
 			}
@@ -51,7 +51,7 @@ TEST(ut_host, ctor_dtor_sanity) {
 		instance = new TestHost(
 			ipc_data_reader,
 			ipc_data_writer,
-			vendor,
+			service,
 			[](const std::exception& e) -> ApiResponse {
 				throw std::runtime_error("NOT IMPLEMENTED");
 			}
@@ -80,8 +80,8 @@ TEST(ut_host, run_once_sanity) {
 			}
 		)
 	);
-	const auto vendor = TestHost::VendorInstance(
-		new TestVendor<ApiRequest, ApiResponse>(
+	const auto service = TestHost::ServiceInstance(
+		new TestService<ApiRequest, ApiResponse>(
 			[test_api_response](const ApiRequest&) -> ApiResponse {
 				return ApiResponse(test_api_response);
 			}
@@ -92,7 +92,7 @@ TEST(ut_host, run_once_sanity) {
 	TestHost instance(
 		ipc_data_reader,
 		ipc_data_writer,
-		vendor,
+		service,
 		[](const std::exception& e) -> ApiResponse {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}

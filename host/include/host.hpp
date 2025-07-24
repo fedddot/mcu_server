@@ -7,8 +7,8 @@
 
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
-#include "vendor.hpp"
-#include "vendor_instance.hpp"
+#include "service.hpp"
+#include "service_instance.hpp"
 
 namespace host {
 	template <typename ApiRequest, typename ApiResponse>
@@ -16,13 +16,13 @@ namespace host {
 	public:
 		using ApiRequestReaderInstance = ipc::Instance<ipc::IpcDataReader<ApiRequest>>;
 		using ApiResponseWriterInstance = ipc::Instance<ipc::IpcDataWriter<ApiResponse>>;
-		using VendorInstance = vendor::Instance<vendor::Vendor<ApiRequest, ApiResponse>>;
+		using ServiceInstance = service::Instance<service::Service<ApiRequest, ApiResponse>>;
 		using FailureReporter = std::function<ApiResponse(const std::exception&)>;
 
 		Host(
 			const ApiRequestReaderInstance& api_request_reader,
 			const ApiResponseWriterInstance& api_response_writer,
-			const VendorInstance& vendor,
+			const ServiceInstance& service,
 			const FailureReporter& failure_reporter
 		);
 		Host(const Host&) = default;
@@ -33,7 +33,7 @@ namespace host {
 	private:
 		ApiRequestReaderInstance m_api_request_reader;
 		ApiResponseWriterInstance m_api_response_writer;
-		VendorInstance m_vendor;
+		ServiceInstance m_service;
 		FailureReporter m_failure_reporter;
 	};
 
@@ -41,9 +41,9 @@ namespace host {
 	inline Host<ApiRequest, ApiResponse>::Host(
 		const ApiRequestReaderInstance& api_request_reader,
 		const ApiResponseWriterInstance& api_response_writer,
-		const VendorInstance& vendor,
+		const ServiceInstance& service,
 		const FailureReporter& failure_reporter
-	): m_api_request_reader(api_request_reader), m_api_response_writer(api_response_writer), m_vendor(vendor), m_failure_reporter(failure_reporter) {
+	): m_api_request_reader(api_request_reader), m_api_response_writer(api_response_writer), m_service(service), m_failure_reporter(failure_reporter) {
 		if (!m_failure_reporter) {
 			throw std::invalid_argument("invalid failure reporter received");
 		}
@@ -56,7 +56,7 @@ namespace host {
 			if (!request) {
 				return;
 			}
-			const auto response = m_vendor.get().run_api_request(request->get());
+			const auto response = m_service.get().run_api_request(request->get());
 			m_api_response_writer.get().write(response);
 		} catch (const std::exception& e) {
 			const auto response = m_failure_reporter(e);

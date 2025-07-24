@@ -1,27 +1,27 @@
-#ifndef THERMOSTAT_VENDOR_API_REQUEST_HPP
-#define THERMOSTAT_VENDOR_API_REQUEST_HPP
+#ifndef THERMOSTAT_SERVICE_API_REQUEST_HPP
+#define THERMOSTAT_SERVICE_API_REQUEST_HPP
 
 #include <cstddef>
 #include <optional>
 
-namespace vendor {
-	class ThermostatVendorApiRequest {
+namespace service {
+	class ThermostatServiceApiRequest {
 	public:
 		enum class RequestType: int {
 			START,
 			STOP,
 			GET_TEMP,
 		};
-		ThermostatVendorApiRequest(
+		ThermostatServiceApiRequest(
 			const RequestType& type = RequestType::STOP,
 			const std::optional<double>& temp = std::nullopt,
 			const std::optional<std::size_t>& time_resolution_ms = std::nullopt
 		): m_type(type), m_temp(temp), m_time_resolution_ms(time_resolution_ms) {
 
 		}
-		ThermostatVendorApiRequest(const ThermostatVendorApiRequest& other) = default;
-		ThermostatVendorApiRequest& operator=(const ThermostatVendorApiRequest&) = default;
-		virtual ~ThermostatVendorApiRequest() noexcept = default;
+		ThermostatServiceApiRequest(const ThermostatServiceApiRequest& other) = default;
+		ThermostatServiceApiRequest& operator=(const ThermostatServiceApiRequest&) = default;
+		virtual ~ThermostatServiceApiRequest() noexcept = default;
 
 		RequestType type() const {
 			return m_type;
@@ -41,4 +41,4 @@ namespace vendor {
 	};
 }
 
-#endif // THERMOSTAT_VENDOR_API_REQUEST_HPP
+#endif // THERMOSTAT_SERVICE_API_REQUEST_HPP

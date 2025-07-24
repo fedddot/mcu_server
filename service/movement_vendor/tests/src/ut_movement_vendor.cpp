@@ -9,32 +9,32 @@
 #include "movement_manager.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_vector.hpp"
-#include "movement_vendor.hpp"
-#include "movement_vendor_api_response.hpp"
+#include "movement_service.hpp"
+#include "movement_service_api_response.hpp"
 #include "test_axes_controller.hpp"
 
-using namespace vendor;
+using namespace service;
 using namespace manager;
 
 using AxesConfig = std::string;
 
-static MovementVendor<AxesConfig>::MovementManagerInstance create_movement_manager(const TestAxesController::Action& action);
+static MovementService<AxesConfig>::MovementManagerInstance create_movement_manager(const TestAxesController::Action& action);
 
-TEST(ut_movement_vendor, ctor_dtor_sanity) {	
+TEST(ut_movement_service, ctor_dtor_sanity) {	
 	// WHEN
 	const auto manager_instance = create_movement_manager(
 		[](const Axis&, const Direction&, const double) {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
 	);
-	MovementVendor<AxesConfig> *instance_ptr(nullptr);
+	MovementService<AxesConfig> *instance_ptr(nullptr);
 
 	// THEN
-	ASSERT_NO_THROW(instance_ptr = new MovementVendor<AxesConfig>(manager_instance));
+	ASSERT_NO_THROW(instance_ptr = new MovementService<AxesConfig>(manager_instance));
 	ASSERT_NO_THROW(delete instance_ptr);
 }
 
-TEST(ut_movement_vendor, run_api_request_sanity) {
+TEST(ut_movement_service, run_api_request_sanity) {
 	// GIVEN
 	const auto cfg_request = AxesControllerConfigApiRequest<AxesConfig>(AxesConfig("test axes config"));
 	const auto test_request = LinearMovementRequest(
@@ -48,19 +48,19 @@ TEST(ut_movement_vendor, run_api_request_sanity) {
 			std::cout << "mocking axes controller is making a step in " << static_cast<int>(direction) << " direction along " << static_cast<int>(axis) << " with duration " << duration << std::endl;
 		}
 	);
-	MovementVendor<AxesConfig> instance(manager_instance);
-	MovementVendorApiResponse response;
+	MovementService<AxesConfig> instance(manager_instance);
+	MovementServiceApiResponse response;
 	
 	// THEN
 	ASSERT_NO_THROW(response = instance.run_api_request(cfg_request));
-	ASSERT_EQ(MovementVendorApiResponse::Result::SUCCESS, response.result());
+	ASSERT_EQ(MovementServiceApiResponse::Result::SUCCESS, response.result());
 
 	ASSERT_NO_THROW(response = instance.run_api_request(test_request));
-	ASSERT_EQ(MovementVendorApiResponse::Result::SUCCESS, response.result());
+	ASSERT_EQ(MovementServiceApiResponse::Result::SUCCESS, response.result());
 }
 
-inline MovementVendor<AxesConfig>::MovementManagerInstance create_movement_manager(const TestAxesController::Action& action) {
-	return MovementVendor<AxesConfig>::MovementManagerInstance(
+inline MovementService<AxesConfig>::MovementManagerInstance create_movement_manager(const TestAxesController::Action& action) {
+	return MovementService<AxesConfig>::MovementManagerInstance(
 		new MovementManager<AxesConfig>(
 			[action](const AxesConfig& axes_cfg) {
 				return manager::Instance<manager::AxesController>(new TestAxesController(action));

@@ -13,6 +13,6 @@ target_link_libraries(
     ipc_instance
     test_ipc_data_reader
     test_ipc_data_writer
-    test_vendor
+    test_service
 	gtest
 )

@@ -14,7 +14,7 @@ target_link_libraries(
     thermostat_api_response
     thermostat_manager
     thermostat_manager_controller
-    thermostat_vendor
+    thermostat_service
 )
 
 add_subdirectory(proto)

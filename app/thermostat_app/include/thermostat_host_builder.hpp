@@ -16,18 +16,18 @@
 #include "thermostat_api_response.hpp"
 #include "thermostat_manager.hpp"
 #include "thermostat_manager_controller.hpp"
-#include "thermostat_vendor.hpp"
+#include "thermostat_service.hpp"
 
 
 namespace host {
 	template <typename RawData>
 	class ThermostatHostBuilder {
 	public:
-		using ApiRequest = vendor::ThermostatVendorApiRequest;
+		using ApiRequest = service::ThermostatServiceApiRequest;
 		using ApiRequestParser = std::function<ApiRequest(const RawData&)>;
 		using RawDataReader = ipc::IpcDataReader<RawData>;
 
-		using ApiResponse = vendor::ThermostatVendorApiResponse;
+		using ApiResponse = service::ThermostatServiceApiResponse;
 		using ApiResponseSerializer = std::function<RawData(const ApiResponse&)>;
 		using RawDataWriter = ipc::IpcDataWriter<RawData>;
 
@@ -46,12 +46,12 @@ namespace host {
 			if (!m_controller_ptr) {
 				throw std::runtime_error("controller_ptr has not been set");
 			}
-			const auto thermostat_manager_instance = vendor::ThermostatVendor::ThermostatManagerInstance(new manager::ThermostatManager(m_controller_ptr));
-			const auto thermostat_vendor = Host<ApiRequest, ApiResponse>::VendorInstance(new vendor::ThermostatVendor(thermostat_manager_instance));
+			const auto thermostat_manager_instance = service::ThermostatService::ThermostatManagerInstance(new manager::ThermostatManager(m_controller_ptr));
+			const auto thermostat_service = Host<ApiRequest, ApiResponse>::ServiceInstance(new service::ThermostatService(thermostat_manager_instance));
 			return Host<ApiRequest, ApiResponse>(
 				api_request_reader,
 				api_response_writer,
-				thermostat_vendor,
+				thermostat_service,
 				[](const std::exception& e) {
 					return ApiResponse(
 						ApiResponse::Result::FAILURE,
