@@ -6,8 +6,6 @@
 
 #include "pb_decode.h"
 
-#include "ipc_data.hpp"
-#include "ipc_instance.hpp"
 #include "service_api.pb.h"
 #include "thermostat_api_request.hpp"
 
@@ -19,10 +17,10 @@ namespace ipc {
         ApiRequestParser& operator=(const ApiRequestParser&) = default;
         virtual ~ApiRequestParser() noexcept = default;
 
-        Instance<service::ThermostatApiRequest> operator()(const RawData& raw_data) const;
+        service::ThermostatApiRequest operator()(const std::vector<char>& raw_data) const;
     };
 
-    inline Instance<service::ThermostatApiRequest> ApiRequestParser::operator()(const RawData& raw_data) const {
+    inline service::ThermostatApiRequest ApiRequestParser::operator()(const std::vector<char>& raw_data) const {
         auto istream = pb_istream_from_buffer(
             (const pb_byte_t *)raw_data.data(),
             raw_data.size()
@@ -33,21 +31,15 @@ namespace ipc {
         }
         switch (decoded_request.request_type) {
         case service_api_RequestType_STOP:
-            return Instance<service::ThermostatApiRequest>(
-                new service::ThermostatApiRequest(service::ThermostatApiRequest::RequestType::STOP)
-            );
+            return service::ThermostatApiRequest(service::ThermostatApiRequest::RequestType::STOP);
         case service_api_RequestType_START:
-            return Instance<service::ThermostatApiRequest>(
-                new service::ThermostatApiRequest(
-                    service::ThermostatApiRequest::RequestType::START,
-                    decoded_request.set_temperature,
-                    decoded_request.time_resolution_ms
-                )
+            return service::ThermostatApiRequest(
+                service::ThermostatApiRequest::RequestType::START,
+                decoded_request.set_temperature,
+                decoded_request.time_resolution_ms
             );
         case service_api_RequestType_GET_TEMP:
-            return Instance<service::ThermostatApiRequest>(
-                new service::ThermostatApiRequest(service::ThermostatApiRequest::RequestType::GET_TEMP)
-            );
+            return service::ThermostatApiRequest(service::ThermostatApiRequest::RequestType::GET_TEMP);
         default:
             throw std::runtime_error("unsupported request type in ThermostatApiRequest");
         }
