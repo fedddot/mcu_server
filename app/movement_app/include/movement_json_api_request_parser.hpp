@@ -13,7 +13,7 @@
 #include "ipc_instance.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_vector.hpp"
-#include "movement_vendor_api_request.hpp"
+#include "movement_service_api_request.hpp"
 #include "rotation_movement_request.hpp"
 
 namespace ipc {
@@ -27,15 +27,15 @@ namespace ipc {
         MovementJsonApiRequestParser& operator=(const MovementJsonApiRequestParser&) = default;
         virtual ~MovementJsonApiRequestParser() noexcept = default;
 
-        Instance<vendor::MovementVendorApiRequest> operator()(const Json::Value& json_value) const;
+        Instance<service::MovementServiceApiRequest> operator()(const Json::Value& json_value) const;
     private:
-        using RequestType = typename vendor::MovementVendorApiRequest::RequestType;
+        using RequestType = typename service::MovementServiceApiRequest::RequestType;
         AxesConfigParser m_axes_config_parser;
 
         static RequestType parse_request_type(const Json::Value& json_value);
-        Instance<vendor::MovementVendorApiRequest> parse_config_request(const Json::Value& json_value) const;
-        static Instance<vendor::MovementVendorApiRequest> parse_linear_movement_request(const Json::Value& json_value);
-        static Instance<vendor::MovementVendorApiRequest> parse_rotational_movement_request(const Json::Value& json_value);
+        Instance<service::MovementServiceApiRequest> parse_config_request(const Json::Value& json_value) const;
+        static Instance<service::MovementServiceApiRequest> parse_linear_movement_request(const Json::Value& json_value);
+        static Instance<service::MovementServiceApiRequest> parse_rotational_movement_request(const Json::Value& json_value);
         static std::string retrieve_string(const Json::Value& json_value, const std::string& key);
         static double retrieve_double(const Json::Value& json_value, const std::string& key);
         static manager::Vector<double> parse_vector(const Json::Value& json_value);
@@ -49,7 +49,7 @@ namespace ipc {
     }
 
     template <typename AxesConfig>
-    inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::operator()(const Json::Value& json_value) const {
+    inline Instance<service::MovementServiceApiRequest> MovementJsonApiRequestParser<AxesConfig>::operator()(const Json::Value& json_value) const {
         const auto request_type = parse_request_type(json_value);
         switch (request_type) {
         case RequestType::CONFIG:
@@ -79,30 +79,30 @@ namespace ipc {
     }
 
     template <typename AxesConfig>
-    inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_config_request(const Json::Value& json_value) const {
+    inline Instance<service::MovementServiceApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_config_request(const Json::Value& json_value) const {
         const auto axes_config = m_axes_config_parser(json_value);
-        return Instance<vendor::MovementVendorApiRequest>(
-            new vendor::AxesControllerConfigApiRequest<AxesConfig>(axes_config)
+        return Instance<service::MovementServiceApiRequest>(
+            new service::AxesControllerConfigApiRequest<AxesConfig>(axes_config)
         );
     }
 
     template <typename AxesConfig>
-    inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_linear_movement_request(const Json::Value& json_value) {
+    inline Instance<service::MovementServiceApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_linear_movement_request(const Json::Value& json_value) {
         const auto destination = parse_vector(json_value["destination"]);
         const auto speed = retrieve_double(json_value, "speed");
-        return Instance<vendor::MovementVendorApiRequest>(
-            new vendor::LinearMovementRequest(destination, speed)
+        return Instance<service::MovementServiceApiRequest>(
+            new service::LinearMovementRequest(destination, speed)
         );
     }
 
     template <typename AxesConfig>
-    inline Instance<vendor::MovementVendorApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_rotational_movement_request(const Json::Value& json_value) {
+    inline Instance<service::MovementServiceApiRequest> MovementJsonApiRequestParser<AxesConfig>::parse_rotational_movement_request(const Json::Value& json_value) {
         const auto destination = parse_vector(json_value["destination"]);
         const auto rotation_center = parse_vector(json_value["rotation_center"]);
         const auto speed = retrieve_double(json_value, "speed");
         const auto angle = retrieve_double(json_value, "angle");
-        return Instance<vendor::MovementVendorApiRequest>(
-            new vendor::RotationMovementRequest(destination, rotation_center, angle, speed)
+        return Instance<service::MovementServiceApiRequest>(
+            new service::RotationMovementRequest(destination, rotation_center, angle, speed)
         );
     }
 

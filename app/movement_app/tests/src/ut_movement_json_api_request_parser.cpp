@@ -9,10 +9,10 @@
 #include "movement_json_api_request_parser.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_vector.hpp"
-#include "movement_vendor_api_request.hpp"
+#include "movement_service_api_request.hpp"
 
 using namespace ipc;
-using namespace vendor;
+using namespace service;
 using namespace manager;
 
 using AxesConfig = std::string;
@@ -38,7 +38,7 @@ TEST(ut_movement_json_api_request_parser, ctor_dtor_sanity) {
 
 TEST(ut_movement_json_api_request_parser, parse_config_request) {
 	// GIVEN
-	const auto expected_request_type = MovementVendorApiRequest::RequestType::CONFIG;
+	const auto expected_request_type = MovementServiceApiRequest::RequestType::CONFIG;
 	const auto expected_axes_config = "test_axes_config";
 	Json::Value json_value;
 	json_value["request_type"] = "CONFIG";
@@ -62,7 +62,7 @@ TEST(ut_movement_json_api_request_parser, parse_config_request) {
 
 TEST(ut_movement_json_api_request_parser, parse_linear_movement_request) {
     // GIVEN
-    const auto expected_request_type = MovementVendorApiRequest::RequestType::LINEAR_MOVEMENT;
+    const auto expected_request_type = MovementServiceApiRequest::RequestType::LINEAR_MOVEMENT;
     const auto destination = Vector<double>(0.1, 0.2, 0.3);
     const auto speed = 0.5;
 
@@ -88,7 +88,7 @@ TEST(ut_movement_json_api_request_parser, parse_linear_movement_request) {
 
 TEST(ut_movement_json_api_request_parser, parse_rotational_movement_request) {
     // GIVEN
-    const auto expected_request_type = MovementVendorApiRequest::RequestType::ROTATIONAL_MOVEMENT;
+    const auto expected_request_type = MovementServiceApiRequest::RequestType::ROTATIONAL_MOVEMENT;
     const auto destination = Vector<double>(1.1, 2.2, 3.3);
     const auto rotation_center = Vector<double>(4.4, 5.5, 6.6);
     const auto angle = 45.0;

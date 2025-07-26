@@ -14,7 +14,7 @@ target_link_libraries(
     rotation_movement_request
     movement_json_api_request_parser
     movement_manager_vector
-    movement_vendor_api_request
+    movement_service_api_request
     axes_controller
     ipc_instance
     manager_instance
@@ -23,7 +23,7 @@ target_link_libraries(
     test_ipc_data_reader
     test_ipc_data_writer
     movement_json_api_response_serializer
-    movement_vendor_api_response
+    movement_service_api_response
 	
 	gtest
 )

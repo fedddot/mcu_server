@@ -34,8 +34,6 @@ target_include_directories(proto_thermostat_api_request_parser INTERFACE ${CMAKE
 target_link_libraries(
 	proto_thermostat_api_request_parser
 	INTERFACE
-	ipc_data
-	ipc_instance
 	pb_common
 	pb_decode
 	service_api
@@ -47,7 +45,6 @@ target_include_directories(proto_thermostat_api_response_serializer INTERFACE ${
 target_link_libraries(
 	proto_thermostat_api_response_serializer
 	INTERFACE
-	ipc_data
 	pb_common
 	pb_encode
 	service_api
