@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <stdexcept>
+#include <vector>
 
 #include "pb_decode.h"
 

@@ -1,14 +1,15 @@
 #include "gtest/gtest.h"
+#include <cstdint>
 #include "pb.h"
 #include "pb_encode.h"
 
-#include "ipc_data.hpp"
 #include "proto_thermostat_api_request_parser.hpp"
 #include "service_api.pb.h"
 #include "thermostat_api_request.hpp"
 
 using namespace ipc;
 using namespace service;
+using RawData = std::vector<char>;
 
 static RawData serialize_thermostat_request(const ThermostatApiRequest& request);
 
@@ -27,9 +28,9 @@ TEST(ut_api_request_parser, sanity) {
 	// THEN
 	ASSERT_NO_THROW({
 		const auto result = instance(raw_data);
-		ASSERT_EQ(result.get().type(), request.type());
-		ASSERT_EQ(result.get().temperature(), request.temperature());
-		ASSERT_EQ(result.get().time_resolution_ms(), request.time_resolution_ms());
+		ASSERT_EQ(result.type(), request.type());
+		ASSERT_EQ(result.temperature(), request.temperature());
+		ASSERT_EQ(result.time_resolution_ms(), request.time_resolution_ms());
 	});
 }
 
@@ -50,7 +51,7 @@ inline RawData serialize_thermostat_request(const ThermostatApiRequest& request)
 	const auto pb_request = service_api_ThermostatApiRequest {
 		.request_type = request_type_mapping.at(request.type()),
 		.set_temperature = casted_temp,
-		.time_resolution_ms = casted_time_resolution,
+		.time_resolution_ms = static_cast<uint32_t>(casted_time_resolution),
 	};
 
 	pb_byte_t buffer[256];
