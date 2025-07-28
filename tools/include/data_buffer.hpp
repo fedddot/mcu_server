@@ -12,6 +12,7 @@ namespace tools {
 		virtual T pop_first() = 0;
 		virtual const T& get(const std::size_t index) const = 0;
 		virtual std::size_t size() const = 0;
+		virtual std::size_t capacity() const = 0;
 	};
 }
 

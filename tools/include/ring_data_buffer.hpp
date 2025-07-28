@@ -43,6 +43,9 @@ namespace tools {
 		std::size_t size() const override {
 			return m_size;
 		}
+		std::size_t capacity() const override {
+			return N;
+		}
 	private:
 		std::array<T, N> m_data;
 		std::size_t m_read_index;
