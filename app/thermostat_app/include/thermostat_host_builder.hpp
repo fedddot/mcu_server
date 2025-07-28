@@ -6,7 +6,6 @@
 #include <exception>
 #include <functional>
 #include <optional>
-#include <stdexcept>
 #include <vector>
 
 #include "api_request_reader.hpp"
@@ -41,11 +40,13 @@ namespace host {
 				m_raw_buffer,
 				m_parser
 			);
+			const auto api_response_writer = [raw_writer = m_raw_writer, serializer = m_serializer](const ApiResponse& response) {
+				const auto serialized_response = serializer(response);
+				raw_writer(serialized_response);
+			};
 			return Host<ApiRequest, ApiResponse>(
 				api_request_reader,
-				[](const ApiResponse&) {
-					throw std::runtime_error("NOT IMPLEMENTED");
-				},
+				api_response_writer,
 				[](const std::exception& e) {
 					return ApiResponse(
 						ApiResponse::Result::FAILURE,
