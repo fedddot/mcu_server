@@ -19,12 +19,12 @@ namespace ipc {
         ApiResponseSerializer& operator=(const ApiResponseSerializer&) = default;
         virtual ~ApiResponseSerializer() noexcept = default;
 
-        std::vector<char> operator()(const service::ThermostatServiceApiResponse& response) const;
+        std::vector<std::uint8_t> operator()(const service::ThermostatServiceApiResponse& response) const;
     private:
         static bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
     };
 
-    inline std::vector<char> ApiResponseSerializer::operator()(const service::ThermostatServiceApiResponse& response) const {
+    inline std::vector<std::uint8_t> ApiResponseSerializer::operator()(const service::ThermostatServiceApiResponse& response) const {
         using namespace service;
         using ServiceStatus = service::ThermostatServiceApiResponse::Result;
         const auto status_mapping = std::map<ServiceStatus, service_api_StatusCode> {
@@ -54,7 +54,7 @@ namespace ipc {
         if (!pb_encode(&ostream, service_api_ThermostatApiResponse_fields, &pb_response)) {
             throw std::runtime_error("failed to encode ThermostatServiceApiResponse into protocol buffer: " + std::string(PB_GET_ERROR(&ostream)));
         }
-        return std::vector<char>((const char *)buffer, (const char *)buffer + ostream.bytes_written);
+        return std::vector<std::uint8_t>((const char *)buffer, (const char *)buffer + ostream.bytes_written);
     }
 
     inline bool ApiResponseSerializer::encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg) {

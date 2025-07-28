@@ -18,10 +18,10 @@ namespace ipc {
         ApiRequestParser& operator=(const ApiRequestParser&) = default;
         virtual ~ApiRequestParser() noexcept = default;
 
-        service::ThermostatApiRequest operator()(const std::vector<char>& raw_data) const;
+        service::ThermostatApiRequest operator()(const std::vector<std::uint8_t>& raw_data) const;
     };
 
-    inline service::ThermostatApiRequest ApiRequestParser::operator()(const std::vector<char>& raw_data) const {
+    inline service::ThermostatApiRequest ApiRequestParser::operator()(const std::vector<std::uint8_t>& raw_data) const {
         auto istream = pb_istream_from_buffer(
             (const pb_byte_t *)raw_data.data(),
             raw_data.size()
