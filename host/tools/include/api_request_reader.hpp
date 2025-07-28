@@ -63,10 +63,10 @@ namespace host_tools {
 		}
 		static std::vector<std::uint8_t> read_payload(RawDataBuffer *data, const std::size_t& payload_size) {
 			std::vector<std::uint8_t> payload(payload_size, 0);
-			for (auto i = 0; i < L; ++i) {
+			for (auto i = std::size_t(0); i < L; ++i) {
 				data->pop_first();
 			}
-			for (auto i = 0; i < payload_size; ++i) {
+			for (auto i = std::size_t(0); i < payload_size; ++i) {
 				payload[i] = data->pop_first();
 			}
 			return payload;
