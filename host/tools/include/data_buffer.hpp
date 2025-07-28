@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace tools {
+namespace host_tools {
 	template <typename T>
 	class DataBuffer {
 	public:

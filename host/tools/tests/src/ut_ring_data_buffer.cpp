@@ -2,7 +2,7 @@
 
 #include "ring_data_buffer.hpp"
 
-using namespace tools;
+using namespace host_tools;
 
 TEST(ut_ring_data_buffer, sanity) {
 	// GIVEN
