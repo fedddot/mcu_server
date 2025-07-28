@@ -57,7 +57,7 @@ namespace host_tools {
 			std::size_t size(0UL);
 			for (auto i = 0UL; i < L; ++i) {
 				size <<= CHAR_BIT;
-				size |= static_cast<std::size_t>(data.get(i));
+				size |= static_cast<std::size_t>(data.get(L - i - 1));
 			}
 			return size;
 		}
@@ -67,7 +67,7 @@ namespace host_tools {
 				data->pop_first();
 			}
 			for (auto i = 0; i < payload_size; ++i) {
-				payload.push_back(data->pop_first());
+				payload[i] = data->pop_first();
 			}
 			return payload;
 		}
