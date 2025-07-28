@@ -2,15 +2,16 @@
 #define	DATA_BUFFER_HPP
 
 #include <cstddef>
-#include <cstdint>
 
 namespace tools {
+	template <typename T>
 	class DataBuffer {
 	public:
 		virtual ~DataBuffer() noexcept = default;
-		virtual void read_bytes(std::uint8_t *destination, const std::size_t size) = 0;
-		virtual void write_bytes(const std::uint8_t *source, const std::size_t size) = 0;
-		
+		virtual void push_back(const T& elem) = 0;
+		virtual T pop_first() = 0;
+		virtual const T& get(const std::size_t index) const = 0;
+		virtual std::size_t size() const = 0;
 	};
 }
 
