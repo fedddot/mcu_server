@@ -8,6 +8,7 @@ target_link_libraries(
     thermostat_api_response
     thermostat_controller
     thermostat_service
+    api_request_reader
 )
 
 add_subdirectory(proto)

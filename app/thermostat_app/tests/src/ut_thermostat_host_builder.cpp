@@ -1,8 +1,11 @@
+#include <cstdint>
 #include <stdexcept>
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include <vector>
 
+#include "ring_data_buffer.hpp"
 #include "thermostat_host_builder.hpp"
 #include "thermostat_controller.hpp"
 #include "thermostat_service.hpp"
@@ -24,17 +27,18 @@ class MockTaskGuard : public ThermostatController::TaskGuard {
 };
 
 using RawData = std::string;
-using ApiRequest = ThermostatHostBuilder<RawData>::ApiRequest;
-using ApiResponse = ThermostatHostBuilder<RawData>::ApiResponse;
+const auto L = 2UL;
+using ApiRequest = ThermostatHostBuilder<L>::ApiRequest;
+using ApiResponse = ThermostatHostBuilder<L>::ApiResponse;
 
 TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
 	// WHEN
-	ThermostatHostBuilder<RawData> *instance = nullptr;
+	ThermostatHostBuilder<L> *instance = nullptr;
 
 	// THEN
 	ASSERT_NO_THROW(
 		(
-			instance = new ThermostatHostBuilder<RawData>()
+			instance = new ThermostatHostBuilder<L>()
 		)
 	);
 	ASSERT_NO_THROW(delete instance);
@@ -43,25 +47,24 @@ TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
 
 TEST(ut_thermostat_host_builder, build_sanity) {
 	// GIVEN
-	const auto raw_data_reader = []() -> std::optional<RawData> {
+	const auto buffer_size = 10UL;
+	auto raw_data_buffer = host_tools::RingDataBuffer<std::uint8_t, buffer_size>();
+	const auto raw_data_writer = [](const std::vector<std::uint8_t>&) {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	const auto raw_data_writer = [](const RawData&) {
+	const auto api_request_parser = [](const std::vector<std::uint8_t>&) -> ApiRequest {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
-	const auto api_request_parser = [](const RawData&) -> ApiRequest {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
-	const auto api_response_serializer = [](const ApiResponse&) -> RawData {
+	const auto api_response_serializer = [](const ApiResponse&) -> std::vector<std::uint8_t> {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
 	auto controller = NiceMock<MockThermostatController>();
 	auto service = ThermostatService(&controller);
 	
 	// WHEN
-	ThermostatHostBuilder<RawData> instance;
+	ThermostatHostBuilder<L> instance;
 	instance
-		.set_raw_data_reader(raw_data_reader)
+		.set_raw_data_buffer(&raw_data_buffer)
 		.set_api_request_parser(api_request_parser)
 		.set_raw_data_writer(raw_data_writer)
 		.set_api_response_serializer(api_response_serializer)

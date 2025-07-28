@@ -1,26 +1,31 @@
 #ifndef	THERMOSTAT_HOST_BUILDER_HPP
 #define	THERMOSTAT_HOST_BUILDER_HPP
 
+#include <cstddef>
+#include <cstdint>
 #include <exception>
 #include <functional>
 #include <optional>
 #include <stdexcept>
+#include <vector>
 
+#include "api_request_reader.hpp"
+#include "data_buffer.hpp"
 #include "host.hpp"
 #include "thermostat_api_request.hpp"
 #include "thermostat_api_response.hpp"
 
 namespace host {
-	template <typename RawData>
+	template <std::size_t EncodedPackageSizeFieldLength = 2>
 	class ThermostatHostBuilder {
 	public:
 		using ApiRequest = service::ThermostatApiRequest;
-		using ApiRequestParser = std::function<ApiRequest(const RawData&)>;
-		using RawDataReader = std::function<std::optional<RawData>(void)>;
+		using ApiRequestParser = std::function<ApiRequest(const std::vector<std::uint8_t>&)>;
+		using RawDataBuffer = host_tools::DataBuffer<std::uint8_t>;
 
 		using ApiResponse = service::ThermostatServiceApiResponse;
-		using ApiResponseSerializer = std::function<RawData(const ApiResponse&)>;
-		using RawDataWriter = std::function<void(const RawData&)>;
+		using ApiResponseSerializer = std::function<std::vector<std::uint8_t>(const ApiResponse&)>;
+		using RawDataWriter = std::function<void(const std::vector<std::uint8_t>&)>;
 
 		using Service = Host<ApiRequest, ApiResponse>::ServiceInstance;
 		
@@ -32,10 +37,12 @@ namespace host {
 		virtual ~ThermostatHostBuilder() noexcept = default;
 		
 		Host<ApiRequest, ApiResponse> build() const {
+			const auto api_request_reader = host_tools::ApiRequestReader<ApiRequest, EncodedPackageSizeFieldLength>(
+				m_raw_buffer,
+				m_parser
+			);
 			return Host<ApiRequest, ApiResponse>(
-				[](void) -> std::optional<ApiRequest> {
-					throw std::runtime_error("NOT IMPLEMENTED");
-				},
+				api_request_reader,
 				[](const ApiResponse&) {
 					throw std::runtime_error("NOT IMPLEMENTED");
 				},
@@ -53,8 +60,8 @@ namespace host {
 			m_parser = api_request_parser;
 			return std::ref(*this);
 		}
-		ThermostatHostBuilder& set_raw_data_reader(const RawDataReader& raw_data_reader) {
-			m_raw_reader = raw_data_reader;
+		ThermostatHostBuilder& set_raw_data_buffer(RawDataBuffer *raw_data_buffer_ptr) {
+			m_raw_buffer = raw_data_buffer_ptr;
 			return std::ref(*this);
 		}
 		ThermostatHostBuilder& set_raw_data_writer(const RawDataWriter& raw_data_writer) {
@@ -70,7 +77,7 @@ namespace host {
 			return std::ref(*this);
 		}
 	private:
-		RawDataReader m_raw_reader;
+		RawDataBuffer *m_raw_buffer;
 		RawDataWriter m_raw_writer;
 		ApiRequestParser m_parser;
 		ApiResponseSerializer m_serializer;
