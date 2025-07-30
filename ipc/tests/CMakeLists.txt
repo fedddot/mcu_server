@@ -10,6 +10,7 @@ add_executable(
 	ipc_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ut_api_request_reader_builder.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_ring_data_buffer.cpp
 )
 
 target_link_libraries(
@@ -17,6 +18,7 @@ target_link_libraries(
 	PRIVATE
     api_request_reader_builder
     test_ipc_data_reader
+	ring_data_buffer
 
 	jsoncpp_static
 	gtest
