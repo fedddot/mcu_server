@@ -7,7 +7,7 @@
 
 #include "data_buffer.hpp"
 
-namespace host_tools {
+namespace ipc {
 	template <typename T, std::size_t N>
 	class RingDataBuffer: public DataBuffer<T> {
 	public:

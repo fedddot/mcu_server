@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace host_tools {
+namespace ipc {
 	template <typename T>
 	class DataBuffer {
 	public:
