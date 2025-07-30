@@ -32,4 +32,5 @@ target_link_libraries(
     service_instance
 )
 
+add_subdirectory(movement_manager EXCLUDE_FROM_ALL)
 add_subdirectory(tests EXCLUDE_FROM_ALL)
