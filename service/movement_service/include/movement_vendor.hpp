@@ -8,7 +8,7 @@
 #include "axes_controller_config_request.hpp"
 #include "linear_movement_request.hpp"
 #include "movement_manager.hpp"
-#include "movement_service_api_request.hpp"
+#include "movement_api_request.hpp"
 #include "movement_service_api_response.hpp"
 #include "rotation_movement_request.hpp"
 #include "service.hpp"

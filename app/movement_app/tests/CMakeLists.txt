@@ -14,7 +14,7 @@ target_link_libraries(
     rotation_movement_request
     movement_json_api_request_parser
     movement_manager_vector
-    movement_service_api_request
+    movement_api_request
     axes_controller
     ipc_instance
     manager_instance

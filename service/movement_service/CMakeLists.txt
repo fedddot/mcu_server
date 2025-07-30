@@ -1,17 +1,17 @@
-add_library(movement_service_api_request INTERFACE)
-target_include_directories(movement_service_api_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(movement_api_request INTERFACE)
+target_include_directories(movement_api_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(axes_controller_config_request INTERFACE)
 target_include_directories(axes_controller_config_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(axes_controller_config_request INTERFACE movement_service_api_request)
+target_link_libraries(axes_controller_config_request INTERFACE movement_api_request)
 
 add_library(linear_movement_request INTERFACE)
 target_include_directories(linear_movement_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(linear_movement_request INTERFACE movement_service_api_request movement_manager_vector)
+target_link_libraries(linear_movement_request INTERFACE movement_api_request movement_manager_vector)
 
 add_library(rotation_movement_request INTERFACE)
 target_include_directories(rotation_movement_request INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(rotation_movement_request INTERFACE movement_service_api_request movement_manager_vector)
+target_link_libraries(rotation_movement_request INTERFACE movement_api_request movement_manager_vector)
 
 
 add_library(movement_service_api_response INTERFACE)
@@ -26,7 +26,7 @@ target_link_libraries(
     linear_movement_request
     rotation_movement_request
     movement_manager
-    movement_service_api_request
+    movement_api_request
     movement_service_api_response
     service
     service_instance

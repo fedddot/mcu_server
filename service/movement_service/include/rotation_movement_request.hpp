@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 #include "movement_manager_vector.hpp"
-#include "movement_service_api_request.hpp"
+#include "movement_api_request.hpp"
 
 namespace service {
 	class RotationMovementRequest: public MovementServiceApiRequest {

@@ -8,7 +8,7 @@ target_link_libraries(
     ipc_instance
     movement_manager_data
     movement_manager_vector
-    movement_service_api_request
+    movement_api_request
     rotation_movement_request
     jsoncpp_static
 )
@@ -32,7 +32,7 @@ target_link_libraries(
     ipc_data_reader
     ipc_data_writer
     movement_manager
-    movement_service_api_request
+    movement_api_request
     movement_service_api_response
     raw_data_package_reader
     raw_data_package_writer

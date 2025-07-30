@@ -1,7 +1,7 @@
 #ifndef	AXES_CONTROLLER_CONFIG_REQUEST_HPP
 #define	AXES_CONTROLLER_CONFIG_REQUEST_HPP
 
-#include "movement_service_api_request.hpp"
+#include "movement_api_request.hpp"
 
 namespace service {
 	template <typename AxesConfig>

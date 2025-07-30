@@ -13,7 +13,7 @@
 #include "ipc_instance.hpp"
 #include "movement_manager_data.hpp"
 #include "movement_manager_vector.hpp"
-#include "movement_service_api_request.hpp"
+#include "movement_api_request.hpp"
 #include "rotation_movement_request.hpp"
 
 namespace ipc {
