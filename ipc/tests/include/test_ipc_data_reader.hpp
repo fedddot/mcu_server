@@ -2,24 +2,22 @@
 #define	TEST_REQUEST_READER_HPP
 
 #include <functional>
-#include <optional>
 
-#include "ipc_instance.hpp"
 #include "ipc_data_reader.hpp"
 
 namespace ipc {
-	template <typename IpcData>
-	class TestIpcDataReader: public IpcDataReader<IpcData> {
+	template <typename Result, typename... Args>
+	class TestIpcDataReader: public DataReader<Result(Args...)> {
 	public:
-		using Action = std::function<std::optional<Instance<IpcData>>(void)>;
+		using Action = std::function<Result(Args...)>;
 		TestIpcDataReader(const Action& action): m_action(action) {
 			
 		}
 		TestIpcDataReader(const TestIpcDataReader&) = default;
 		TestIpcDataReader& operator=(const TestIpcDataReader&) = default;
 		
-		std::optional<Instance<IpcData>> read() override {
-			return m_action();
+		Result read(Args... args) const override {
+			return m_action(std::forward<Args>(args)...);
 		}
 	private:
 		Action m_action;
