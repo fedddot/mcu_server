@@ -1,24 +1,7 @@
 add_library(test_ipc_data_reader INTERFACE)
 target_include_directories(test_ipc_data_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(test_ipc_data_reader INTERFACE ipc_data_reader ipc_instance)
+target_link_libraries(test_ipc_data_reader INTERFACE ipc_data_reader)
 
 add_library(test_ipc_data_writer INTERFACE)
 target_include_directories(test_ipc_data_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(test_ipc_data_writer INTERFACE ipc_data_writer)
-
-add_executable(
-	ipc_tests
-	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/ut_api_request_reader_builder.cpp
-)
-
-target_link_libraries(
-	ipc_tests
-	PRIVATE
-    api_request_reader_builder
-    test_ipc_data_reader
-	ring_data_buffer
-
-	jsoncpp_static
-	gtest
-)
