@@ -5,19 +5,19 @@
 #include <cstddef>
 #include <stdexcept>
 
-#include "data_buffer.hpp"
+#include "ipc_queue.hpp"
 
 namespace ipc {
 	template <typename T, std::size_t N>
-	class RingDataBuffer: public DataBuffer<T> {
+	class RingDataBuffer: public IpcQueue<T> {
 	public:
 		RingDataBuffer(): m_data{}, m_read_index(0), m_write_index(0), m_size(0) {
 
 		}
 		RingDataBuffer(const RingDataBuffer&) = delete;
 		RingDataBuffer& operator=(const RingDataBuffer&) = delete;
-		
-		void push_back(const T& elem) override {
+
+		void enqueue(const T& elem) override {
 			if (m_size == N) {
 				throw std::overflow_error("buffer overflow");
 			}
@@ -25,7 +25,7 @@ namespace ipc {
 			m_write_index = next_index(m_write_index);
 			++m_size;
 		}
-		T pop_first() override {
+		T dequeue() override {
 			if (m_size == 0) {
 				throw std::runtime_error("buffer is empty");
 			}
@@ -34,7 +34,7 @@ namespace ipc {
 			--m_size;
 			return elem;
 		}
-		const T& get(const std::size_t index) const override {
+		const T& inspect(const std::size_t index) const override {
 			if (index >= m_size) {
 				throw std::out_of_range("index out of range");
 			}
@@ -45,6 +45,11 @@ namespace ipc {
 		}
 		std::size_t capacity() const override {
 			return N;
+		}
+		void clear() override {
+			m_read_index = 0;
+			m_write_index = 0;
+			m_size = 0;
 		}
 	private:
 		std::array<T, N> m_data;
