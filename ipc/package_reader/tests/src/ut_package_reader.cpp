@@ -4,20 +4,13 @@
 
 #include "gtest/gtest.h"
 
-#include "ipc_data.hpp"
-#include "raw_data_package_descriptor.hpp"
-#include "raw_data_package_reader.hpp"
-#include "raw_data_package_utils.hpp"
+#include "package_reader.hpp"
+#include "package_utils.hpp"
 
 using namespace ipc;
 
-TEST(ut_raw_data_package_reader, ctor_dtor_sanity) {
+TEST(ut_package_reader, ctor_dtor_sanity) {
 	// GIVEN
-	const auto preamble_str = std::string("test_preamble");
-	const auto preamble = RawData(preamble_str.begin(), preamble_str.end());
-	const auto size_field_len = std::size_t(4UL);
-	const auto descriptor = RawDataPackageDescriptor(preamble, size_field_len);
-	
 	// WHEN
 	auto buff = RawData();
 	RawDataPackageReader *instance = nullptr;
@@ -34,7 +27,7 @@ TEST(ut_raw_data_package_reader, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-TEST(ut_raw_data_package_reader, read_sanity) {
+TEST(ut_package_reader, read_sanity) {
 	// GIVEN
 	const auto preamble_str = std::string("test_preamble");
 	const auto preamble = RawData(preamble_str.begin(), preamble_str.end());
