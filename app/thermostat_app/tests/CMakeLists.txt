@@ -11,6 +11,9 @@ target_link_libraries(
 	thermostat_controller
 	thermostat_service
 	ring_queue
+	package_utils
+
+	proto_thermostat_api_request_serializer
 	
 	gtest
 	gmock
