@@ -26,13 +26,13 @@ public:
     MOCK_METHOD(void, unschedule, (), (override));
 };
 
-using RawData = std::string;
 const auto HSIZE = std::size_t(2UL);
 using ApiRequest = ThermostatApp<HSIZE>::ApiRequest;
 using ApiResponse = ThermostatApp<HSIZE>::ApiResponse;
 
 TEST(ut_thermostat_app, run_once_sanity) {
 	// GIVEN
+	const auto test_request = ApiRequest()
 	const auto queue_size = 10UL;
 	auto queue = ipc::RingQueue<std::uint8_t, queue_size>();
 	const auto package_size_retriever = [](const ipc::IpcQueue<std::uint8_t>&) -> std::size_t {
