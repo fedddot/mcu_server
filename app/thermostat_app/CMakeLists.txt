@@ -3,12 +3,14 @@ target_include_directories(thermostat_app INTERFACE ${CMAKE_CURRENT_LIST_DIR}/in
 target_link_libraries(
     thermostat_app
     INTERFACE
+    api_request_reader
+    api_response_writer
     host
+    ipc_queue
     thermostat_api_request
     thermostat_api_response
     thermostat_controller
     thermostat_service
-    api_request_reader
 )
 
 add_subdirectory(proto)
