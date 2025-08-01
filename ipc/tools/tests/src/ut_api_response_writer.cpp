@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "api_request_writer.hpp"
+#include "api_response_writer.hpp"
 #include "package_utils.hpp"
 #include "ring_queue.hpp"
 
@@ -18,7 +18,7 @@ using namespace ipc;
 using ApiRequest = std::string;
 using TestWriter = ApiRequestWriter<ApiRequest, HEADER_SIZE>;
 
-TEST(ut_api_request_writer, ctor_dtor_sanity) {
+TEST(ut_api_response_writer, ctor_dtor_sanity) {
 	// GIVEN
 	auto buff = RingDataBuffer<std::uint8_t, RING_BUFF_SIZE>();
 	auto size_retriever = [](const IpcQueue<std::uint8_t>& queue) -> std::size_t {
@@ -44,7 +44,7 @@ TEST(ut_api_request_writer, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-TEST(ut_api_request_writer, read_sanity) {
+TEST(ut_api_response_writer, read_sanity) {
 	// GIVEN
 	auto size_retriever = [](const IpcQueue<std::uint8_t>& queue) -> std::size_t {
 		const auto size_data = std::vector<std::uint8_t> {

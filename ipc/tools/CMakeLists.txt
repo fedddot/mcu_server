@@ -33,10 +33,10 @@ target_link_libraries(
     package_reader
 )
 
-add_library(api_request_writer INTERFACE)
-target_include_directories(api_request_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(api_response_writer INTERFACE)
+target_include_directories(api_response_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-    api_request_writer
+    api_response_writer
     INTERFACE
     ipc_data_writer
     ipc_queue
