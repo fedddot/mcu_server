@@ -9,22 +9,25 @@
 #include <vector>
 
 #include "api_request_reader.hpp"
-#include "data_buffer.hpp"
+#include "api_response_writer.hpp"
 #include "host.hpp"
+#include "ipc_queue.hpp"
 #include "thermostat_api_request.hpp"
 #include "thermostat_api_response.hpp"
 
 namespace host {
-	template <std::size_t EncodedPackageSizeFieldLength = 2>
+	template <std::size_t HSIZE>
 	class ThermostatHostBuilder {
 	public:
 		using ApiRequest = service::ThermostatApiRequest;
-		using ApiRequestParser = std::function<ApiRequest(const std::vector<std::uint8_t>&)>;
-		using RawDataBuffer = host_tools::DataBuffer<std::uint8_t>;
+		using SizeRetriever = typename ipc::ApiRequestReader<ApiRequest, HSIZE>::SizeRetriever;
+		using ApiRequestParser = typename ipc::ApiRequestReader<ApiRequest, HSIZE>::ApiRequestParser;
+		using RawDataQueue = ipc::IpcQueue<std::uint8_t>;
 
 		using ApiResponse = service::ThermostatServiceApiResponse;
-		using ApiResponseSerializer = std::function<std::vector<std::uint8_t>(const ApiResponse&)>;
-		using RawDataWriter = std::function<void(const std::vector<std::uint8_t>&)>;
+		using ApiResponseSerializer = typename ipc::ApiResponseWriter<ApiResponse, HSIZE>::ApiResponseSerializer;
+		using HeaderGenerator = typename ipc::ApiResponseWriter<ApiResponse, HSIZE>::HeaderGenerator;
+		using RawDataWriter = typename ipc::ApiResponseWriter<ApiResponse, HSIZE>::RawDataWriter;
 
 		using Service = Host<ApiRequest, ApiResponse>::ServiceInstance;
 		
