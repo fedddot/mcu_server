@@ -15,6 +15,14 @@ target_link_libraries(
     ipc_queue
 )
 
+add_library(package_writer INTERFACE)
+target_include_directories(package_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    package_writer
+    INTERFACE
+    ipc_data_writer
+)
+
 add_library(api_request_reader INTERFACE)
 target_include_directories(api_request_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
@@ -23,6 +31,16 @@ target_link_libraries(
     ipc_data_reader
     ipc_queue
     package_reader
+)
+
+add_library(api_request_writer INTERFACE)
+target_include_directories(api_request_writer INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    api_request_writer
+    INTERFACE
+    ipc_data_writer
+    ipc_queue
+    package_writer
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)

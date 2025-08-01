@@ -4,6 +4,7 @@ add_executable(
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_ring_queue.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_package_reader.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/ut_api_request_reader.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_api_request_writer.cpp
 )
 
 target_link_libraries(
@@ -12,6 +13,7 @@ target_link_libraries(
 	ring_queue
 	package_reader
 	api_request_reader
+	api_request_writer
 	package_utils
 	gtest
 )

@@ -13,7 +13,7 @@
 
 namespace ipc {
 	template <std::size_t HSIZE>
-	class PackageWriter: public DataWriter<std::vector<std::uint8_t> {
+	class PackageWriter: public DataWriter<std::vector<std::uint8_t>> {
 	public:
 		using SizeRetriever = std::function<std::size_t(const IpcQueue<std::uint8_t>&)>;
 		PackageWriter(

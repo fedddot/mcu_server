@@ -14,7 +14,7 @@
 
 namespace ipc {
 	template <typename ApiRequest, std::size_t HSIZE>
-	class ApiRequestWriter: public DataWriter<std::optional<ApiRequest>(void)> {
+	class ApiRequestWriter: public DataWriter<ApiRequest> {
 	public:
 		using SizeRetriever = typename PackageWriter<HSIZE>::SizeRetriever;
 		using ApiRequestParser = std::function<ApiRequest(const std::vector<std::uint8_t>&)>;
