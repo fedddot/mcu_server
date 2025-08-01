@@ -1,6 +1,5 @@
 #include <cstddef>
 #include <cstdint>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -44,49 +43,26 @@ TEST(ut_api_response_writer, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-// TEST(ut_api_response_writer, read_sanity) {
-// 	// GIVEN
-// 	auto size_retriever = [](const IpcQueue<std::uint8_t>& queue) -> std::size_t {
-// 		const auto size_data = std::vector<std::uint8_t> {
-// 			queue.inspect(0),
-// 			queue.inspect(1),
-// 		};
-// 		return parse_package_size(size_data);
-// 	};
-// 	auto request_parser = [](const std::vector<std::uint8_t>& data) -> ApiResponse {
-// 		throw std::runtime_error("request parser not implemented");
-// 	};
+TEST(ut_api_response_writer, write_sanity) {
+	// GIVEN
+	const auto api_response = ApiResponse("test_msg");
+	auto header_generator = [](const std::vector<std::uint8_t>& package_data, const std::size_t& header_size) -> std::vector<std::uint8_t> {
+		return serialize_package_size(package_data.size(), header_size);
+	};
+	auto raw_data_writer = [api_response](const std::vector<std::uint8_t>& data) {
+		ASSERT_EQ(api_response, ApiResponse(data.begin() + HEADER_SIZE, data.end()));
+	};
+	auto response_serializer = [](const ApiResponse& response) -> std::vector<std::uint8_t> {
+		return std::vector<std::uint8_t>(response.begin(), response.end());
+	};
 	
-// 	const auto api_request = std::string("test_msg");
-// 	const auto api_request_size_encoded = serialize_package_size(api_request.size(), HEADER_SIZE);
-	
-// 	// WHEN
-// 	auto buff = RingDataBuffer<std::uint8_t, RING_BUFF_SIZE>();
-// 	auto instance = TestWriter(
-// 		&buff,
-// 		size_retriever,
-// 		request_parser
-// 	);
-// 	auto result = std::optional<ApiResponse>();
+	// WHEN
+	auto instance = TestWriter(
+		header_generator,
+		raw_data_writer,
+		response_serializer
+	);
 
-// 	// THEN
-// 	// empty buffer
-// 	ASSERT_NO_THROW(result = instance.read());
-// 	ASSERT_FALSE(result);
-
-// 	// add encoded message size
-// 	for (const auto& byte: api_request_size_encoded) {
-// 		buff.enqueue(byte);
-// 	}
-// 	ASSERT_NO_THROW(result = instance.read());
-// 	ASSERT_FALSE(result);
-	
-// 	// add message
-// 	for (const auto& byte: api_request) {
-// 		buff.enqueue(static_cast<std::uint8_t>(byte));
-// 	}
-// 	ASSERT_NO_THROW(result = instance.read());
-// 	ASSERT_TRUE(result);
-// 	ASSERT_EQ(api_request, result.value());
-// 	ASSERT_EQ(0UL, buff.size());
-// }
+	// THEN
+	ASSERT_NO_THROW(instance.write(api_response));
+}
