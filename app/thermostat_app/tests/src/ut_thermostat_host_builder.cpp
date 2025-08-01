@@ -7,7 +7,7 @@
 
 #include "ipc_queue.hpp"
 #include "ring_queue.hpp"
-#include "thermostat_host_builder.hpp"
+#include "thermostat_app.hpp"
 #include "thermostat_controller.hpp"
 #include "thermostat_service.hpp"
 
@@ -32,7 +32,7 @@ const auto HSIZE = std::size_t(2UL);
 using ApiRequest = ThermostatApp<HSIZE>::ApiRequest;
 using ApiResponse = ThermostatApp<HSIZE>::ApiResponse;
 
-TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
+TEST(ut_thermostat_app, ctor_dtor_sanity) {
 	// WHEN
 	ThermostatApp<HSIZE> *instance = nullptr;
 
@@ -46,7 +46,7 @@ TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
 	instance = nullptr;
 }
 
-TEST(ut_thermostat_host_builder, build_sanity) {
+TEST(ut_thermostat_app, build_sanity) {
 	// GIVEN
 	const auto queue_size = 10UL;
 	auto queue = ipc::RingQueue<std::uint8_t, queue_size>();

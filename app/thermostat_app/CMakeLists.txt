@@ -1,7 +1,7 @@
-add_library(thermostat_host_builder INTERFACE)
-target_include_directories(thermostat_host_builder INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+add_library(thermostat_app INTERFACE)
+target_include_directories(thermostat_app INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
-    thermostat_host_builder
+    thermostat_app
     INTERFACE
     host
     thermostat_api_request
