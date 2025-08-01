@@ -7,6 +7,8 @@ add_executable(
 target_link_libraries(
 	package_reader_tests
 	PRIVATE
-	package_reader
+    package_reader
+    package_utils
+    ring_queue
 	gtest
 )

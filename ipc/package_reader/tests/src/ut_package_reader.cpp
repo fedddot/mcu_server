@@ -1,26 +1,36 @@
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
 
 #include "package_reader.hpp"
 #include "package_utils.hpp"
+#include "ring_queue.hpp"
 
 using namespace ipc;
 
+#define RING_BUFF_SIZE 	0xFFUL
+#define HEADER_SIZE 	0x2UL
+
 TEST(ut_package_reader, ctor_dtor_sanity) {
 	// GIVEN
+	auto buff = RingDataBuffer<std::uint8_t, RING_BUFF_SIZE>();
+	auto size_retriever = [](const IpcQueue<std::uint8_t>& queue) -> std::size_t {
+		throw std::runtime_error("size retriever not implemented");
+	};
+
 	// WHEN
-	auto buff = RawData();
-	RawDataPackageReader *instance = nullptr;
+	PackageReader<HEADER_SIZE> *instance = nullptr;
+
 
 	// THEN
 	ASSERT_NO_THROW(
-		instance = new RawDataPackageReader(
+		instance = new PackageReader<HEADER_SIZE>(
 			&buff,
-			descriptor,
-			parse_package_size
+			size_retriever
 		)
 	);
 	ASSERT_NO_THROW(delete instance);
@@ -29,65 +39,43 @@ TEST(ut_package_reader, ctor_dtor_sanity) {
 
 TEST(ut_package_reader, read_sanity) {
 	// GIVEN
-	const auto preamble_str = std::string("test_preamble");
-	const auto preamble = RawData(preamble_str.begin(), preamble_str.end());
-	const auto size_field_len = std::size_t(4UL);
-	const auto descriptor = RawDataPackageDescriptor(preamble, size_field_len);
-
+	auto size_retriever = [](const IpcQueue<std::uint8_t>& queue) -> std::size_t {
+		const auto size_data = std::vector<std::uint8_t> {
+			queue.inspect(0),
+			queue.inspect(1),
+		};
+		return parse_package_size(size_data);
+	};
+	
 	const auto msg_str = std::string("test_msg");
-	const auto msg = RawData(msg_str.begin(), msg_str.end());
-	const auto msg_size_encoded = serialize_package_size(descriptor, msg.size());
-	const auto junk_before_str = std::string("junk");
-	const auto junk_before = RawData(junk_before_str.begin(), junk_before_str.end());
+	const auto msg_size_encoded = serialize_package_size(msg_str.size(), HEADER_SIZE);
 	
 	// WHEN
-	auto buff = RawData();
-
-	auto instance = RawDataPackageReader(
+	auto buff = RingDataBuffer<std::uint8_t, RING_BUFF_SIZE>();
+	auto instance = PackageReader<HEADER_SIZE>(
 		&buff,
-		descriptor,
-		parse_package_size
+		size_retriever
 	);
-	auto result = std::optional<Instance<RawData>>();
+	auto result = std::optional<std::vector<std::uint8_t>>();
 
 	// THEN
 	// empty buffer
 	ASSERT_NO_THROW(result = instance.read());
 	ASSERT_FALSE(result);
-	
-	// junk data should be ignored
-	buff.insert(
-		buff.end(),
-		junk_before.begin(),
-		junk_before.end()
-	);
-	ASSERT_NO_THROW(result = instance.read());
-	ASSERT_FALSE(result);
 
-	buff.insert(
-		buff.end(),
-		preamble.begin(),
-		preamble.end()
-	);
+	// add encoded message size
+	for (const auto& byte: msg_size_encoded) {
+		buff.enqueue(byte);
+	}
 	ASSERT_NO_THROW(result = instance.read());
 	ASSERT_FALSE(result);
 	
-	buff.insert(
-		buff.end(),
-		msg_size_encoded.begin(),
-		msg_size_encoded.end()
-	);
-	ASSERT_NO_THROW(result = instance.read());
-	ASSERT_FALSE(result);
-	
-	buff.insert(
-		buff.end(),
-		msg.begin(),
-		msg.end()
-	);
+	// add message
+	for (const auto& byte: msg_str) {
+		buff.enqueue(static_cast<std::uint8_t>(byte));
+	}
 	ASSERT_NO_THROW(result = instance.read());
 	ASSERT_TRUE(result);
-	ASSERT_EQ(msg, result->get());
-
-	ASSERT_TRUE(buff.empty());
+	ASSERT_EQ(msg_str, std::string(result->begin(), result->end()));
+	ASSERT_EQ(0UL, buff.size());
 }

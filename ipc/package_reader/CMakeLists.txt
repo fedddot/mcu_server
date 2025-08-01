@@ -4,7 +4,6 @@ target_include_directories(package_header INTERFACE ${CMAKE_CURRENT_LIST_DIR}/in
 add_library(package_utils INTERFACE)
 target_sources(package_utils INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src/package_utils.cpp)
 target_include_directories(package_utils INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(package_utils INTERFACE package_header ipc_data)
 
 add_library(package_reader INTERFACE)
 target_include_directories(package_reader INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
