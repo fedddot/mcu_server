@@ -1,5 +1,5 @@
-#ifndef	IPC_DATA_READER_HPP
-#define	IPC_DATA_READER_HPP
+#ifndef	DATA_READER_HPP
+#define	DATA_READER_HPP
 
 namespace ipc {
 	template <typename Signature>
@@ -13,4 +13,4 @@ namespace ipc {
 	};
 }
 
-#endif // IPC_DATA_READER_HPP
+#endif // DATA_READER_HPP

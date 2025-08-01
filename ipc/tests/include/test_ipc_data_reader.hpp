@@ -1,5 +1,5 @@
-#ifndef	TEST_REQUEST_READER_HPP
-#define	TEST_REQUEST_READER_HPP
+#ifndef	TEST_DATA_READER_HPP
+#define	TEST_DATA_READER_HPP
 
 #include <functional>
 
@@ -7,17 +7,17 @@
 
 namespace ipc {
 	template <typename Signature>
-	class TestIpcDataReader;
+	class TestDataReader;
 
 	template <typename Result, typename... Args>
-	class TestIpcDataReader<Result(Args...)>: public DataReader<Result(Args...)> {
+	class TestDataReader<Result(Args...)>: public DataReader<Result(Args...)> {
 	public:
 		using Action = std::function<Result(Args...)>;
-		TestIpcDataReader(const Action& action): m_action(action) {
+		TestDataReader(const Action& action): m_action(action) {
 			
 		}
-		TestIpcDataReader(const TestIpcDataReader&) = default;
-		TestIpcDataReader& operator=(const TestIpcDataReader&) = default;
+		TestDataReader(const TestDataReader&) = default;
+		TestDataReader& operator=(const TestDataReader&) = default;
 		
 		Result read(Args... args) const override {
 			return m_action(std::forward<Args>(args)...);
@@ -27,4 +27,4 @@ namespace ipc {
 	};
 }
 
-#endif // TEST_REQUEST_READER_HPP
+#endif // TEST_DATA_READER_HPP

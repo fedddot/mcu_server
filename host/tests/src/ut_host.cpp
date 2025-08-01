@@ -20,7 +20,7 @@ using TestHost = Host<ApiRequest, ApiResponse>;
 
 TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	const auto ipc_data_reader = TestIpcDataReader<std::optional<ApiRequest>(void)>(
+	const auto ipc_data_reader = TestDataReader<std::optional<ApiRequest>(void)>(
 		[](void) -> std::optional<ApiRequest> {
 			throw std::runtime_error("NOT IMPLEMENTED");
 		}
