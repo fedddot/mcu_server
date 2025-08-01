@@ -4,6 +4,8 @@ target_link_libraries(
     host
     INTERFACE
     service
+    ipc_data_reader
+    ipc_data_writer
 )
 
 # add_subdirectory(tools)
