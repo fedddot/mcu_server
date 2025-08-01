@@ -104,8 +104,8 @@ namespace host {
 				throw std::runtime_error("failed build writer: one or more required components are not set");
 			}
 			m_api_response_writer.emplace(
-				m_raw_queue,
 				m_header_generator,
+				m_raw_writer,
 				m_api_response_serializer
 			);
 		}

@@ -22,7 +22,7 @@ public:
 };
 
 class MockTaskGuard : public ThermostatController::TaskGuard {
-	public:
+public:
     MOCK_METHOD(void, unschedule, (), (override));
 };
 
