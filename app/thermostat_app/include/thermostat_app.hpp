@@ -4,9 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
-#include <functional>
 #include <optional>
-#include <stdexcept>
 
 #include "api_request_reader.hpp"
 #include "api_response_writer.hpp"
@@ -33,18 +31,19 @@ namespace host {
 		using RawDataQueue = ipc::IpcQueue<std::uint8_t>;
 		using ThermostatController = service::ThermostatController;
 		
-		ThermostatApp(): m_api_request_reader(std::nullopt), m_api_response_writer(std::nullopt), m_service(std::nullopt), m_raw_queue(nullptr), m_controller_ptr(nullptr) {}
-		ThermostatApp(const ThermostatApp&) = default;
-		ThermostatApp& operator=(const ThermostatApp&) = default;
-		virtual ~ThermostatApp() noexcept = default;
-		
-		void build() {
-			build_reader();
-			build_writer();
-			m_service.emplace(m_controller_ptr);
+		ThermostatApp(
+			const SizeRetriever& size_retriever,
+			const ApiRequestParser& api_request_parser,
+			const ApiResponseSerializer& api_response_serializer,
+			const HeaderGenerator& header_generator,
+			const RawDataWriter& raw_writer,
+			RawDataQueue *raw_queue,
+			ThermostatController *controller_ptr
+		): m_api_request_reader(raw_queue, size_retriever, api_request_parser), m_api_response_writer(header_generator, raw_writer, api_response_serializer), m_service(std::nullopt), m_host(std::nullopt) {
+			m_service.emplace(controller_ptr);
 			m_host.emplace(
-				&m_api_request_reader.value(),
-				&m_api_response_writer.value(),
+				&m_api_request_reader,
+				&m_api_response_writer,
 				[](const std::exception& e) {
 					return ApiResponse(
 						ApiResponse::Result::FAILURE,
@@ -54,69 +53,18 @@ namespace host {
 				&m_service.value()
 			);
 		}
-		ThermostatApp& set_package_size_retriever(const SizeRetriever& size_retriever) {
-			m_size_retriever = size_retriever;
-			return std::ref(*this);
-		}
-		ThermostatApp& set_api_request_parser(const ApiRequestParser& api_request_parser) {
-			m_api_request_parser = api_request_parser;
-			return std::ref(*this);
-		}
-		ThermostatApp& set_api_response_serializer(const ApiResponseSerializer& api_response_serializer) {
-			m_api_response_serializer = api_response_serializer;
-			return std::ref(*this);
-		}
-		ThermostatApp& set_header_generator(const HeaderGenerator& header_generator) {
-			m_header_generator = header_generator;
-			return std::ref(*this);
-		}
-		ThermostatApp& set_raw_data_writer(const RawDataWriter& raw_data_writer) {
-			m_raw_writer = raw_data_writer;
-			return std::ref(*this);
-		}
-		ThermostatApp& set_raw_data_queue(RawDataQueue *raw_data_queue_ptr) {
-			m_raw_queue = raw_data_queue_ptr;
-			return std::ref(*this);
-		}
-		ThermostatApp& set_thermostat_controller(ThermostatController *controller_ptr) {
-			m_controller_ptr = controller_ptr;
-			return std::ref(*this);
-		}
-	private:
-		SizeRetriever m_size_retriever;
-		ApiRequestParser m_api_request_parser;
-		ApiResponseSerializer m_api_response_serializer;
-		HeaderGenerator m_header_generator;
-		RawDataWriter m_raw_writer;
-		RawDataQueue *m_raw_queue;
-		ThermostatController *m_controller_ptr;
+		ThermostatApp(const ThermostatApp&) = default;
+		ThermostatApp& operator=(const ThermostatApp&) = default;
+		virtual ~ThermostatApp() noexcept = default;
 		
-		std::optional<ipc::ApiRequestReader<ApiRequest, HSIZE>> m_api_request_reader;
-		std::optional<ipc::ApiResponseWriter<ApiResponse, HSIZE>> m_api_response_writer;
+		void run_once() {
+			m_host.value().run_once();
+		}
+	private:		
+		ipc::ApiRequestReader<ApiRequest, HSIZE> m_api_request_reader;
+		ipc::ApiResponseWriter<ApiResponse, HSIZE> m_api_response_writer;
 		std::optional<service::ThermostatService> m_service;
 		std::optional<Host<ApiRequest, ApiResponse>> m_host;
-		
-		void build_reader() {
-			if (!m_raw_queue || !m_size_retriever || !m_api_request_parser) {
-				throw std::runtime_error("failed build reader: one or more required components are not set");
-			}
-			m_api_request_reader.emplace(
-				m_raw_queue,
-				m_size_retriever,
-				m_api_request_parser
-			);
-		}
-
-		void build_writer() {
-			if (!m_header_generator || !m_api_response_serializer || !m_raw_writer) {
-				throw std::runtime_error("failed build writer: one or more required components are not set");
-			}
-			m_api_response_writer.emplace(
-				m_header_generator,
-				m_raw_writer,
-				m_api_response_serializer
-			);
-		}
 	};
 }
 
