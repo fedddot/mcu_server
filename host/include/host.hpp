@@ -6,7 +6,6 @@
 #include <optional>
 #include <stdexcept>
 
-#include "api_request_reader.hpp"
 #include "ipc_data_reader.hpp"
 #include "ipc_data_writer.hpp"
 #include "service.hpp"
@@ -15,7 +14,7 @@ namespace host {
 	template <typename ApiRequest, typename ApiResponse>
 	class Host {
 	public:
-		using ApiRequestReader = ipc::DataReader<ApiRequest(void)>;
+		using ApiRequestReader = ipc::DataReader<std::optional<ApiRequest>(void)>;
 		using ApiResponseWriter = ipc::DataWriter<ApiResponse>;
 		using FailureReporter = std::function<ApiResponse(const std::exception&)>;
 		using ServiceInstance = service::Service<ApiRequest, ApiResponse>;
@@ -53,15 +52,15 @@ namespace host {
 	template <typename ApiRequest, typename ApiResponse>
 	inline void Host<ApiRequest, ApiResponse>::run_once() {
 		try {
-			const auto request = m_api_request_reader_ptr();
+			const auto request = m_api_request_reader_ptr->read();
 			if (!request.has_value()) {
 				return;
 			}
 			const auto response = m_service_ptr->run_api_request(request.value());
-			m_api_response_writer_ptr(response);
+			m_api_response_writer_ptr->write(response);
 		} catch (const std::exception& e) {
 			const auto response = m_failure_reporter(e);
-			m_api_response_writer_ptr(response);
+			m_api_response_writer_ptr->write(response);
 		}
 	}
 }
