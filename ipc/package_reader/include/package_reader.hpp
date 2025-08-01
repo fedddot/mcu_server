@@ -27,10 +27,10 @@ namespace ipc {
 		PackageReader(const PackageReader&) = default;
 		PackageReader& operator=(const PackageReader&) = default;
 		std::optional<std::vector<std::uint8_t>> read() const override {
-			if (m_queue_ptr->size() < HSIZE) {
-				return std::nullopt;
-			}
 			try {
+				if (m_queue_ptr->size() < HSIZE) {
+					return std::nullopt;
+				}
 				const auto package_size = m_size_retriever(*m_queue_ptr);
 				if (m_queue_ptr->size() < package_size + HSIZE) {
 					return std::nullopt;
