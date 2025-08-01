@@ -9,7 +9,6 @@
 #include "ring_queue.hpp"
 #include "thermostat_app.hpp"
 #include "thermostat_controller.hpp"
-#include "thermostat_service.hpp"
 
 using namespace host;
 using namespace service;
@@ -32,21 +31,7 @@ const auto HSIZE = std::size_t(2UL);
 using ApiRequest = ThermostatApp<HSIZE>::ApiRequest;
 using ApiResponse = ThermostatApp<HSIZE>::ApiResponse;
 
-TEST(ut_thermostat_app, ctor_dtor_sanity) {
-	// WHEN
-	ThermostatApp<HSIZE> *instance = nullptr;
-
-	// THEN
-	ASSERT_NO_THROW(
-		(
-			instance = new ThermostatApp<HSIZE>()
-		)
-	);
-	ASSERT_NO_THROW(delete instance);
-	instance = nullptr;
-}
-
-TEST(ut_thermostat_app, build_sanity) {
+TEST(ut_thermostat_app, run_once_sanity) {
 	// GIVEN
 	const auto queue_size = 10UL;
 	auto queue = ipc::RingQueue<std::uint8_t, queue_size>();
@@ -66,22 +51,18 @@ TEST(ut_thermostat_app, build_sanity) {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
 	auto controller = NiceMock<MockThermostatController>();
-	
+
 	// WHEN
-	ThermostatApp<HSIZE> instance;
-	instance
-		.set_package_size_retriever(package_size_retriever)
-		.set_api_request_parser(api_request_parser)
-		.set_api_response_serializer(api_response_serializer)
-		.set_header_generator(header_generator)
-		.set_raw_data_writer(raw_data_writer)
-		.set_raw_data_queue(&queue)
-		.set_thermostat_controller(&controller);
+	ThermostatApp<HSIZE> instance(
+		package_size_retriever,
+		api_request_parser,
+		api_response_serializer,
+		header_generator,
+		raw_data_writer,
+		&queue,
+		&controller
+	);
 
 	// THEN
-	ASSERT_NO_THROW(
-		{
-			instance.build();
-		}
-	);
+	ASSERT_NO_THROW(instance.run_once());
 }
