@@ -1,16 +1,17 @@
 #include <cstdint>
-#include <stdexcept>
 #include <vector>
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 #include "ipc_queue.hpp"
+#include "package_utils.hpp"
+#include "proto_thermostat_api_request_parser.hpp"
+#include "proto_thermostat_api_request_serializer.hpp"
+#include "proto_thermostat_api_response_serializer.hpp"
 #include "ring_queue.hpp"
 #include "thermostat_app.hpp"
 #include "thermostat_controller.hpp"
-#include "package_utils.hpp"
-#include "proto_thermostat_api_request_serializer.hpp"
 
 using namespace host;
 using namespace service;
@@ -38,21 +39,21 @@ TEST(ut_thermostat_app, run_once_sanity) {
 	const auto test_request = ApiRequest(ApiRequest::RequestType::GET_TEMP);
 	const auto queue_size = 10UL;
 	auto queue = ipc::RingQueue<std::uint8_t, queue_size>();
-	const auto package_size_retriever = [](const ipc::IpcQueue<std::uint8_t>&) -> std::size_t {
-		throw std::runtime_error("NOT IMPLEMENTED");
+	const auto package_size_retriever = [](const ipc::IpcQueue<std::uint8_t>& package_size_data) -> std::size_t {
+		std::vector<std::uint8_t> package_size_data_vector(HSIZE, 0);
+		for (std::size_t i = 0; i < HSIZE; ++i) {
+			package_size_data_vector[i] = package_size_data.inspect(i);
+		}
+		return ipc::parse_package_size(package_size_data_vector);
 	};
-	const auto header_generator = [](const std::vector<std::uint8_t>&, const std::size_t&) -> std::vector<std::uint8_t> {
-		throw std::runtime_error("NOT IMPLEMENTED");
+	const auto header_generator = [](const std::vector<std::uint8_t>& payload, const std::size_t& header_size) -> std::vector<std::uint8_t> {
+		return ipc::serialize_package_size(payload.size(), header_size);
 	};
-	const auto raw_data_writer = [](const std::vector<std::uint8_t>&) {
-		throw std::runtime_error("NOT IMPLEMENTED");
+	const auto raw_data_writer = [](const std::vector<std::uint8_t>& raw_data) {
+		(void)raw_data;
 	};
-	const auto api_request_parser = [](const std::vector<std::uint8_t>&) -> ApiRequest {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
-	const auto api_response_serializer = [](const ApiResponse&) -> std::vector<std::uint8_t> {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
+	const auto api_request_parser = ipc::ApiRequestParser();
+	const auto api_response_serializer = ipc::ApiResponseSerializer();
 	auto controller = NiceMock<MockThermostatController>();
 
 	// WHEN
