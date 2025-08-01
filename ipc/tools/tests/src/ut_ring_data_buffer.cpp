@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
 
-#include "ring_data_buffer.hpp"
+#include "ring_queue.hpp"
 
 using namespace ipc;
 
-TEST(ut_ring_data_buffer, sanity) {
+TEST(ut_ring_queue, sanity) {
 	// GIVEN
 	const auto buff_size = 3UL;
 	using TestBuffer = RingDataBuffer<char, buff_size>;

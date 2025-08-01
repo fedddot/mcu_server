@@ -5,7 +5,7 @@
 #include "gmock/gmock.h"
 #include <vector>
 
-#include "ring_data_buffer.hpp"
+#include "ring_queue.hpp"
 #include "thermostat_host_builder.hpp"
 #include "thermostat_controller.hpp"
 #include "thermostat_service.hpp"

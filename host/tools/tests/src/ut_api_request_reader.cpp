@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 
 #include "api_request_reader.hpp"
-#include "ring_data_buffer.hpp"
+#include "ring_queue.hpp"
 
 using namespace host_tools;
 using ApiRequest = std::string;

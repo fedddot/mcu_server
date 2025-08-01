@@ -1,12 +1,12 @@
 add_executable(
 	ipc_tools_tests
 	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/ut_ring_data_buffer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_ring_queue.cpp
 )
 
 target_link_libraries(
 	ipc_tools_tests
 	PRIVATE
-	ring_data_buffer
+	ring_queue
 	gtest
 )

@@ -8,7 +8,7 @@ target_link_libraries(
 	host_tools_tests
 	PRIVATE
 	api_request_reader
-	ring_data_buffer
+	ring_queue
 	
 	gtest
 	gmock
