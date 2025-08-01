@@ -1,5 +1,7 @@
-#include "gtest/gtest.h"
 #include <cstdint>
+
+#include "gtest/gtest.h"
+
 #include "pb.h"
 #include "pb_encode.h"
 
@@ -9,7 +11,7 @@
 
 using namespace ipc;
 using namespace service;
-using RawData = std::vector<char>;
+using RawData = std::vector<std::uint8_t>;
 
 static RawData serialize_thermostat_request(const ThermostatApiRequest& request);
 
@@ -59,5 +61,5 @@ inline RawData serialize_thermostat_request(const ThermostatApiRequest& request)
 	if (!pb_encode(&ostream, service_api_ThermostatApiRequest_fields, &pb_request)) {
 		throw std::runtime_error("Failed to encode ThermostatApiRequest to raw data");
 	}
-	return RawData((const char *)buffer, (const char *)(buffer + ostream.bytes_written));
+	return RawData((const std::uint8_t *)buffer, (const std::uint8_t *)(buffer + ostream.bytes_written));
 }
