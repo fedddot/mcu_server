@@ -39,7 +39,6 @@ target_link_libraries(
     api_response_writer
     INTERFACE
     ipc_data_writer
-    ipc_queue
     package_writer
 )
 

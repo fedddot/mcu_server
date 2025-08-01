@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <optional>
 #include <stdexcept>
 #include <vector>
 
@@ -15,36 +14,28 @@ namespace ipc {
 	template <typename ApiResponse, std::size_t HSIZE>
 	class ApiResponseWriter: public DataWriter<ApiResponse> {
 	public:
-		using SizeRetriever = typename PackageWriter<HSIZE>::HeaderGenerator;
-		using ApiResponseParser = std::function<ApiResponse(const std::vector<std::uint8_t>&)>;
+		using HeaderGenerator = typename PackageWriter<HSIZE>::HeaderGenerator;
+		using RawDataWriter = typename PackageWriter<HSIZE>::RawDataWriter;
+		using ApiResponseSerializer = std::function<std::vector<std::uint8_t>(const ApiResponse&)>;
 
 		ApiResponseWriter(
-			IpcQueue<std::uint8_t> *queue_ptr,
-			const SizeRetriever& size_retriever,
-			const ApiResponseParser& request_parser
-		): m_queue_ptr(queue_ptr), m_package_writer(queue_ptr, size_retriever), m_request_parser(request_parser) {
-			if (!m_queue_ptr || !m_request_parser) {
+			const HeaderGenerator& header_generator,
+			const RawDataWriter& raw_data_writer,
+			const ApiResponseSerializer& response_serializer
+		): m_package_writer(header_generator, raw_data_writer), m_response_serializer(response_serializer) {
+			if (!m_response_serializer) {
 				throw std::invalid_argument("invalid args received");
 			}
 		}
 		ApiResponseWriter(const ApiResponseWriter&) = default;
 		ApiResponseWriter& operator=(const ApiResponseWriter&) = default;
-		std::optional<ApiResponse> read() const override {
-			try {
-				auto package_data = m_package_writer.read();
-				if (!package_data) {
-					return std::nullopt;
-				}
-				return m_request_parser(*package_data);
-			} catch (...) {
-				m_queue_ptr->clear();
-				throw;
-			}
+		void write(const ApiResponse& response) const override {
+			const auto package_data = m_response_serializer(response);
+			m_package_writer.write(package_data);
 		}
 	private:
-		IpcQueue<std::uint8_t> *m_queue_ptr;
 		PackageWriter<HSIZE> m_package_writer;
-		ApiResponseParser m_request_parser;
+		ApiResponseSerializer m_response_serializer;
 	};
 }
 
