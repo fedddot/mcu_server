@@ -8,11 +8,9 @@ target_link_libraries(
 	host_tests
 	PRIVATE
     host
-    host_instance
-    ipc_data_reader
-    ipc_instance
-    test_ipc_data_reader
-    test_ipc_data_writer
-    test_vendor
-	gtest
+    test_service
+	test_ipc_data_reader
+	test_ipc_data_writer
+
+    gtest
 )

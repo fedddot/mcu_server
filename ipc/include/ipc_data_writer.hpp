@@ -2,11 +2,11 @@
 #define	IPC_DATA_WRITER_HPP
 
 namespace ipc {
-	template <typename IpcData>
-	class IpcDataWriter {
+	template <typename Data>
+	class DataWriter {
 	public:
-		virtual ~IpcDataWriter() noexcept = default;
-		virtual void write(const IpcData& data) const = 0;
+		virtual ~DataWriter() noexcept = default;
+		virtual void write(const Data& data) const = 0;
 	};
 }
 

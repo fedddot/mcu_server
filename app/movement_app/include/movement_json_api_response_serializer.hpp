@@ -3,7 +3,7 @@
 
 #include <string>
 #include "json/value.h"
-#include "movement_vendor_api_response.hpp"
+#include "movement_service_api_response.hpp"
 
 namespace ipc {
     class MovementJsonApiResponseSerializer {
@@ -13,13 +13,13 @@ namespace ipc {
         MovementJsonApiResponseSerializer& operator=(const MovementJsonApiResponseSerializer&) = default;
         virtual ~MovementJsonApiResponseSerializer() noexcept = default;
 
-        Json::Value operator()(const vendor::MovementVendorApiResponse& response) const;
+        Json::Value operator()(const service::MovementApiResponse& response) const;
     };
 
-    inline Json::Value MovementJsonApiResponseSerializer::operator()(const vendor::MovementVendorApiResponse& response) const {
-        const auto result_mapping = std::map<vendor::MovementVendorApiResponse::Result, std::string>{
-            {vendor::MovementVendorApiResponse::Result::SUCCESS, "SUCCESS"},
-            {vendor::MovementVendorApiResponse::Result::FAILURE, "FAILURE"},
+    inline Json::Value MovementJsonApiResponseSerializer::operator()(const service::MovementApiResponse& response) const {
+        const auto result_mapping = std::map<service::MovementApiResponse::Result, std::string>{
+            {service::MovementApiResponse::Result::SUCCESS, "SUCCESS"},
+            {service::MovementApiResponse::Result::FAILURE, "FAILURE"},
         };
         Json::Value json;
         json["status"] = result_mapping.at(response.result());

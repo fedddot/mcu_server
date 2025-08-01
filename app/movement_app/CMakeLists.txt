@@ -8,7 +8,7 @@ target_link_libraries(
     ipc_instance
     movement_manager_data
     movement_manager_vector
-    movement_vendor_api_request
+    movement_api_request
     rotation_movement_request
     jsoncpp_static
 )
@@ -18,7 +18,7 @@ target_include_directories(movement_json_api_response_serializer INTERFACE ${CMA
 target_link_libraries(
     movement_json_api_response_serializer
     INTERFACE
-    movement_vendor_api_response
+    movement_service_api_response
     jsoncpp_static
 )
 
@@ -32,8 +32,8 @@ target_link_libraries(
     ipc_data_reader
     ipc_data_writer
     movement_manager
-    movement_vendor_api_request
-    movement_vendor_api_response
+    movement_api_request
+    movement_service_api_response
     raw_data_package_reader
     raw_data_package_writer
     api_request_reader_builder
@@ -61,7 +61,7 @@ target_link_libraries(
     movement_json_api_request_parser
     movement_json_api_response_serializer
     movement_manager_data
-    movement_vendor_api_response
+    movement_service_api_response
     file_raw_data_reader
 )
 

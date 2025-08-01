@@ -1,17 +1,16 @@
-#ifndef	IPC_DATA_READER_HPP
-#define	IPC_DATA_READER_HPP
-
-#include <optional>
-
-#include "ipc_instance.hpp"
+#ifndef	DATA_READER_HPP
+#define	DATA_READER_HPP
 
 namespace ipc {
-	template <typename IpcData>
-	class IpcDataReader {
+	template <typename Signature>
+	class DataReader;
+
+	template <typename Result, typename... Args>
+	class DataReader<Result(Args...)> {
 	public:
-		virtual ~IpcDataReader() noexcept = default;
-		virtual std::optional<Instance<IpcData>> read() = 0;
+		virtual ~DataReader() noexcept = default;
+		virtual Result read(Args...) const = 0;
 	};
 }
 
-#endif // IPC_DATA_READER_HPP
+#endif // DATA_READER_HPP

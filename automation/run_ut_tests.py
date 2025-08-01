@@ -18,16 +18,10 @@ subprocess.run(["cmake", ".."], cwd=build_path).check_returncode()
 
 uts = [
     "host_tests",
-    "ipc_tests",
-    "json_data_tests",
-    "movement_app_tests",
-    "movement_manager_tests",
-    "movement_vendor_tests",
-    "raw_data_package_tests",
-    "thermostat_manager_tests",
-    "thermostat_vendor_tests",
+    "ipc_tools_tests",
     "thermostat_app_tests",
     "thermostat_proto_tests",
+    "thermostat_service_tests",
 ]
 
 def find_executable(name, path):
