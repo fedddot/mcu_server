@@ -31,8 +31,8 @@ namespace host {
 		
 		void run_once();
 	private:
-		ApiRequestReader *m_api_request_reader_ptr;
-		ApiResponseWriter *m_api_response_writer_ptr;
+		const ApiRequestReader *m_api_request_reader_ptr;
+		const ApiResponseWriter *m_api_response_writer_ptr;
 		FailureReporter m_failure_reporter;
 		ServiceInstance *m_service_ptr;
 	};

@@ -6,8 +6,11 @@
 #include "ipc_data_reader.hpp"
 
 namespace ipc {
+	template <typename Signature>
+	class TestIpcDataReader;
+
 	template <typename Result, typename... Args>
-	class TestIpcDataReader: public DataReader<Result(Args...)> {
+	class TestIpcDataReader<Result(Args...)>: public DataReader<Result(Args...)> {
 	public:
 		using Action = std::function<Result(Args...)>;
 		TestIpcDataReader(const Action& action): m_action(action) {
