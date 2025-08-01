@@ -47,7 +47,7 @@ namespace ipc {
 				return package_data;
 			} catch (...) {
 				m_queue_ptr->clear();
-				return std::nullopt;
+				throw;
 			}
 		}
 	private:
