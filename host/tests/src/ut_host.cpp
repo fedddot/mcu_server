@@ -7,9 +7,12 @@
 
 #include "host.hpp"
 #include "test_service.hpp"
+#include "test_ipc_data_reader.hpp"
+#include "test_ipc_data_writer.hpp"
 
 using namespace service;
 using namespace host;
+using namespace ipc;
 
 using ApiRequest = std::string;
 using ApiResponse = int;
@@ -17,9 +20,11 @@ using TestHost = Host<ApiRequest, ApiResponse>;
 
 TEST(ut_host, ctor_dtor_sanity) {
 	// GIVEN
-	const auto ipc_data_reader = []()-> std::optional<ApiRequest> {
-		throw std::runtime_error("NOT IMPLEMENTED");
-	};
+	const auto ipc_data_reader = TestIpcDataReader<std::optional<ApiRequest>(void)>(
+		[](void) -> std::optional<ApiRequest> {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
+	);
 	const auto ipc_data_writer = [](const ApiResponse&){
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
