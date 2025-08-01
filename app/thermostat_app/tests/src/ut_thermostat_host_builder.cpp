@@ -66,7 +66,6 @@ TEST(ut_thermostat_host_builder, build_sanity) {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
 	auto controller = NiceMock<MockThermostatController>();
-	auto service = ThermostatService(&controller);
 	
 	// WHEN
 	ThermostatApp<HSIZE> instance;
@@ -76,7 +75,8 @@ TEST(ut_thermostat_host_builder, build_sanity) {
 		.set_api_response_serializer(api_response_serializer)
 		.set_header_generator(header_generator)
 		.set_raw_data_writer(raw_data_writer)
-		.set_raw_data_queue(&queue);
+		.set_raw_data_queue(&queue)
+		.set_thermostat_controller(&controller);
 
 	// THEN
 	ASSERT_NO_THROW(

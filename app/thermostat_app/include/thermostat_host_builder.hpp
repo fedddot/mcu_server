@@ -14,6 +14,7 @@
 #include "ipc_queue.hpp"
 #include "thermostat_api_request.hpp"
 #include "thermostat_api_response.hpp"
+#include "thermostat_controller.hpp"
 #include "thermostat_service.hpp"
 
 namespace host {
@@ -29,10 +30,10 @@ namespace host {
 		using HeaderGenerator = typename ipc::ApiResponseWriter<ApiResponse, HSIZE>::HeaderGenerator;
 		using RawDataWriter = typename ipc::ApiResponseWriter<ApiResponse, HSIZE>::RawDataWriter;
 		
-		using Service = Host<ApiRequest, ApiResponse>::ServiceInstance;
 		using RawDataQueue = ipc::IpcQueue<std::uint8_t>;
+		using ThermostatController = service::ThermostatController;
 		
-		ThermostatApp(): m_api_request_reader(std::nullopt), m_api_response_writer(std::nullopt), m_service(std::nullopt), m_raw_queue(nullptr) {}
+		ThermostatApp(): m_api_request_reader(std::nullopt), m_api_response_writer(std::nullopt), m_service(std::nullopt), m_raw_queue(nullptr), m_controller_ptr(nullptr) {}
 		ThermostatApp(const ThermostatApp&) = default;
 		ThermostatApp& operator=(const ThermostatApp&) = default;
 		virtual ~ThermostatApp() noexcept = default;
@@ -40,17 +41,18 @@ namespace host {
 		void build() {
 			build_reader();
 			build_writer();
-			// return Host<ApiRequest, ApiResponse>(
-			// 	api_request_reader,
-			// 	api_response_writer,
-			// 	[](const std::exception& e) {
-			// 		return ApiResponse(
-			// 			ApiResponse::Result::FAILURE,
-			// 			std::string("an exception caught at host: ") + std::string(e.what())
-			// 		);
-			// 	},
-			// 	m_service_ptr
-			// );
+			m_service.emplace(m_controller_ptr);
+			m_host.emplace(
+				&m_api_request_reader.value(),
+				&m_api_response_writer.value(),
+				[](const std::exception& e) {
+					return ApiResponse(
+						ApiResponse::Result::FAILURE,
+						std::string("an exception caught at host: ") + std::string(e.what())
+					);
+				},
+				&m_service.value()
+			);
 		}
 		ThermostatApp& set_package_size_retriever(const SizeRetriever& size_retriever) {
 			m_size_retriever = size_retriever;
@@ -76,6 +78,10 @@ namespace host {
 			m_raw_queue = raw_data_queue_ptr;
 			return std::ref(*this);
 		}
+		ThermostatApp& set_thermostat_controller(ThermostatController *controller_ptr) {
+			m_controller_ptr = controller_ptr;
+			return std::ref(*this);
+		}
 	private:
 		SizeRetriever m_size_retriever;
 		ApiRequestParser m_api_request_parser;
@@ -83,10 +89,12 @@ namespace host {
 		HeaderGenerator m_header_generator;
 		RawDataWriter m_raw_writer;
 		RawDataQueue *m_raw_queue;
+		ThermostatController *m_controller_ptr;
 		
 		std::optional<ipc::ApiRequestReader<ApiRequest, HSIZE>> m_api_request_reader;
 		std::optional<ipc::ApiResponseWriter<ApiResponse, HSIZE>> m_api_response_writer;
 		std::optional<service::ThermostatService> m_service;
+		std::optional<Host<ApiRequest, ApiResponse>> m_host;
 		
 		void build_reader() {
 			if (!m_raw_queue || !m_size_retriever || !m_api_request_parser) {
