@@ -12,5 +12,6 @@ target_link_libraries(
 	ring_queue
 	package_reader
 	api_request_reader
+	package_utils
 	gtest
 )

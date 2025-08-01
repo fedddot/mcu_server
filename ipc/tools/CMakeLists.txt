@@ -12,7 +12,7 @@ target_link_libraries(
     package_reader
     INTERFACE
     ipc_data_reader
-    package_header
+    ipc_queue
 )
 
 add_library(api_request_reader INTERFACE)
