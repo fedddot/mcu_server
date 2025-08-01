@@ -9,13 +9,13 @@
 
 namespace ipc {
 	template <typename T, std::size_t N>
-	class RingDataBuffer: public IpcQueue<T> {
+	class RingQueue: public IpcQueue<T> {
 	public:
-		RingDataBuffer(): m_data{}, m_read_index(0), m_write_index(0), m_size(0) {
+		RingQueue(): m_data{}, m_read_index(0), m_write_index(0), m_size(0) {
 
 		}
-		RingDataBuffer(const RingDataBuffer&) = delete;
-		RingDataBuffer& operator=(const RingDataBuffer&) = delete;
+		RingQueue(const RingQueue&) = delete;
+		RingQueue& operator=(const RingQueue&) = delete;
 
 		void enqueue(const T& elem) override {
 			if (m_size == N) {

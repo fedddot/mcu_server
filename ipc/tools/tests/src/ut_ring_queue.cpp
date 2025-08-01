@@ -7,7 +7,7 @@ using namespace ipc;
 TEST(ut_ring_queue, sanity) {
 	// GIVEN
 	const auto buff_size = 3UL;
-	using TestBuffer = RingDataBuffer<char, buff_size>;
+	using TestBuffer = RingQueue<char, buff_size>;
 	const char test_data[] {'a', 'b', 'c'};
 
 	// WHEN

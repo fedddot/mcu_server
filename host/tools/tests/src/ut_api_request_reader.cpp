@@ -15,7 +15,7 @@ TEST(ut_api_request_reader, sanity) {
 	const auto encoded_package_size_length = 2UL;
 	const auto buff_size = encoded_package_size_length + msg_size;
 	const auto test_request = ApiRequest("abc");
-	using TestBuffer = RingDataBuffer<std::uint8_t, buff_size>;
+	using TestBuffer = RingQueue<std::uint8_t, buff_size>;
 	
 	// WHEN
 	TestBuffer buffer;

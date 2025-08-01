@@ -20,7 +20,7 @@ using TestReader = ApiRequestReader<ApiRequest, HEADER_SIZE>;
 
 TEST(ut_api_request_reader, ctor_dtor_sanity) {
 	// GIVEN
-	auto buff = RingDataBuffer<std::uint8_t, RING_BUFF_SIZE>();
+	auto buff = RingQueue<std::uint8_t, RING_BUFF_SIZE>();
 	auto size_retriever = [](const IpcQueue<std::uint8_t>& queue) -> std::size_t {
 		throw std::runtime_error("size retriever not implemented");
 	};
@@ -61,7 +61,7 @@ TEST(ut_api_request_reader, read_sanity) {
 	const auto api_request_size_encoded = serialize_package_size(api_request.size(), HEADER_SIZE);
 	
 	// WHEN
-	auto buff = RingDataBuffer<std::uint8_t, RING_BUFF_SIZE>();
+	auto buff = RingQueue<std::uint8_t, RING_BUFF_SIZE>();
 	auto instance = TestReader(
 		&buff,
 		size_retriever,

@@ -10,6 +10,7 @@ target_link_libraries(
 	thermostat_host_builder
 	thermostat_controller
 	thermostat_service
+	ring_queue
 	
 	gtest
 	gmock

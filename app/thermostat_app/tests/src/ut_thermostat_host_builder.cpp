@@ -27,18 +27,18 @@ class MockTaskGuard : public ThermostatController::TaskGuard {
 };
 
 using RawData = std::string;
-const auto L = 2UL;
-using ApiRequest = ThermostatHostBuilder<L>::ApiRequest;
-using ApiResponse = ThermostatHostBuilder<L>::ApiResponse;
+const auto HSIZE = std::size_t(2UL);
+using ApiRequest = ThermostatApp<HSIZE>::ApiRequest;
+using ApiResponse = ThermostatApp<HSIZE>::ApiResponse;
 
 TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
 	// WHEN
-	ThermostatHostBuilder<L> *instance = nullptr;
+	ThermostatApp<HSIZE> *instance = nullptr;
 
 	// THEN
 	ASSERT_NO_THROW(
 		(
-			instance = new ThermostatHostBuilder<L>()
+			instance = new ThermostatApp<HSIZE>()
 		)
 	);
 	ASSERT_NO_THROW(delete instance);
@@ -47,8 +47,8 @@ TEST(ut_thermostat_host_builder, ctor_dtor_sanity) {
 
 TEST(ut_thermostat_host_builder, build_sanity) {
 	// GIVEN
-	const auto buffer_size = 10UL;
-	auto raw_data_buffer = host_tools::RingDataBuffer<std::uint8_t, buffer_size>();
+	const auto queue_size = 10UL;
+	auto queue = ipc::RingQueue<std::uint8_t, queue_size>();
 	const auto raw_data_writer = [](const std::vector<std::uint8_t>&) {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
@@ -62,18 +62,17 @@ TEST(ut_thermostat_host_builder, build_sanity) {
 	auto service = ThermostatService(&controller);
 	
 	// WHEN
-	ThermostatHostBuilder<L> instance;
+	ThermostatApp<HSIZE> instance;
 	instance
-		.set_raw_data_buffer(&raw_data_buffer)
+		.set_raw_data_queue(&queue)
 		.set_api_request_parser(api_request_parser)
 		.set_raw_data_writer(raw_data_writer)
-		.set_api_response_serializer(api_response_serializer)
-		.set_service(&service);
+		.set_api_response_serializer(api_response_serializer);
 
 	// THEN
 	ASSERT_NO_THROW(
 		{
-			const auto host = instance.build();
+			instance.build();
 		}
 	);
 }
