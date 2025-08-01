@@ -54,7 +54,7 @@ TEST(ut_api_request_reader, read_sanity) {
 		return parse_package_size(size_data);
 	};
 	auto request_parser = [](const std::vector<std::uint8_t>& data) -> ApiRequest {
-		throw std::runtime_error("request parser not implemented");
+		return ApiRequest(data.begin(), data.end());
 	};
 	
 	const auto api_request = std::string("test_msg");
