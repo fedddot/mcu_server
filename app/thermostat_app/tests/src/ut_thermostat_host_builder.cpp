@@ -5,6 +5,7 @@
 #include "gmock/gmock.h"
 #include <vector>
 
+#include "ipc_queue.hpp"
 #include "ring_queue.hpp"
 #include "thermostat_host_builder.hpp"
 #include "thermostat_controller.hpp"
@@ -49,6 +50,12 @@ TEST(ut_thermostat_host_builder, build_sanity) {
 	// GIVEN
 	const auto queue_size = 10UL;
 	auto queue = ipc::RingQueue<std::uint8_t, queue_size>();
+	const auto package_size_retriever = [](const ipc::IpcQueue<std::uint8_t>&) -> std::size_t {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
+	const auto header_generator = [](const std::vector<std::uint8_t>&, const std::size_t&) -> std::vector<std::uint8_t> {
+		throw std::runtime_error("NOT IMPLEMENTED");
+	};
 	const auto raw_data_writer = [](const std::vector<std::uint8_t>&) {
 		throw std::runtime_error("NOT IMPLEMENTED");
 	};
@@ -64,10 +71,12 @@ TEST(ut_thermostat_host_builder, build_sanity) {
 	// WHEN
 	ThermostatApp<HSIZE> instance;
 	instance
-		.set_raw_data_queue(&queue)
+		.set_package_size_retriever(package_size_retriever)
 		.set_api_request_parser(api_request_parser)
+		.set_api_response_serializer(api_response_serializer)
+		.set_header_generator(header_generator)
 		.set_raw_data_writer(raw_data_writer)
-		.set_api_response_serializer(api_response_serializer);
+		.set_raw_data_queue(&queue);
 
 	// THEN
 	ASSERT_NO_THROW(
