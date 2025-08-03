@@ -7,7 +7,7 @@
 
 namespace ipc {
 	template <typename IpcData>
-	class TestIpcDataWriter: public IpcDataWriter<IpcData> {
+	class TestIpcDataWriter: public DataWriter<IpcData> {
 	public:
 		using Action = std::function<void(const IpcData&)>;
 		TestIpcDataWriter(const Action& action): m_action(action) {

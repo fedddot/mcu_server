@@ -1,0 +1,19 @@
+add_executable(
+	ipc_tools_tests
+	${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_ring_queue.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_package_reader.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_api_request_reader.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/ut_api_response_writer.cpp
+)
+
+target_link_libraries(
+	ipc_tools_tests
+	PRIVATE
+	ring_queue
+	package_reader
+	api_request_reader
+	api_response_writer
+	package_utils
+	gtest
+)
