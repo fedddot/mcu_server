@@ -1,4 +1,4 @@
-FROM gcc:bookworm AS builder
+FROM debian:bookworm-slim AS builder
 
 ARG DEBIAN_FRONTEND=noninteractive
 
