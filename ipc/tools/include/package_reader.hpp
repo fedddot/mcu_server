@@ -59,7 +59,7 @@ namespace ipc {
 	private:
 		IpcQueue<std::uint8_t> *m_queue_ptr;
 		HeaderReader m_header_reader;
-		std::optional<Header> m_header;
+		mutable std::optional<Header> m_header;
 	};
 }
 
