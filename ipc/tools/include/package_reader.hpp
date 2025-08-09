@@ -3,47 +3,53 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <optional>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 #include "ipc_queue.hpp"
 #include "ipc_data_reader.hpp"
 
 namespace ipc {
-	template <std::size_t HSIZE>
+	template <typename Header, typename HeaderReader>
 	class PackageReader: public DataReader<std::optional<std::vector<std::uint8_t>>(void)> {
+		static_assert(std::is_base_of<DataReader<std::optional<Header>(IpcQueue<std::uint8_t> *)>, HeaderReader>::value, "HeaderReader is not inheriting from DataReader<std::optional<Header>(IpcQueue<std::uint8_t> *)>");
 	public:
-		using SizeRetriever = std::function<std::size_t(const IpcQueue<std::uint8_t>&)>;
 		PackageReader(
 			IpcQueue<std::uint8_t> *queue_ptr,
-			const SizeRetriever& size_retriever
-		): m_queue_ptr(queue_ptr), m_size_retriever(size_retriever) {
-			if (!m_queue_ptr || !m_size_retriever) {
-				throw std::invalid_argument("invalid args in package reader received");
+			HeaderReader&& header_reader
+		): m_queue_ptr(queue_ptr), m_header_reader(header_reader) {
+			if (!m_queue_ptr) {
+				throw std::invalid_argument("invalid bytes queue ptr received");
 			}
 		}
-		PackageReader(const PackageReader&) = default;
-		PackageReader& operator=(const PackageReader&) = default;
+		PackageReader(PackageReader&&) = default;
+		PackageReader(const PackageReader&) = delete;
+		PackageReader& operator=(const PackageReader&) = delete;
+		
 		std::optional<std::vector<std::uint8_t>> read() const override {
 			try {
-				if (m_queue_ptr->size() < HSIZE) {
+				if (!m_header) {
+					const auto header = m_header_reader.read(m_queue_ptr);
+					if (!header) {
+						return std::nullopt;
+					}
+					if (!header.value().validate()) {
+						m_queue_ptr->clear();
+						return std::nullopt;
+					}
+					m_header = header;
+				}
+				const auto data_size = m_header.value().data_size();
+				if (m_queue_ptr->size() < data_size) {
 					return std::nullopt;
 				}
-				const auto package_size = m_size_retriever(*m_queue_ptr);
-				if (m_queue_ptr->size() < package_size + HSIZE) {
-					return std::nullopt;
-				}
-				auto bytes_to_discard = HSIZE;
-				while (bytes_to_discard) {
-					m_queue_ptr->dequeue();
-					--bytes_to_discard;
-				}
-				std::vector<std::uint8_t> package_data(package_size, 0);
-				for (std::size_t i = 0; i < package_size; ++i) {
+				std::vector<std::uint8_t> package_data(data_size, 0);
+				for (std::size_t i = 0; i < data_size; ++i) {
 					package_data[i] = m_queue_ptr->dequeue();
 				}
+				m_header = std::nullopt;
 				return package_data;
 			} catch (...) {
 				m_queue_ptr->clear();
@@ -52,7 +58,8 @@ namespace ipc {
 		}
 	private:
 		IpcQueue<std::uint8_t> *m_queue_ptr;
-		SizeRetriever m_size_retriever;
+		HeaderReader m_header_reader;
+		std::optional<Header> m_header;
 	};
 }
 
