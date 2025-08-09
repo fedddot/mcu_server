@@ -39,7 +39,7 @@ private:
 
 class HeaderReader: public DataReader<std::optional<Header>(IpcQueue<std::uint8_t> *)> {
 public:
-	HeaderReader() = default;
+	HeaderReader(const std::string& expected_preamble): m_expected_preamble(expected_preamble) {}
 	HeaderReader(const HeaderReader&) = default;
 	HeaderReader(HeaderReader&&) = default;
 	HeaderReader& operator=(const HeaderReader&) = default;
@@ -56,8 +56,10 @@ public:
 		for (auto i = 0; i < HEADER_SIZE - PREAMBLE_SIZE; ++i) {
 			size_data[i] = buff_ptr->dequeue();
 		}
-		return Header(preamble, parse_package_size(size_data), PREAMBLE);
+		return Header(preamble, parse_package_size(size_data), m_expected_preamble);
 	}
+private:
+	std::string m_expected_preamble;
 };
 
 TEST(ut_package_reader, ctor_dtor_sanity) {
@@ -73,7 +75,7 @@ TEST(ut_package_reader, ctor_dtor_sanity) {
 		(
 			instance = new PackageReader<Header, HeaderReader>(
 				&buff,
-				HeaderReader()
+				HeaderReader(PREAMBLE)
 			)
 		)
 	);
@@ -98,7 +100,7 @@ TEST(ut_package_reader, read_sanity) {
 	auto buff = RingQueue<std::uint8_t, RING_BUFF_SIZE>();
 	auto instance = PackageReader<Header, HeaderReader>(
 		&buff,
-		HeaderReader()
+		HeaderReader(PREAMBLE)
 	);
 	auto result = std::optional<std::vector<std::uint8_t>>();
 
