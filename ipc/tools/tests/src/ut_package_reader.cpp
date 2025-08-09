@@ -48,7 +48,7 @@ public:
 		if (buff_ptr->size() < HEADER_SIZE) {
 			return std::nullopt;
 		}
-		std::string preamble(PREAMBLE_SIZE + 1UL, '\0');
+		std::string preamble(PREAMBLE_SIZE, '\0');
 		for (auto i = 0; i < PREAMBLE_SIZE; ++i) {
 			preamble[i] = buff_ptr->dequeue();
 		}
