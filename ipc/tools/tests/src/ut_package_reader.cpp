@@ -2,9 +2,9 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
-#include <vector>
 
 #include "ipc_data_reader.hpp"
 #include "ipc_queue.hpp"
