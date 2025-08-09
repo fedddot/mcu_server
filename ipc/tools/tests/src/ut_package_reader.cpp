@@ -1,7 +1,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
-#include <stdexcept>
 #include <string>
 
 #include "gtest/gtest.h"
