@@ -22,6 +22,12 @@ namespace provider {
 
 		/// @brief Stops PWM output
 		virtual void stop() = 0;
+
+		/// @brief Checks if PWM output is currently active
+		/// 
+		/// @return true if PWM is currently generating a signal
+		/// @return false if PWM output is stopped
+		virtual bool running() const = 0;
 	};
 }
 
