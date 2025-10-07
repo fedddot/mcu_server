@@ -37,9 +37,15 @@ namespace service {
 	private:
 		provider::PwmController *m_pwm_controller;
 
-		MotorDriveServiceApiResponse<Status> run_start_request(const MotorDriveServiceApiRequest& request);
-		MotorDriveServiceApiResponse<Status> run_stop_request(const MotorDriveServiceApiRequest& request);
-		MotorDriveServiceApiResponse<Status> run_get_request(const MotorDriveServiceApiRequest& request);
+		MotorDriveServiceApiResponse<Status> run_start_request(const MotorDriveServiceApiRequest& request) {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
+		MotorDriveServiceApiResponse<Status> run_stop_request(const MotorDriveServiceApiRequest& request) {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
+		MotorDriveServiceApiResponse<Status> run_get_request(const MotorDriveServiceApiRequest& request) {
+			throw std::runtime_error("NOT IMPLEMENTED");
+		}
 	};
 }
 
