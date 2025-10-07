@@ -14,8 +14,6 @@ namespace provider {
 	/// @brief Abstract interface for controlling PWM outputs
 	class PwmController: public Provider {
 	public:
-		virtual ~PwmController() noexcept = default;
-
 		/// @brief Starts PWM output with the specified duty cycle
 		/// 
 		/// @param duty_cycle The desired duty cycle in percent (0.0 to 100.0)
