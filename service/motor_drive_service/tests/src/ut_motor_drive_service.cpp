@@ -56,8 +56,8 @@ TEST(ut_motor_drive_service, run_api_request_sanity) {
 	};
 
 	// WHEN:
-	auto pwm_ctrl = MockMotorDriveController();
-	MotorDriveService<TestStatus> service(&pwm_ctrl, max_speed);
+	auto drive_ctrl = MockMotorDriveController();
+	MotorDriveService<TestStatus> service(&drive_ctrl, max_speed);
 	
 	// THEN:
 	for (const auto& test_request: test_requests) {
