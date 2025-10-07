@@ -1,6 +1,7 @@
 #ifndef	MOTOR_DRIVE_SERVICE_HPP
 #define	MOTOR_DRIVE_SERVICE_HPP
 
+#include <optional>
 #include <stdexcept>
 
 #include "motor_drive_service_api_request.hpp"
@@ -22,10 +23,23 @@ namespace service {
 		MotorDriveService(const MotorDriveService&) = delete;
 		MotorDriveService& operator=(const MotorDriveService&) = delete;
 		MotorDriveServiceApiResponse<Status> run_api_request(const MotorDriveServiceApiRequest& request) override {
-			throw std::runtime_error("NOT IMPLEMENTED");
+			switch (request.type()) {
+			case service::MotorDriveServiceApiRequest::Type::START:
+				return run_start_request(request);
+			case service::MotorDriveServiceApiRequest::Type::STOP:
+				return run_stop_request(request);
+			case service::MotorDriveServiceApiRequest::Type::STATUS:
+				return run_get_request(request);
+			default:
+				return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::BAD_REQUEST, std::nullopt);
+			}
 		}
 	private:
 		provider::PwmController *m_pwm_controller;
+
+		MotorDriveServiceApiResponse<Status> run_start_request(const MotorDriveServiceApiRequest& request);
+		MotorDriveServiceApiResponse<Status> run_stop_request(const MotorDriveServiceApiRequest& request);
+		MotorDriveServiceApiResponse<Status> run_get_request(const MotorDriveServiceApiRequest& request);
 	};
 }
 
