@@ -23,9 +23,19 @@ using TestStatus = std::string;
 
 class MockPwmController : public PwmController {
 public:
-    MOCK_METHOD(void, start, (const double), (override));
-	MOCK_METHOD(void, stop, (), (override));
-	MOCK_METHOD(bool, running, (), (const override));
+	MockPwmController(): m_running(false) {}
+	void start(const double duty_cycle) override {
+		(void)(duty_cycle);
+		m_running = true;
+	}
+	void stop() override {
+		m_running = false;
+	}
+	bool running() const override {
+		return m_running;
+	}
+private:
+	bool m_running;
 };
 
 class MockDigitalOutputController : public DigitalOutputController {
@@ -52,7 +62,7 @@ TEST(ut_motor_drive_service, run_api_request_sanity) {
 	};
 
 	// WHEN:
-	auto pwm_ctrl = testing::NiceMock<MockPwmController>();
+	auto pwm_ctrl = MockPwmController();
 	auto dir_ctrl = testing::NiceMock<MockDigitalOutputController>();
 	MotorDriveService<TestStatus> service(&pwm_ctrl, &dir_ctrl, max_speed, dir_states_mapping);
 	

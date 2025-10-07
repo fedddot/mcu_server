@@ -70,7 +70,7 @@ namespace service {
 			return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::SUCCESS, std::nullopt);
 		}
 		MotorDriveServiceApiResponse<Status> run_get_request(const MotorDriveServiceApiRequest& request) {
-			throw std::runtime_error("NOT IMPLEMENTED");
+			return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::FAILURE, std::nullopt);
 		}
 	};
 }
