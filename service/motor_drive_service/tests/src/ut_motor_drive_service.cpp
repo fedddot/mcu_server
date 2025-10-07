@@ -1,6 +1,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include <map>
+#include <vector>
 
 #include "digital_output_controller.hpp"
 #include "motor_drive_service.hpp"
@@ -36,7 +37,11 @@ TEST(ut_motor_drive_service, run_api_request_sanity) {
 		{ Direction::CW, DigitalOutputController::State::LOW },
 		{ Direction::CCW, DigitalOutputController::State::HIGH },
 	};
-	const MotorDriveServiceApiRequest test_request(MotorDriveServiceApiRequest::Type::START, test_speed, test_dir);
+	const auto test_requests = std::vector<MotorDriveServiceApiRequest> {
+		MotorDriveServiceApiRequest(MotorDriveServiceApiRequest::Type::START, test_speed, test_dir),
+		MotorDriveServiceApiRequest(MotorDriveServiceApiRequest::Type::STOP),
+		MotorDriveServiceApiRequest(MotorDriveServiceApiRequest::Type::STATUS),
+	};
 
 	// WHEN:
 	auto pwm_ctrl = testing::NiceMock<MockPwmController>();
@@ -44,6 +49,8 @@ TEST(ut_motor_drive_service, run_api_request_sanity) {
 	MotorDriveService<TestStatus> service(&pwm_ctrl, &dir_ctrl, max_speed, dir_states_mapping);
 	
 	// THEN:
-	const auto response = service.run_api_request(test_request);
-	ASSERT_EQ(response.result(), MotorDriveServiceApiResponse<TestStatus>::Result::SUCCESS);
+	for (const auto& test_request: test_requests) {
+		const auto response = service.run_api_request(test_request);
+		ASSERT_EQ(response.result(), MotorDriveServiceApiResponse<TestStatus>::Result::SUCCESS);
+	}
 }
