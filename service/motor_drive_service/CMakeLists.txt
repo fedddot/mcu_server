@@ -18,6 +18,7 @@ target_link_libraries(
     motor_drive_service_api_request
     motor_drive_service_api_response
     pwm_controller
+    digital_output_controller
 )
 
 if(BUILD_TESTS)
