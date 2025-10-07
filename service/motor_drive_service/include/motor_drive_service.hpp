@@ -57,7 +57,7 @@ namespace service {
 			return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::SUCCESS, std::nullopt);
 		}
 		MotorDriveServiceApiResponse<Status> run_get_request(const MotorDriveServiceApiRequest& request) {
-			return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::FAILURE, std::nullopt);
+			return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::SUCCESS, m_motor_drive_controller->status());
 		}
 	};
 }

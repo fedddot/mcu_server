@@ -1,12 +1,10 @@
 #include <iostream>
-#include <map>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include "motor_drive_controller.hpp"
