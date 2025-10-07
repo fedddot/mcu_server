@@ -1,34 +1,24 @@
 #ifndef	MOTOR_DRIVE_SERVICE_HPP
 #define	MOTOR_DRIVE_SERVICE_HPP
 
-#include <map>
 #include <optional>
 #include <stdexcept>
 
+#include "motor_drive_controller.hpp"
 #include "motor_drive_service_api_request.hpp"
 #include "motor_drive_service_api_response.hpp"
-#include "motor_drive_service_types.hpp"
 #include "service.hpp"
-#include "pwm_controller.hpp"
-#include "digital_output_controller.hpp"
 
 namespace service {
 	template <typename Status>
 	class MotorDriveService: public Service<MotorDriveServiceApiRequest, MotorDriveServiceApiResponse<Status>> {
 	public:
 		MotorDriveService(
-			provider::PwmController *pwm_controller,
-			provider::DigitalOutputController *direction_controller,
-			const double max_speed,
-			const std::map<Direction, provider::DigitalOutputController::State>& direction_controller_state_mapping
-		): m_pwm_controller(pwm_controller), m_direction_controller(direction_controller), m_max_speed(max_speed), m_direction_controller_state_mapping(direction_controller_state_mapping) {
-			if (!m_pwm_controller || !m_direction_controller || (m_max_speed <= 0)) {
+			MotorDriveController<Status> *motor_drive_controller,
+			const double max_speed
+		): m_motor_drive_controller(motor_drive_controller), m_max_speed(max_speed) {
+			if (!m_motor_drive_controller || (m_max_speed <= 0)) {
 				throw std::invalid_argument("MotorDriveService ctor: invalid arguments");
-			}
-			for (const auto& dir: {Direction::CW, Direction::CCW}) {
-				if (m_direction_controller_state_mapping.end() == m_direction_controller_state_mapping.find(dir)) {
-					throw std::invalid_argument("MotorDriveService ctor: missing state mapping for one of directions");
-				}
 			}
 		}
 		MotorDriveService(const MotorDriveService&) = delete;
@@ -46,26 +36,23 @@ namespace service {
 			}
 		}
 	private:
-		provider::PwmController *m_pwm_controller;
-		provider::DigitalOutputController *m_direction_controller;
+		MotorDriveController<Status> *m_motor_drive_controller;
 		const double m_max_speed;
-		const std::map<Direction, provider::DigitalOutputController::State> m_direction_controller_state_mapping;
 		MotorDriveServiceApiResponse<Status> run_start_request(const MotorDriveServiceApiRequest& request) {
 			if (!request.speed().has_value() || !request.direction().has_value()) {
 				return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::BAD_REQUEST, std::nullopt);
 			}
-			if (m_pwm_controller->running()) {
-				m_pwm_controller->stop();
+			if (m_motor_drive_controller->enabled()) {
+				m_motor_drive_controller->disable();
 			}
-			const auto pwm_value = request.speed().value() / m_max_speed;
-			const auto direction_control_state = m_direction_controller_state_mapping.at(request.direction().value());
-			m_direction_controller->set(direction_control_state);
-			m_pwm_controller->start(pwm_value);
+			m_motor_drive_controller->set_duty_cycle(request.speed().value() / m_max_speed);
+			m_motor_drive_controller->set_direction(request.direction().value());
+			m_motor_drive_controller->enable();
 			return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::SUCCESS, std::nullopt);
 		}
 		MotorDriveServiceApiResponse<Status> run_stop_request(const MotorDriveServiceApiRequest& request) {
-			if (m_pwm_controller->running()) {
-				m_pwm_controller->stop();
+			if (m_motor_drive_controller->enabled()) {
+				m_motor_drive_controller->disable();
 			}
 			return MotorDriveServiceApiResponse<Status>(MotorDriveServiceApiResponse<Status>::Result::SUCCESS, std::nullopt);
 		}

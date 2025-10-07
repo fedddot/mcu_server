@@ -9,6 +9,10 @@ add_library(motor_drive_service_api_response INTERFACE)
 target_include_directories(motor_drive_service_api_response INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(motor_drive_service_api_response INTERFACE motor_drive_service_types)
 
+add_library(motor_drive_controller INTERFACE)
+target_include_directories(motor_drive_controller INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(motor_drive_controller INTERFACE motor_drive_service_types)
+
 add_library(motor_drive_service INTERFACE)
 target_include_directories(motor_drive_service INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
@@ -17,8 +21,7 @@ target_link_libraries(
     service
     motor_drive_service_api_request
     motor_drive_service_api_response
-    pwm_controller
-    digital_output_controller
+    motor_drive_controller
 )
 
 if(BUILD_TESTS)

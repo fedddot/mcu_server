@@ -9,39 +9,39 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "digital_output_controller.hpp"
+#include "motor_drive_controller.hpp"
 #include "motor_drive_service.hpp"
 #include "motor_drive_service_api_request.hpp"
 #include "motor_drive_service_api_response.hpp"
 #include "motor_drive_service_types.hpp"
-#include "pwm_controller.hpp"
 
 using namespace service;
-using namespace provider;
 
 using TestStatus = std::string;
 
-class MockPwmController : public PwmController {
+class MockMotorDriveController : public MotorDriveController<TestStatus> {
 public:
-	MockPwmController(): m_running(false) {}
-	void start(const double duty_cycle) override {
+	MockMotorDriveController(): m_running(false) {}
+	void set_duty_cycle(const double duty_cycle) override {
 		(void)(duty_cycle);
+	}
+	void set_direction(const Direction& direction) override {
+		(void)(direction);
+	}
+	void enable() override {
 		m_running = true;
 	}
-	void stop() override {
+	bool enabled() const override {
+		return m_running;
+	}
+	void disable() override {
 		m_running = false;
 	}
-	bool running() const override {
-		return m_running;
+	TestStatus status() const override {
+		return "ok";
 	}
 private:
 	bool m_running;
-};
-
-class MockDigitalOutputController : public DigitalOutputController {
-public:
-    MOCK_METHOD(void, set, (const DigitalOutputController::State&), (override));
-	MOCK_METHOD(DigitalOutputController::State, get, (), (const override));
 };
 
 static std::string request_to_str(const MotorDriveServiceApiRequest& request);
@@ -51,10 +51,6 @@ TEST(ut_motor_drive_service, run_api_request_sanity) {
 	const auto max_speed = double(15.0);
 	const auto test_speed = double(12.0);
 	const auto test_dir = Direction::CCW;
-	const auto dir_states_mapping = std::map<Direction, DigitalOutputController::State> {
-		{ Direction::CW, DigitalOutputController::State::LOW },
-		{ Direction::CCW, DigitalOutputController::State::HIGH },
-	};
 	const auto test_requests = std::vector<MotorDriveServiceApiRequest> {
 		MotorDriveServiceApiRequest(MotorDriveServiceApiRequest::Type::START, test_speed, test_dir),
 		MotorDriveServiceApiRequest(MotorDriveServiceApiRequest::Type::STOP),
@@ -62,9 +58,8 @@ TEST(ut_motor_drive_service, run_api_request_sanity) {
 	};
 
 	// WHEN:
-	auto pwm_ctrl = MockPwmController();
-	auto dir_ctrl = testing::NiceMock<MockDigitalOutputController>();
-	MotorDriveService<TestStatus> service(&pwm_ctrl, &dir_ctrl, max_speed, dir_states_mapping);
+	auto pwm_ctrl = MockMotorDriveController();
+	MotorDriveService<TestStatus> service(&pwm_ctrl, max_speed);
 	
 	// THEN:
 	for (const auto& test_request: test_requests) {
