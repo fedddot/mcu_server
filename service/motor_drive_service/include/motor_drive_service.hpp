@@ -6,6 +6,7 @@
 #include "motor_drive_service_api_request.hpp"
 #include "motor_drive_service_api_response.hpp"
 #include "service.hpp"
+#include "pwm_controller.hpp"
 
 namespace service {
 	template <typename Status>

@@ -17,6 +17,7 @@ target_link_libraries(
     service
     motor_drive_service_api_request
     motor_drive_service_api_response
+    pwm_controller
 )
 
 if(BUILD_TESTS)
