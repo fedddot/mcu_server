@@ -10,7 +10,8 @@ namespace service {
 	public:
 		enum class Result: int {
 			SUCCESS = 0,
-			FAILURE = 1
+			BAD_REQUEST = 1,
+			FAILURE = 2
 		};
 		MotorDriveServiceApiResponse(
 			const Result& result,

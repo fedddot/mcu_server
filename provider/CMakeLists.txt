@@ -1,6 +1,10 @@
 add_library(provider INTERFACE)
 target_include_directories(provider INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-add_library(pwm_controller INTERFACE)
-target_include_directories(pwm_controller INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(pwm_controller INTERFACE provider)
+add_library(digital_input_provider INTERFACE)
+target_include_directories(digital_input_provider INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(digital_input_provider INTERFACE provider)
+
+add_library(digital_output_provider INTERFACE)
+target_include_directories(digital_output_provider INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(digital_output_provider INTERFACE provider)
